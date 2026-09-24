@@ -11,6 +11,7 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         builder.ToTable("Usuarios", t =>
         {
             t.HasCheckConstraint("CK_Usuarios_Rol", "Rol IN (1, 2, 3)");
+            t.HasCheckConstraint("CK_Usuarios_IntentosFallidos", "IntentosFallidos >= 0");
         });
 
         builder.HasKey(u => u.Id);
@@ -47,6 +48,13 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         builder.Property(u => u.DebeCambiarPassword)
             .IsRequired()
             .HasDefaultValue(true);
+
+        builder.Property(u => u.IntentosFallidos)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.Property(u => u.BloqueadoHasta)
+            .IsRequired(false);
 
         builder.Property(u => u.CreadoEn)
             .IsRequired();

@@ -18,8 +18,8 @@ public class FormFactoryTests
             using var proveedor = services.BuildServiceProvider();
             var fabrica = proveedor.GetRequiredService<IFormFactory>();
 
-            using var form1 = fabrica.Crear<FrmPrincipal>();
-            using var form2 = fabrica.Crear<FrmPrincipal>();
+            using var form1 = fabrica.Crear<FormularioSimple>();
+            using var form2 = fabrica.Crear<FormularioSimple>();
 
             Assert.NotSame(form1, form2);
         });
@@ -46,6 +46,8 @@ public class FormFactoryTests
             Assert.True(servicioInyectado.FueDescartado);
         });
     }
+
+    private class FormularioSimple : Form { }
 
     private class ServicioDescartablePrueba : IDisposable
     {

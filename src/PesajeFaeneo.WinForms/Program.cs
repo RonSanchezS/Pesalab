@@ -131,11 +131,9 @@ public static class Program
                 seeder.SembrarAsync().GetAwaiter().GetResult();
             }
 
-            // 6. Ejecutar interfaz principal
-            var formFactory = host.Services.GetRequiredService<IFormFactory>();
-            var mainForm = formFactory.Crear<FrmPrincipal>();
-
-            WinFormsApp.Run(mainForm);
+            // 6. Ejecutar ciclo de aplicación con login y contexto de sesión
+            using var contexto = ActivatorUtilities.CreateInstance<ContextoAplicacion>(host.Services);
+            WinFormsApp.Run(contexto);
 
             host.StopAsync().GetAwaiter().GetResult();
             return 0;

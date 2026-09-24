@@ -1,3 +1,4 @@
+using PesajeFaeneo.Application.Abstracciones;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Domain.Enums;
 
@@ -22,13 +23,24 @@ public class UsuarioBuilder
     private Rol _rol = Rol.Operador;
     private bool _activo = true;
     private bool _debeCambiarPassword = false;
+    private int _intentosFallidos = 0;
+    private DateTime? _bloqueadoHasta = null;
     private DateTime _fechaHora = FechaPruebaPorDefecto.Valor;
 
     public UsuarioBuilder ConNombreUsuario(string nombreUsuario) { _nombreUsuario = nombreUsuario; return this; }
+    public UsuarioBuilder ConNombreCompleto(string nombreCompleto) { _nombreCompleto = nombreCompleto; return this; }
     public UsuarioBuilder ConRol(Rol rol) { _rol = rol; return this; }
     public UsuarioBuilder Inactivo() { _activo = false; return this; }
     public UsuarioBuilder ConDebeCambiarPassword(bool debe) { _debeCambiarPassword = debe; return this; }
     public UsuarioBuilder ConFechaHora(DateTime fechaHora) { _fechaHora = fechaHora; return this; }
+    public UsuarioBuilder ConBloqueo(int intentos, DateTime? hasta) { _intentosFallidos = intentos; _bloqueadoHasta = hasta; return this; }
+    public UsuarioBuilder ConPassword(string password, IPasswordHasher hasher)
+    {
+        var (hash, salt) = hasher.Hashear(password);
+        _hash = hash;
+        _salt = salt;
+        return this;
+    }
 
     public Usuario Build() => new()
     {
@@ -39,6 +51,8 @@ public class UsuarioBuilder
         Rol = _rol,
         Activo = _activo,
         DebeCambiarPassword = _debeCambiarPassword,
+        IntentosFallidos = _intentosFallidos,
+        BloqueadoHasta = _bloqueadoHasta,
         CreadoEn = _fechaHora
     };
 }

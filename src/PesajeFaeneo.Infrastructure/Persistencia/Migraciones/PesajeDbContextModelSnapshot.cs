@@ -452,6 +452,9 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true);
 
+                    b.Property<DateTime?>("BloqueadoHasta")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreadoEn")
                         .HasColumnType("TEXT");
 
@@ -464,6 +467,11 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("IntentosFallidos")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
@@ -494,6 +502,8 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
 
                     b.ToTable("Usuarios", null, t =>
                         {
+                            t.HasCheckConstraint("CK_Usuarios_IntentosFallidos", "IntentosFallidos >= 0");
+
                             t.HasCheckConstraint("CK_Usuarios_Rol", "Rol IN (1, 2, 3)");
                         });
                 });

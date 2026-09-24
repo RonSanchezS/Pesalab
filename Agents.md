@@ -29,8 +29,8 @@ flowchart TD
 | Fase | Título | Estado | HUs Completadas | Total HUs | Fecha de Finalización |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | **F0** | **Fundaciones del proyecto** | ✅ Completado | 7 | 7 | 2026-09-24 |
-| **F1** | **Seguridad, usuarios y shell principal** | ⏳ Siguiente en turno | 0 | 6 | — |
-| **F2** | **Parámetros y catálogos** | ⏳ Pendiente | 0 | 6 | — |
+| **F1** | **Seguridad, usuarios y shell principal** | ✅ Completado | 6 | 6 | 2026-09-24 |
+| **F2** | **Parámetros y catálogos** | ⏳ Siguiente en turno | 0 | 6 | — |
 | **F3** | **Integración con balanza** | ⏳ Pendiente | 0 | 7 | — |
 | **F4** | **Registro de pesaje** | ⏳ Pendiente | 0 | 7 | — |
 | **F5** | **Boleta de pesaje** | ⏳ Pendiente | 0 | 6 | — |
@@ -52,13 +52,13 @@ flowchart TD
 - [x] **HU-F0-06:** Manejo global de excepciones (`ClasificadorErrores`, `ManejadorErrores`, `FormBase` con `EjecutarAsync`).
 - [x] **HU-F0-07:** Infraestructura de pruebas (`SqliteDbFixture` en memoria, `SqliteArchivoFixture`, Builders de prueba, `build.ps1` con cobertura).
 
-### [ ] Fase F1 — Seguridad, usuarios y shell principal
-- [ ] **HU-F1-01:** Servicio de autenticación y auditoría base
-- [ ] **HU-F1-02:** Sesión, permisos y autorización por rol
-- [ ] **HU-F1-03:** Pantalla de inicio de sesión
-- [ ] **HU-F1-04:** Shell y menú principal con autorización
-- [ ] **HU-F1-05:** Gestión de usuarios (CRUD)
-- [ ] **HU-F1-06:** Cambio de contraseña
+### [x] Fase F1 — Seguridad, usuarios y shell principal (COMPLETADA)
+- [x] **HU-F1-01:** Servicio de autenticación y auditoría base
+- [x] **HU-F1-02:** Sesión, permisos y autorización por rol
+- [x] **HU-F1-03:** Pantalla de inicio de sesión
+- [x] **HU-F1-04:** Shell y menú principal con autorización
+- [x] **HU-F1-05:** Gestión de usuarios (CRUD)
+- [x] **HU-F1-06:** Cambio de contraseña
 
 ### [ ] Fase F2 — Parámetros y catálogos
 - [ ] **HU-F2-01:** Parámetros del Sistema (datos de la empresa)
@@ -138,6 +138,10 @@ flowchart TD
 - **Fechas y horas:** se persiste todo en **UTC**. `PesajeDbContext.ConfigureConventions` aplica `DateTimeUtcConverter`/`DateTimeUtcNulableConverter` a toda propiedad `DateTime`/`DateTime?` del modelo: al guardar convierte a UTC, al leer marca `DateTimeKind.Utc` explícitamente (SQLite no conserva `DateTimeKind`). Los filtros "del día" (secuencia por ganadero en F4-03, reportes en F7) deben convertir los límites del día local a UTC con `TimeProvider.LocalTimeZone` antes de comparar contra estas columnas.
 - **Pesos decimales:** convertidos a `REAL` (double) vía `DecimalARealConverter` (redondeo a 1 decimal, `AwayFromZero`), centralizado y reutilizado en `Pesaje` y `ConfiguracionBalanza`. Resolución de peso: 0,1 kg. Totales calculados en memoria.
 - **Búsquedas/unicidad insensibles a mayúsculas:** `Usuario.NombreUsuario`, `Ganadero.Marca`, `Ganadero.Nombre`, `Cliente.Nombre` y `Fletero.Nombre` usan `UseCollation("NOCASE")`.
+- **Unidad de trabajo y persistencia F1:** `IUnidadDeTrabajoFactory` singleton + `IUnidadDeTrabajo` transaccional con repositorios `IUsuarioRepositorio` e `IAuditoriaRepositorio`. Las operaciones de negocio y su registro de auditoría se guardan siempre en la misma llamada a `GuardarCambiosAsync` para garantizar atomicidad. Traducción centralizada de excepciones de persistencia: `DbUpdateConcurrencyException` → `ConcurrenciaException`, `SqliteException` 19 UNIQUE → `ConflictoException`, `SqliteException` 19 CHECK → `ReglaNegocioException("BD_CHECK")`.
+- **Sesión y autorización:** `ISesionActual` registrado como Singleton en memoria. `ExigirPermiso` se ejecuta como primera línea de defensa en cada método de servicio (defensa en profundidad), mientras que la UI oculta (`Available = false`) las opciones sin permiso mediante `AutorizadorMenu`.
+- **Contexto de aplicación y bucle de UI:** `ContextoAplicacion : ApplicationContext` gestiona el ciclo de vida sin asignar `MainForm`, permitiendo transiciones fluidas entre login, cambio obligatorio de contraseña y shell sin terminar el proceso. Nunca se bloquea el hilo de UI (`.Result`, `.Wait()`, etc.) dentro de eventos asíncronos; se usa `FormBase.EjecutarAsync`.
+- **Auditoría segura:** los snapshots de usuario en auditoría (`UsuarioAuditoria`) serializan únicamente metadatos (`Id`, `NombreUsuario`, `NombreCompleto`, `Rol`, `Activo`, `DebeCambiarPassword`); jamás se registran contraseñas en texto claro, hashes ni salts en logs, auditorías ni excepciones.
 - **Formularios:** `IFormFactory.Crear<T>()` crea un `IServiceScope` propio por formulario (con `ActivatorUtilities.CreateInstance`) y lo libera cuando el formulario se cierra (`form.Disposed`). Los formularios **no** se registran en el contenedor raíz de DI (para no poder resolverlos ni fugarlos desde ahí).
 - **`FormBase`:** `EjecutarAsync`/`Ejecutar` usan `UseWaitCursor` (no `Cursor.Current`, que se pierde en el primer `await`) y un campo `_ocupado` que descarta invocaciones reentrantes (protección contra doble clic/doble Enter, crítico para F4 "Grabar pesaje").
 - **Seguridad:** Autorización basada en `Permiso` verificado en UI y servicios. Auditoría atómica de cambios. El usuario `admin/admin` se siembra con `DebeCambiarPassword = true`.
@@ -145,12 +149,11 @@ flowchart TD
 - **Errores:** `ClasificadorErrores` distingue `Validacion`, `Negocio` (incluye `ConcurrenciaException`, `ConflictoException`, `EntidadNoEncontradaException`, `ReglaNegocioException` y cualquier otra `DomainException`), `NoAutorizado`, `Cancelado` (`OperationCanceledException`: sin log ni MessageBox) e `Inesperado`. Un `AggregateException` solo se desenvuelve si tiene una única excepción interna.
 
 ### Notas hacia fases futuras (registradas en la revisión post-F0, no implementadas todavía)
-- **F2:** traducir `DbUpdateException` por restricción UNIQUE/CHECK de SQLite (`SqliteErrorCode 19`) a `ConflictoException`/`ValidacionException` en Infrastructure; la UI no debe ver `DbUpdateException`.
+- **F2:** traducir `DbUpdateException` por restricción UNIQUE/CHECK de SQLite (`SqliteErrorCode 19`) a `ConflictoException`/`ValidacionException` en Infrastructure; la UI no debe ver `DbUpdateException` (implementado en F1 para Usuarios).
 - **F4-02:** numeración atómica con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` dentro de la misma transacción que el insert del pesaje y la auditoría.
 - **F6:** agregar token de concurrencia (`Version` entero con `IsConcurrencyToken`, incrementado en `SaveChanges`) a `Pesaje` y `ParametrosSistema`, y mapear `DbUpdateConcurrencyException` → `ConcurrenciaException`.
 - **F7:** QuestPDF 2024.x exige `QuestPDF.Settings.License = LicenseType.Community` al iniciar.
 - **F9:** el instalador debe dar permisos de Modificar a `Users` sobre `%ProgramData%\PesajeFaeneo` (por defecto, archivos creados por un admin son de solo lectura para usuarios estándar → la app no podría escribir la BD). Revisar si el mutex `Global\` (bloquea a un segundo usuario de Windows en otra sesión) es el comportamiento deseado.
-- **Seguridad F1:** el usuario `admin/admin` con `DebeCambiarPassword = true` exige que F1-03 fuerce el cambio antes de abrir el shell.
 
 ---
 
@@ -183,5 +186,22 @@ flowchart TD
 - **Pruebas (T12-T13):** `PesajeBuilder.Anulado` ahora sí asigna `MotivoAnulacion`/`AnuladoPorId`/`AnuladoEn` (antes los ignoraba, violando la nueva CK de anulación); los builders usan una fecha fija por defecto (`ConFechaHora` para configurarla) en vez de `DateTime.UtcNow`. Se agregaron pruebas de: pragmas por conexión, siembra idempotente con `HasData`, cada CHECK constraint nueva, collation `NOCASE`, ida y vuelta de `DateTime` en UTC, comparación modelo-vs-snapshot de migraciones (`IMigrationsModelDiffer`), reglas de capas (`Application`/`Infrastructure`) y reentrada de `FormBase`.
 - **Compilación:** `dotnet build src/PesajeFaeneo.sln -c Release` con 0 warnings y 0 errores.
 - **Pruebas:** 49 tests unitarios y de integración en verde (0 fallos, 0 omitidos); antes de la remediación eran 17.
-- **Notas hacia fases futuras:** registradas arriba en esta sección (§4) tal como las dejó la revisión; **no** se implementaron ahora (fuera del alcance de F0).
-- **Siguiente paso:** Fase F1 — Seguridad, usuarios y shell principal.
+
+### Fase F1 — Seguridad, usuarios y shell principal
+- **Fecha:** 2026-09-24
+- **Estado:** ✅ Completado con éxito (6/6 HUs).
+- **Compilación:** `dotnet build` en `Release` con 0 warnings y 0 errores (`TreatWarningsAsErrors=true`).
+- **Pruebas:** 172 tests unitarios y de integración ejecutados y en verde (0 fallos, 0 omitidos; incremento de 49 a 172 tests).
+- **Migración:** `F1_BloqueoUsuario` añadida, con reconstrucción de tabla en SQLite preservando collation `NOCASE` y restricciones CHECK. `has-pending-model-changes` limpio.
+- **Decisiones de diseño aplicadas (D1–D10):**
+  - D1: Matriz completa Rol × Permiso centralizada y probada exhaustivamente.
+  - D2: Política de contraseña (6–100 caracteres, no igual al usuario, distinta de la anterior al cambiar).
+  - D3: Bloqueo tras 5 intentos fallidos por 5 minutos, con tiempo de expiración dinámico y defensas contra enumeración / timing.
+  - D4: Normalización de nombre de usuario en minúsculas y regex `^[a-z0-9._-]{3,30}$`.
+  - D5: Nuevos usuarios nacen con `DebeCambiarPassword = true`.
+  - D6: Eliminación física prohibida, solo borrado lógico (`Activo = false`).
+  - D7: Protección del último administrador activo y prevención de auto-degradación/auto-desactivación.
+  - D8: Menús sin permiso se ocultan recursivamente (`Available = false`).
+  - D9: Módulos de fases futuras deshabilitados con ToolTip explicativo.
+  - D10: Mensajes de login unificados ("Usuario o contraseña incorrectos.") con auditoría disociada de credenciales.
+- **Siguiente paso:** Fase F2 — Parámetros y catálogos.

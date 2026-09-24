@@ -12,6 +12,8 @@ public class Usuario
     public Rol Rol { get; set; } = Rol.Operador;
     public bool Activo { get; set; } = true;
     public bool DebeCambiarPassword { get; set; } = true;
+    public int IntentosFallidos { get; set; }
+    public DateTime? BloqueadoHasta { get; set; }
     public DateTime? UltimoAcceso { get; set; }
     public DateTime CreadoEn { get; set; }
 }

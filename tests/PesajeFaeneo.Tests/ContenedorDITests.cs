@@ -46,6 +46,10 @@ public class ContenedorDITests
             Assert.NotNull(proveedor.GetService<IPasswordHasher>());
             Assert.NotNull(proveedor.GetService<IFormFactory>());
             Assert.NotNull(proveedor.GetService<TimeProvider>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Seguridad.ISesionActual>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Seguridad.IServicioAutenticacion>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Seguridad.IServicioUsuarios>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Abstracciones.Persistencia.IUnidadDeTrabajoFactory>());
 
             // IDatabaseInitializer/IDataSeeder son Scoped (igual que en producción, donde Program los
             // resuelve dentro de un scope); con ValidateScopes=true resolverlos desde la raíz lanzaría
@@ -59,8 +63,24 @@ public class ContenedorDITests
             HiloSta.Ejecutar(() =>
             {
                 var formFactory = proveedor.GetRequiredService<IFormFactory>();
+
+                using var frmLogin = formFactory.Crear<PesajeFaeneo.WinForms.Formularios.Seguridad.FrmLogin>();
+                Assert.NotNull(frmLogin);
+
                 using var frmPrincipal = formFactory.Crear<FrmPrincipal>();
                 Assert.NotNull(frmPrincipal);
+
+                using var frmUsuarios = formFactory.Crear<PesajeFaeneo.WinForms.Formularios.Seguridad.FrmUsuarios>();
+                Assert.NotNull(frmUsuarios);
+
+                using var frmUsuarioEdicion = formFactory.Crear<PesajeFaeneo.WinForms.Formularios.Seguridad.FrmUsuarioEdicion>();
+                Assert.NotNull(frmUsuarioEdicion);
+
+                using var frmCambioPassword = formFactory.Crear<PesajeFaeneo.WinForms.Formularios.Seguridad.FrmCambioPassword>();
+                Assert.NotNull(frmCambioPassword);
+
+                using var frmRestablecer = formFactory.Crear<PesajeFaeneo.WinForms.Formularios.Seguridad.FrmRestablecerPassword>();
+                Assert.NotNull(frmRestablecer);
             });
         }
         finally

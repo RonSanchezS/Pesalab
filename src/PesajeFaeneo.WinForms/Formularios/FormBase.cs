@@ -1,3 +1,4 @@
+using PesajeFaeneo.Domain.Excepciones;
 using PesajeFaeneo.WinForms.Infraestructura;
 
 namespace PesajeFaeneo.WinForms.Formularios;
@@ -88,5 +89,47 @@ public class FormBase : Form
 
             _ocupado = false;
         }
+    }
+
+    protected bool MostrarErroresValidacion(
+        Exception ex,
+        ErrorProvider proveedor,
+        IReadOnlyDictionary<string, Control> controlesPorCampo)
+    {
+        ArgumentNullException.ThrowIfNull(proveedor);
+        ArgumentNullException.ThrowIfNull(controlesPorCampo);
+
+        proveedor.Clear();
+
+        if (ex is not ValidacionException valEx)
+        {
+            return false;
+        }
+
+        Control? primerControlConError = null;
+        var erroresSinControl = new List<string>();
+
+        foreach (var error in valEx.Errores)
+        {
+            if (controlesPorCampo.TryGetValue(error.Campo, out var control))
+            {
+                proveedor.SetError(control, error.Mensaje);
+                primerControlConError ??= control;
+            }
+            else
+            {
+                erroresSinControl.Add(error.Mensaje);
+            }
+        }
+
+        primerControlConError?.Focus();
+
+        if (erroresSinControl.Count > 0)
+        {
+            var mensaje = string.Join(Environment.NewLine, erroresSinControl);
+            MessageBox.Show(this, mensaje, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        return true;
     }
 }

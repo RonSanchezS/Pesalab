@@ -38,6 +38,11 @@ public class ReglaNegocioException : DomainException
     {
         Codigo = codigo;
     }
+
+    public ReglaNegocioException(string codigo, string mensaje, Exception inner) : base(mensaje, inner)
+    {
+        Codigo = codigo;
+    }
 }
 
 public class EntidadNoEncontradaException : DomainException
@@ -56,11 +61,13 @@ public class EntidadNoEncontradaException : DomainException
 public class ConflictoException : DomainException
 {
     public ConflictoException(string mensaje) : base(mensaje) { }
+    public ConflictoException(string mensaje, Exception inner) : base(mensaje, inner) { }
 }
 
 public class ConcurrenciaException : DomainException
 {
     public ConcurrenciaException(string mensaje) : base(mensaje) { }
+    public ConcurrenciaException(string mensaje, Exception inner) : base(mensaje, inner) { }
 }
 
 public class NoAutorizadoException : DomainException

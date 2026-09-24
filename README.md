@@ -51,3 +51,14 @@ Este comando (igual que la aplicación en producción) crea la base de datos SQL
 carpeta), no en el directorio del repositorio. `DesignTimeDbContextFactory` crea esa carpeta si no
 existe. Para partir de una base de datos limpia en desarrollo, basta con borrar
 `%ProgramData%\PesajeFaeneo\pesaje.db*`.
+
+## Primer Ingreso al Sistema
+
+Al iniciar la aplicación por primera vez sobre una base de datos recién creada:
+- **Usuario inicial:** `admin`
+- **Contraseña inicial:** `admin`
+
+Por motivos de seguridad, la cuenta administradora inicial tiene activada la marca `DebeCambiarPassword`. En consecuencia:
+1. El sistema solicitará obligatoriamente cambiar la contraseña antes de permitir el acceso al menú principal.
+2. La nueva contraseña no puede ser idéntica a la anterior (`admin`) y debe cumplir con la longitud mínima requerida por las políticas de seguridad (mínimo 4 caracteres).
+3. Tras confirmar el cambio, la sesión continuará hacia la pantalla principal con el rol de Administrador.

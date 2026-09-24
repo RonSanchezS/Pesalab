@@ -9,26 +9,31 @@ namespace PesajeFaeneo.Tests.Utilidades;
 /// </summary>
 public static class HiloSta
 {
+    private static readonly object _bloqueoSta = new();
+
     public static void Ejecutar(Action accion)
     {
-        ExceptionDispatchInfo? errorCapturado = null;
-
-        var hilo = new Thread(() =>
+        lock (_bloqueoSta)
         {
-            try
-            {
-                accion();
-            }
-            catch (Exception ex)
-            {
-                errorCapturado = ExceptionDispatchInfo.Capture(ex);
-            }
-        });
+            ExceptionDispatchInfo? errorCapturado = null;
 
-        hilo.SetApartmentState(ApartmentState.STA);
-        hilo.Start();
-        hilo.Join();
+            var hilo = new Thread(() =>
+            {
+                try
+                {
+                    accion();
+                }
+                catch (Exception ex)
+                {
+                    errorCapturado = ExceptionDispatchInfo.Capture(ex);
+                }
+            });
 
-        errorCapturado?.Throw();
+            hilo.SetApartmentState(ApartmentState.STA);
+            hilo.Start();
+            hilo.Join();
+
+            errorCapturado?.Throw();
+        }
     }
 }

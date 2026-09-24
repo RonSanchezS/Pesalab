@@ -64,4 +64,50 @@ public class FormBaseTests
 
         public void InvocarSincrono(Action accion) => Ejecutar(accion);
     }
+
+    [Fact]
+    public void MostrarErroresValidacion_ConValidacionExceptionDosCampos_AsignaErroresYEnfocaPrimero()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            using var formulario = new FormularioPruebaValidacion();
+            formulario.Show();
+
+            var ex = new PesajeFaeneo.Domain.Excepciones.ValidacionException([
+                new PesajeFaeneo.Domain.Excepciones.ErrorValidacion("Campo1", "Error campo 1"),
+                new PesajeFaeneo.Domain.Excepciones.ErrorValidacion("Campo2", "Error campo 2")
+            ]);
+
+            var manejado = formulario.ProbarValidacion(ex);
+
+            Assert.True(manejado);
+            Assert.Equal("Error campo 1", formulario.ErrorProvider.GetError(formulario.Txt1));
+            Assert.Equal("Error campo 2", formulario.ErrorProvider.GetError(formulario.Txt2));
+            Assert.True(formulario.Txt1.Focused);
+        });
+    }
+
+    private class FormularioPruebaValidacion : FormBase
+    {
+        public TextBox Txt1 { get; } = new();
+        public TextBox Txt2 { get; } = new();
+        public ErrorProvider ErrorProvider { get; }
+
+        public FormularioPruebaValidacion()
+        {
+            Controls.Add(Txt1);
+            Controls.Add(Txt2);
+            ErrorProvider = new ErrorProvider { ContainerControl = this };
+        }
+
+        public bool ProbarValidacion(Exception ex)
+        {
+            var mapa = new Dictionary<string, Control>
+            {
+                { "Campo1", Txt1 },
+                { "Campo2", Txt2 }
+            };
+            return MostrarErroresValidacion(ex, ErrorProvider, mapa);
+        }
+    }
 }

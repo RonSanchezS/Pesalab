@@ -36,6 +36,19 @@ public class ArquitecturaTests
     }
 
     [Fact]
+    public void Application_UsaSystemTextJsonDeLaBcl_NoDeTerceros()
+    {
+        var referenciados = typeof(IDatabaseInitializer).Assembly.GetReferencedAssemblies();
+        var jsonRef = referenciados.FirstOrDefault(r => r.Name == "System.Text.Json");
+        if (jsonRef != null)
+        {
+            // Token de clave pública oficial de Microsoft para la BCL
+            var token = BitConverter.ToString(jsonRef.GetPublicKeyToken() ?? []).Replace("-", "").ToLowerInvariant();
+            Assert.Equal("cc7b13ffcd2ddd51", token);
+        }
+    }
+
+    [Fact]
     public void Infrastructure_NoReferenciaWinFormsNiSystemWindowsForms()
     {
         VerificarSinReferenciasProhibidas(

@@ -13,6 +13,7 @@
          en la práctica de este repo); solo necesita las abstracciones de DI para exponer extensiones
          IServiceCollection como AddApplication. -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 
 </Project>

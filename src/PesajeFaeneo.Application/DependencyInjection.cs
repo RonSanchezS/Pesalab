@@ -6,7 +6,9 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // Servicios de aplicación iniciales
+        services.AddSingleton<Seguridad.ISesionActual, Seguridad.SesionActual>();
+        services.AddTransient<Seguridad.IServicioAutenticacion, Seguridad.ServicioAutenticacion>();
+        services.AddTransient<Seguridad.IServicioUsuarios, Seguridad.ServicioUsuarios>();
         return services;
     }
 }

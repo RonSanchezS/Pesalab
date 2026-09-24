@@ -305,6 +305,43 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
         Assert.Equal(fechaOriginal, releido.CreadoEn);
     }
 
+    [Fact]
+    public async Task Usuario_IntentosFallidosNegativos_LanzaDbUpdateException()
+    {
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+
+        var usuario = new UsuarioBuilder()
+            .ConNombreUsuario("usr_invalido_intentos")
+            .ConBloqueo(-1, null)
+            .Build();
+
+        ctx.Usuarios.Add(usuario);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Usuario_BloqueadoHasta_IdaYVueltaConservaUtc()
+    {
+        var bloqueadoHasta = new DateTime(2026, 3, 10, 15, 0, 0, DateTimeKind.Utc);
+
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var usuario = new UsuarioBuilder()
+            .ConNombreUsuario("usr_bloqueado_test")
+            .ConBloqueo(5, bloqueadoHasta)
+            .Build();
+
+        ctx.Usuarios.Add(usuario);
+        await ctx.SaveChangesAsync();
+
+        ctx.ChangeTracker.Clear();
+        var releido = await ctx.Usuarios.AsNoTracking().SingleAsync(u => u.Id == usuario.Id);
+
+        Assert.Equal(5, releido.IntentosFallidos);
+        Assert.NotNull(releido.BloqueadoHasta);
+        Assert.Equal(DateTimeKind.Utc, releido.BloqueadoHasta!.Value.Kind);
+        Assert.Equal(bloqueadoHasta, releido.BloqueadoHasta.Value);
+    }
+
     private async Task<(Ganadero Ganadero, Cliente Cliente, Usuario Usuario)> CrearCatalogosBaseAsync(
         string marcaGanadero,
         int codigoCliente,
