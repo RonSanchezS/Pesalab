@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Domain.Enums;
+using PesajeFaeneo.Infrastructure.Persistencia.Conversores;
 
 namespace PesajeFaeneo.Infrastructure.Persistencia.Configuraciones;
 
@@ -13,6 +13,9 @@ public class ConfiguracionBalanzaConfiguration : IEntityTypeConfiguration<Config
         builder.ToTable("ConfiguracionesBalanza", t =>
         {
             t.HasCheckConstraint("CK_ConfiguracionBalanza_Id", "Id = 1");
+            t.HasCheckConstraint("CK_ConfiguracionBalanza_TipoConexion", "TipoConexion IN (1, 2, 3)");
+            t.HasCheckConstraint("CK_ConfiguracionBalanza_LecturasParaEstable", "LecturasParaEstable >= 1");
+            t.HasCheckConstraint("CK_ConfiguracionBalanza_TimeoutMs", "TimeoutMs > 0");
         });
 
         builder.HasKey(c => c.Id);
@@ -53,12 +56,8 @@ public class ConfiguracionBalanzaConfiguration : IEntityTypeConfiguration<Config
         builder.Property(c => c.LecturasParaEstable)
             .IsRequired();
 
-        var decimalToRealConverter = new ValueConverter<decimal, double>(
-            v => (double)v,
-            v => Math.Round((decimal)v, 1, MidpointRounding.AwayFromZero));
-
         builder.Property(c => c.ToleranciaKg)
-            .HasConversion(decimalToRealConverter)
+            .HasConversion(DecimalARealConverter.Instancia)
             .HasColumnType("REAL")
             .IsRequired();
 

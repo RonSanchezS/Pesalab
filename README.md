@@ -45,3 +45,9 @@ Para actualizar la base de datos de desarrollo manualmente:
 ```powershell
 dotnet ef database update -p src/PesajeFaeneo.Infrastructure -s src/PesajeFaeneo.WinForms
 ```
+
+Este comando (igual que la aplicación en producción) crea la base de datos SQLite en
+`%ProgramData%\PesajeFaeneo\pesaje.db` (junto con `logs`, `logo`, `backups` y `restore` en la misma
+carpeta), no en el directorio del repositorio. `DesignTimeDbContextFactory` crea esa carpeta si no
+existe. Para partir de una base de datos limpia en desarrollo, basta con borrar
+`%ProgramData%\PesajeFaeneo\pesaje.db*`.

@@ -24,7 +24,9 @@ public class FleteroConfiguration : IEntityTypeConfiguration<Fletero>
 
         builder.Property(f => f.Nombre)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            // NOCASE para que las búsquedas de F2-06 sean insensibles a mayúsculas/minúsculas.
+            .UseCollation("NOCASE");
 
         builder.Property(f => f.Celular)
             .IsRequired()

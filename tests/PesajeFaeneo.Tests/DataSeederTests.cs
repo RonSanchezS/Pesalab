@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Time.Testing;
 using PesajeFaeneo.Domain.Enums;
 using PesajeFaeneo.Infrastructure.Persistencia;
 using PesajeFaeneo.Infrastructure.Seguridad;
@@ -20,7 +21,8 @@ public class DataSeederTests : IClassFixture<SqliteDbFixture>
     public async Task SembrarAsync_EnBdVacia_CreaAdminIdempotente()
     {
         var hasher = new Pbkdf2PasswordHasher();
-        var seeder = new DataSeeder(_fixture.ContextFactory, hasher);
+        var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2026-01-15T08:00:00Z"));
+        var seeder = new DataSeeder(_fixture.ContextFactory, hasher, timeProvider);
 
         // Limpiar usuarios por si otro test insertó algo
         await using (var ctx = await _fixture.ContextFactory.CreateDbContextAsync())

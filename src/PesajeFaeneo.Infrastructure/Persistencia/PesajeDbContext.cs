@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using PesajeFaeneo.Domain.Entities;
+using PesajeFaeneo.Infrastructure.Persistencia.Conversores;
 
 namespace PesajeFaeneo.Infrastructure.Persistencia;
 
@@ -22,5 +24,15 @@ public class PesajeDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PesajeDbContext).Assembly);
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        // Configuración previa a las convenciones: se aplica a TODA propiedad DateTime/DateTime? del
+        // modelo (ver DateTimeUtcConverter para el porqué) sin tener que repetirla en cada Configuration.
+        configurationBuilder.Properties<DateTime>().HaveConversion<DateTimeUtcConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<DateTimeUtcNulableConverter>();
     }
 }

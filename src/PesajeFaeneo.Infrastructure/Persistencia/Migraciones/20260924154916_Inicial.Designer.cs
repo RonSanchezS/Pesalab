@@ -11,7 +11,7 @@ using PesajeFaeneo.Infrastructure.Persistencia;
 namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
 {
     [DbContext(typeof(PesajeDbContext))]
-    [Migration("20260924151959_Inicial")]
+    [Migration("20260924154916_Inicial")]
     partial class Inicial
     {
         /// <inheritdoc />
@@ -91,7 +91,8 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.HasKey("Id");
 
@@ -156,6 +157,12 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.ToTable("ConfiguracionesBalanza", null, t =>
                         {
                             t.HasCheckConstraint("CK_ConfiguracionBalanza_Id", "Id = 1");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_LecturasParaEstable", "LecturasParaEstable >= 1");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_TimeoutMs", "TimeoutMs > 0");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_TipoConexion", "TipoConexion IN (1, 2, 3)");
                         });
 
                     b.HasData(
@@ -200,7 +207,8 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<int>("Orden")
                         .HasColumnType("INTEGER");
@@ -234,12 +242,14 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.Property<string>("Marca")
                         .IsRequired()
                         .HasMaxLength(5)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.HasKey("Id");
 
@@ -307,6 +317,8 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.ToTable("ParametrosSistema", null, t =>
                         {
                             t.HasCheckConstraint("CK_ParametrosSistema_Id", "Id = 1");
+
+                            t.HasCheckConstraint("CK_ParametrosSistema_SiguienteNumeroBoleta", "SiguienteNumeroBoleta >= 1");
                         });
 
                     b.HasData(
@@ -418,6 +430,14 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
 
                     b.ToTable("Pesajes", null, t =>
                         {
+                            t.HasCheckConstraint("CK_Pesajes_Anulacion", "(Estado = 1 AND MotivoAnulacion IS NULL AND AnuladoPorId IS NULL AND AnuladoEn IS NULL) OR (Estado = 2 AND MotivoAnulacion IS NOT NULL AND AnuladoPorId IS NOT NULL AND AnuladoEn IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_Pesajes_Estado", "Estado IN (1, 2)");
+
+                            t.HasCheckConstraint("CK_Pesajes_Pesos", "PesoIzquierdo >= 0 AND PesoDerecho >= 0 AND PesoTotal >= 0");
+
+                            t.HasCheckConstraint("CK_Pesajes_Secuencia", "Secuencia >= 1");
+
                             t.HasCheckConstraint("CK_Pesajes_Sexo", "Sexo IN ('M', 'H')");
 
                             t.HasCheckConstraint("CK_Pesajes_TipoDesposte", "TipoDesposte IN (1, 2)");
@@ -456,7 +476,8 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.Property<string>("NombreUsuario")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
 
                     b.Property<int>("Rol")
                         .HasColumnType("INTEGER");
@@ -474,7 +495,10 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.HasIndex("NombreUsuario")
                         .IsUnique();
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Usuarios_Rol", "Rol IN (1, 2, 3)");
+                        });
                 });
 
             modelBuilder.Entity("PesajeFaeneo.Domain.Entities.Auditoria", b =>

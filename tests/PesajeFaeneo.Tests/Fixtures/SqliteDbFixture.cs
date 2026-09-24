@@ -15,9 +15,9 @@ public class SqliteDbFixture : IAsyncLifetime
         _connection = new SqliteConnection("DataSource=:memory:");
         await _connection.OpenAsync();
 
-        var options = new DbContextOptionsBuilder<PesajeDbContext>()
-            .UseSqlite(_connection)
-            .Options;
+        var optionsBuilder = new DbContextOptionsBuilder<PesajeDbContext>();
+        optionsBuilder.ConfigurarSqlite(_connection);
+        var options = optionsBuilder.Options;
 
         ContextFactory = new TestDbContextFactory(options);
 

@@ -20,7 +20,9 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
 
         builder.Property(c => c.Nombre)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            // NOCASE para que las búsquedas de F2-06 sean insensibles a mayúsculas/minúsculas.
+            .UseCollation("NOCASE");
 
         builder.Property(c => c.Direccion)
             .HasMaxLength(150);

@@ -8,13 +8,19 @@ public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
 {
     public void Configure(EntityTypeBuilder<Usuario> builder)
     {
-        builder.ToTable("Usuarios");
+        builder.ToTable("Usuarios", t =>
+        {
+            t.HasCheckConstraint("CK_Usuarios_Rol", "Rol IN (1, 2, 3)");
+        });
 
         builder.HasKey(u => u.Id);
 
         builder.Property(u => u.NombreUsuario)
             .IsRequired()
-            .HasMaxLength(30);
+            .HasMaxLength(30)
+            // NOCASE evita que "admin" y "Admin" coexistan como usuarios distintos: el login debe ser
+            // insensible a mayúsculas/minúsculas.
+            .UseCollation("NOCASE");
 
         builder.HasIndex(u => u.NombreUsuario)
             .IsUnique();

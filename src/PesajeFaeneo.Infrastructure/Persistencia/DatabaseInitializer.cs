@@ -17,8 +17,9 @@ public class DatabaseInitializer : IDatabaseInitializer
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         await context.Database.MigrateAsync(cancellationToken);
 
+        // journal_mode=WAL es el único pragma que persiste en el archivo de la base de datos; el resto
+        // (busy_timeout, synchronous, foreign_keys) es por conexión y lo aplica SqlitePragmasInterceptor
+        // en cada apertura del pool, no solo en esta conexión de inicialización.
         await context.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;", cancellationToken);
-        await context.Database.ExecuteSqlRawAsync("PRAGMA busy_timeout=5000;", cancellationToken);
-        await context.Database.ExecuteSqlRawAsync("PRAGMA synchronous=NORMAL;", cancellationToken);
     }
 }

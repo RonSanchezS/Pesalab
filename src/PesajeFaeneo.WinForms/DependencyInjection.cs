@@ -1,6 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using PesajeFaeneo.Application.Abstracciones;
-using PesajeFaeneo.WinForms.Formularios;
 using PesajeFaeneo.WinForms.Infraestructura;
 
 namespace PesajeFaeneo.WinForms;
@@ -11,8 +9,9 @@ public static class DependencyInjection
     {
         services.AddSingleton<IFormFactory, FormFactory>();
 
-        // Registro de formularios como Transient
-        services.AddTransient<FrmPrincipal>();
+        // Los formularios NO se registran en el contenedor: IFormFactory.Crear<T> los instancia con
+        // ActivatorUtilities dentro de un scope propio (ver FormFactory), así que resolverlos aquí
+        // permitiría también resolverlos desde la raíz y volver a fugarlos.
 
         return services;
     }

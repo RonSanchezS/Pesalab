@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PesajeFaeneo.Domain.Entities;
+using PesajeFaeneo.Infrastructure.Persistencia.Conversores;
 
 namespace PesajeFaeneo.Infrastructure.Persistencia.Configuraciones;
 
@@ -13,6 +13,17 @@ public class PesajeConfiguration : IEntityTypeConfiguration<Pesaje>
         {
             t.HasCheckConstraint("CK_Pesajes_TipoDesposte", "TipoDesposte IN (1, 2)");
             t.HasCheckConstraint("CK_Pesajes_Sexo", "Sexo IN ('M', 'H')");
+            t.HasCheckConstraint("CK_Pesajes_Estado", "Estado IN (1, 2)");
+            t.HasCheckConstraint(
+                "CK_Pesajes_Pesos",
+                "PesoIzquierdo >= 0 AND PesoDerecho >= 0 AND PesoTotal >= 0");
+            t.HasCheckConstraint(
+                "CK_Pesajes_Secuencia",
+                "Secuencia >= 1");
+            t.HasCheckConstraint(
+                "CK_Pesajes_Anulacion",
+                "(Estado = 1 AND MotivoAnulacion IS NULL AND AnuladoPorId IS NULL AND AnuladoEn IS NULL) " +
+                "OR (Estado = 2 AND MotivoAnulacion IS NOT NULL AND AnuladoPorId IS NOT NULL AND AnuladoEn IS NOT NULL)");
         });
 
         builder.HasKey(p => p.Id);
@@ -47,22 +58,18 @@ public class PesajeConfiguration : IEntityTypeConfiguration<Pesaje>
         builder.Property(p => p.TipoDesposte)
             .IsRequired();
 
-        var decimalToRealConverter = new ValueConverter<decimal, double>(
-            v => (double)v,
-            v => Math.Round((decimal)v, 1, MidpointRounding.AwayFromZero));
-
         builder.Property(p => p.PesoIzquierdo)
-            .HasConversion(decimalToRealConverter)
+            .HasConversion(DecimalARealConverter.Instancia)
             .HasColumnType("REAL")
             .IsRequired();
 
         builder.Property(p => p.PesoDerecho)
-            .HasConversion(decimalToRealConverter)
+            .HasConversion(DecimalARealConverter.Instancia)
             .HasColumnType("REAL")
             .IsRequired();
 
         builder.Property(p => p.PesoTotal)
-            .HasConversion(decimalToRealConverter)
+            .HasConversion(DecimalARealConverter.Instancia)
             .HasColumnType("REAL")
             .IsRequired();
 

@@ -8,6 +8,13 @@ public static class ManejadorErrores
     {
         var clasificado = ClasificadorErrores.Clasificar(ex);
 
+        // Una cancelación (por ejemplo, el usuario cerró un diálogo o abortó una operación con Esc)
+        // no es un error: no se registra en el log ni se interrumpe al usuario con un MessageBox.
+        if (clasificado.Tipo == TipoErrorClasificado.Cancelado)
+        {
+            return;
+        }
+
         if (clasificado.DebeRegistrarLog)
         {
             Log.Error(ex, "Error no controlado capturado por el manejador global. Código de incidente: {CodigoIncidente}", clasificado.CodigoIncidente);

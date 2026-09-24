@@ -9,8 +9,10 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<PesajeDbCo
     public PesajeDbContext CreateDbContext(string[] args)
     {
         var appPaths = new AppPaths();
+        appPaths.AsegurarDirectorios();
+
         var optionsBuilder = new DbContextOptionsBuilder<PesajeDbContext>();
-        optionsBuilder.UseSqlite(appPaths.ConnectionString);
+        optionsBuilder.ConfigurarSqlite(appPaths.ConnectionString);
 
         return new PesajeDbContext(optionsBuilder.Options);
     }

@@ -11,9 +11,9 @@ public class SqliteArchivoFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var options = new DbContextOptionsBuilder<PesajeDbContext>()
-            .UseSqlite($"Data Source={FilePath}")
-            .Options;
+        var optionsBuilder = new DbContextOptionsBuilder<PesajeDbContext>();
+        optionsBuilder.ConfigurarSqlite($"Data Source={FilePath}");
+        var options = optionsBuilder.Options;
 
         ContextFactory = new FileTestDbContextFactory(options);
 

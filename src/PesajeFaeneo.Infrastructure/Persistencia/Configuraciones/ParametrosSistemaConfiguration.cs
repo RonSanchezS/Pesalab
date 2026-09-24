@@ -11,6 +11,7 @@ public class ParametrosSistemaConfiguration : IEntityTypeConfiguration<Parametro
         builder.ToTable("ParametrosSistema", t =>
         {
             t.HasCheckConstraint("CK_ParametrosSistema_Id", "Id = 1");
+            t.HasCheckConstraint("CK_ParametrosSistema_SiguienteNumeroBoleta", "SiguienteNumeroBoleta >= 1");
         });
 
         builder.HasKey(p => p.Id);

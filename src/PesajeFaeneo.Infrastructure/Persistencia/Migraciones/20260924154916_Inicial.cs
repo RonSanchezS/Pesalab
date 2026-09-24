@@ -18,7 +18,7 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Codigo = table.Column<int>(type: "INTEGER", nullable: false),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false, collation: "NOCASE"),
                     Direccion = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
                     Activo = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     CreadoEn = table.Column<DateTime>(type: "TEXT", nullable: false)
@@ -51,6 +51,9 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                 {
                     table.PrimaryKey("PK_ConfiguracionesBalanza", x => x.Id);
                     table.CheckConstraint("CK_ConfiguracionBalanza_Id", "Id = 1");
+                    table.CheckConstraint("CK_ConfiguracionBalanza_LecturasParaEstable", "LecturasParaEstable >= 1");
+                    table.CheckConstraint("CK_ConfiguracionBalanza_TimeoutMs", "TimeoutMs > 0");
+                    table.CheckConstraint("CK_ConfiguracionBalanza_TipoConexion", "TipoConexion IN (1, 2, 3)");
                 });
 
             migrationBuilder.CreateTable(
@@ -60,7 +63,7 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Orden = table.Column<int>(type: "INTEGER", nullable: false),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false, collation: "NOCASE"),
                     Celular = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
                     Activo = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     CreadoEn = table.Column<DateTime>(type: "TEXT", nullable: false)
@@ -77,8 +80,8 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Marca = table.Column<string>(type: "TEXT", maxLength: 5, nullable: false),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Marca = table.Column<string>(type: "TEXT", maxLength: 5, nullable: false, collation: "NOCASE"),
+                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false, collation: "NOCASE"),
                     Activo = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     CreadoEn = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
@@ -108,6 +111,7 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                 {
                     table.PrimaryKey("PK_ParametrosSistema", x => x.Id);
                     table.CheckConstraint("CK_ParametrosSistema_Id", "Id = 1");
+                    table.CheckConstraint("CK_ParametrosSistema_SiguienteNumeroBoleta", "SiguienteNumeroBoleta >= 1");
                 });
 
             migrationBuilder.CreateTable(
@@ -116,7 +120,7 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    NombreUsuario = table.Column<string>(type: "TEXT", maxLength: 30, nullable: false),
+                    NombreUsuario = table.Column<string>(type: "TEXT", maxLength: 30, nullable: false, collation: "NOCASE"),
                     Hash = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Salt = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
                     NombreCompleto = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
@@ -129,6 +133,7 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Usuarios", x => x.Id);
+                    table.CheckConstraint("CK_Usuarios_Rol", "Rol IN (1, 2, 3)");
                 });
 
             migrationBuilder.CreateTable(
@@ -187,6 +192,10 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Pesajes", x => x.Id);
+                    table.CheckConstraint("CK_Pesajes_Anulacion", "(Estado = 1 AND MotivoAnulacion IS NULL AND AnuladoPorId IS NULL AND AnuladoEn IS NULL) OR (Estado = 2 AND MotivoAnulacion IS NOT NULL AND AnuladoPorId IS NOT NULL AND AnuladoEn IS NOT NULL)");
+                    table.CheckConstraint("CK_Pesajes_Estado", "Estado IN (1, 2)");
+                    table.CheckConstraint("CK_Pesajes_Pesos", "PesoIzquierdo >= 0 AND PesoDerecho >= 0 AND PesoTotal >= 0");
+                    table.CheckConstraint("CK_Pesajes_Secuencia", "Secuencia >= 1");
                     table.CheckConstraint("CK_Pesajes_Sexo", "Sexo IN ('M', 'H')");
                     table.CheckConstraint("CK_Pesajes_TipoDesposte", "TipoDesposte IN (1, 2)");
                     table.ForeignKey(

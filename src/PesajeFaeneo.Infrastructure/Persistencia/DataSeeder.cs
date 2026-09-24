@@ -13,12 +13,12 @@ public class DataSeeder : IDataSeeder
 
     public DataSeeder(
         IDbContextFactory<PesajeDbContext> contextFactory,
-        IPasswordHasher _hasher,
-        TimeProvider? timeProvider = null)
+        IPasswordHasher passwordHasher,
+        TimeProvider timeProvider)
     {
         _contextFactory = contextFactory;
-        _passwordHasher = _hasher;
-        _timeProvider = timeProvider ?? TimeProvider.System;
+        _passwordHasher = passwordHasher;
+        _timeProvider = timeProvider;
     }
 
     public async Task SembrarAsync(CancellationToken cancellationToken = default)
