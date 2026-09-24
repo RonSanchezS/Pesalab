@@ -44,7 +44,7 @@ public class FrmUsuarios : FormBase
 
         InitializeComponent();
 
-        Shown += async (_, _) => await CargarUsuariosAsync();
+        Shown += async (_, _) => await EjecutarAsync(() => CargarUsuariosAsync());
     }
 
     private void InitializeComponent()
@@ -75,7 +75,7 @@ public class FrmUsuarios : FormBase
             Dock = DockStyle.Fill,
             AutoSize = true
         };
-        chkMostrarInactivos.CheckedChanged += async (_, _) => await CargarUsuariosAsync();
+        chkMostrarInactivos.CheckedChanged += async (_, _) => await EjecutarAsync(() => CargarUsuariosAsync());
         mainLayout.Controls.Add(chkMostrarInactivos, 0, 0);
 
         dgvUsuarios = new DataGridView
@@ -217,61 +217,65 @@ public class FrmUsuarios : FormBase
         btnActivarDesactivar.Text = seleccionado.Activo ? "Desactivar" : "Activar";
     }
 
+    // Sin EjecutarAsync propio: siempre se invoca desde dentro de un EjecutarAsync ya abierto
+    // por el llamador (Shown, checkbox, o las acciones de los botones). Si se envolviera aquí
+    // también, el guard de reentrada (_ocupado) de FormBase descartaría en silencio esta segunda
+    // invocación y la grilla nunca se refrescaría tras editar/activar/desactivar/restablecer.
     private async Task CargarUsuariosAsync(int? idASeleccionar = null)
     {
-        await EjecutarAsync(async () =>
+        var incluirInactivos = chkMostrarInactivos.Checked;
+        var usuarios = await _servicioUsuarios.ListarAsync(incluirInactivos);
+
+        var idActual = idASeleccionar ?? FilaSeleccionada?.Id;
+
+        var listaFilas = usuarios.Select(u =>
         {
-            var incluirInactivos = chkMostrarInactivos.Checked;
-            var usuarios = await _servicioUsuarios.ListarAsync(incluirInactivos);
-
-            var idActual = idASeleccionar ?? FilaSeleccionada?.Id;
-
-            var listaFilas = usuarios.Select(u =>
+            string ultimoAccesoTexto = "—";
+            if (u.UltimoAcceso.HasValue)
             {
-                string ultimoAccesoTexto = "—";
-                if (u.UltimoAcceso.HasValue)
-                {
-                    var local = TimeZoneInfo.ConvertTimeFromUtc(u.UltimoAcceso.Value, _timeProvider.LocalTimeZone);
-                    ultimoAccesoTexto = local.ToString("dd/MM/yyyy HH:mm");
-                }
-
-                return new UsuarioFila(
-                    u.Id,
-                    u.NombreUsuario,
-                    u.NombreCompleto,
-                    u.Rol,
-                    u.Activo,
-                    u.Bloqueado,
-                    ultimoAccesoTexto);
-            }).ToList();
-
-            dgvUsuarios.DataSource = listaFilas;
-
-            if (idActual.HasValue)
-            {
-                foreach (DataGridViewRow row in dgvUsuarios.Rows)
-                {
-                    if (row.DataBoundItem is UsuarioFila fila && fila.Id == idActual.Value)
-                    {
-                        row.Selected = true;
-                        dgvUsuarios.CurrentCell = row.Cells[0];
-                        break;
-                    }
-                }
+                var local = TimeZoneInfo.ConvertTimeFromUtc(u.UltimoAcceso.Value, _timeProvider.LocalTimeZone);
+                ultimoAccesoTexto = local.ToString("dd/MM/yyyy HH:mm");
             }
 
-            ActualizarEstadoBotones();
-        });
+            return new UsuarioFila(
+                u.Id,
+                u.NombreUsuario,
+                u.NombreCompleto,
+                u.Rol,
+                u.Activo,
+                u.Bloqueado,
+                ultimoAccesoTexto);
+        }).ToList();
+
+        dgvUsuarios.DataSource = listaFilas;
+
+        if (idActual.HasValue)
+        {
+            foreach (DataGridViewRow row in dgvUsuarios.Rows)
+            {
+                if (row.DataBoundItem is UsuarioFila fila && fila.Id == idActual.Value)
+                {
+                    row.Selected = true;
+                    dgvUsuarios.CurrentCell = row.Cells[0];
+                    break;
+                }
+            }
+        }
+
+        ActualizarEstadoBotones();
     }
 
     private async Task NuevoUsuarioAsync()
     {
-        using var frm = _formFactory.Crear<FrmUsuarioEdicion>();
-        frm.ConfigurarAlta();
-        if (frm.ShowDialog(this) == DialogResult.OK)
+        await EjecutarAsync(async () =>
         {
-            await CargarUsuariosAsync();
-        }
+            using var frm = _formFactory.Crear<FrmUsuarioEdicion>();
+            frm.ConfigurarAlta();
+            if (frm.ShowDialog(this) == DialogResult.OK)
+            {
+                await CargarUsuariosAsync();
+            }
+        }, btnNuevo);
     }
 
     private async Task EditarSeleccionadoAsync()
@@ -305,11 +309,16 @@ public class FrmUsuarios : FormBase
 
         if (confirmacion != DialogResult.Yes) return;
 
-        await EjecutarAsync(async () =>
+        await CambiarEstadoAsync(fila);
+    }
+
+    private Task CambiarEstadoAsync(UsuarioFila fila)
+    {
+        return EjecutarAsync(async () =>
         {
             await _servicioUsuarios.CambiarEstadoAsync(fila.Id, !fila.Activo);
             await CargarUsuariosAsync(fila.Id);
-        });
+        }, btnActivarDesactivar);
     }
 
     private async Task RestablecerPasswordSeleccionadoAsync()
@@ -325,12 +334,45 @@ public class FrmUsuarios : FormBase
 
         if (confirmacion != DialogResult.Yes) return;
 
-        using var frm = _formFactory.Crear<FrmRestablecerPassword>();
-        frm.UsuarioId = fila.Id;
-        frm.NombreUsuario = fila.NombreUsuario;
-        if (frm.ShowDialog(this) == DialogResult.OK)
+        await EjecutarAsync(async () =>
         {
-            await CargarUsuariosAsync(fila.Id);
+            using var frm = _formFactory.Crear<FrmRestablecerPassword>();
+            frm.UsuarioId = fila.Id;
+            frm.NombreUsuario = fila.NombreUsuario;
+            if (frm.ShowDialog(this) == DialogResult.OK)
+            {
+                await CargarUsuariosAsync(fila.Id);
+            }
+        }, btnRestablecer);
+    }
+
+    // Ganchos internos para pruebas: evitan el MessageBox de confirmación, que bloquearía
+    // un hilo de prueba sin usuario que lo cierre.
+    internal DataGridView GrillaParaTest => dgvUsuarios;
+
+    internal Task CargarUsuariosParaTestAsync() => CargarUsuariosAsync();
+
+    internal bool MostrarInactivosParaTest
+    {
+        set => chkMostrarInactivos.Checked = value;
+    }
+
+    internal void SeleccionarFilaParaTest(int id)
+    {
+        foreach (DataGridViewRow row in dgvUsuarios.Rows)
+        {
+            if (row.DataBoundItem is UsuarioFila fila && fila.Id == id)
+            {
+                row.Selected = true;
+                dgvUsuarios.CurrentCell = row.Cells[0];
+                return;
+            }
         }
+    }
+
+    internal Task CambiarEstadoSeleccionadoParaTestAsync()
+    {
+        var fila = FilaSeleccionada;
+        return fila == null ? Task.CompletedTask : CambiarEstadoAsync(fila);
     }
 }
