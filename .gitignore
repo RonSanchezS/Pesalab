@@ -1,0 +1,33 @@
+## Visual Studio / .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+.vscode/
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+artifacts/
+
+## Test / Coverage
+TestResults/
+coverage*.xml
+*.cobertura.xml
+
+## Database & Local Data
+*.db
+*.db-shm
+*.db-wal
+*.log
+logs/
+backups/
+restore/
+logo/
