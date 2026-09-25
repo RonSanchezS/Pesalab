@@ -8,7 +8,7 @@ public class GanaderoConfiguration : IEntityTypeConfiguration<Ganadero>
 {
     public void Configure(EntityTypeBuilder<Ganadero> builder)
     {
-        builder.ToTable("Ganaderos");
+        builder.ToTable("Ganaderos", t => t.HasCheckConstraint("CK_Ganaderos_Marca", "length(Marca) BETWEEN 1 AND 5"));
 
         builder.HasKey(g => g.Id);
 

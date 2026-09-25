@@ -96,7 +96,10 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.HasIndex("Codigo")
                         .IsUnique();
 
-                    b.ToTable("Clientes", (string)null);
+                    b.ToTable("Clientes", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Clientes_Codigo", "Codigo BETWEEN 1 AND 999999");
+                        });
                 });
 
             modelBuilder.Entity("PesajeFaeneo.Domain.Entities.ConfiguracionBalanza", b =>
@@ -253,7 +256,10 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.HasIndex("Marca")
                         .IsUnique();
 
-                    b.ToTable("Ganaderos", (string)null);
+                    b.ToTable("Ganaderos", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Ganaderos_Marca", "length(Marca) BETWEEN 1 AND 5");
+                        });
                 });
 
             modelBuilder.Entity("PesajeFaeneo.Domain.Entities.ParametrosSistema", b =>

@@ -30,8 +30,8 @@ flowchart TD
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | **F0** | **Fundaciones del proyecto** | ✅ Completado | 7 | 7 | 2026-09-24 |
 | **F1** | **Seguridad, usuarios y shell principal** | ✅ Completado | 6 | 6 | 2026-09-24 |
-| **F2** | **Parámetros y catálogos** | ⏳ Siguiente en turno | 0 | 6 | — |
-| **F3** | **Integración con balanza** | ⏳ Pendiente | 0 | 7 | — |
+| **F2** | **Parámetros y catálogos** | ✅ Completado | 6 | 6 | 2026-09-24 |
+| **F3** | **Integración con balanza** | ⏳ Siguiente en turno | 0 | 7 | — |
 | **F4** | **Registro de pesaje** | ⏳ Pendiente | 0 | 7 | — |
 | **F5** | **Boleta de pesaje** | ⏳ Pendiente | 0 | 6 | — |
 | **F6** | **Edición, anulación y auditoría** | ⏳ Pendiente | 0 | 5 | — |
@@ -60,13 +60,13 @@ flowchart TD
 - [x] **HU-F1-05:** Gestión de usuarios (CRUD)
 - [x] **HU-F1-06:** Cambio de contraseña
 
-### [ ] Fase F2 — Parámetros y catálogos
-- [ ] **HU-F2-01:** Parámetros del Sistema (datos de la empresa)
-- [ ] **HU-F2-02:** Reglas de validación y normalización de catálogos
-- [ ] **HU-F2-03:** Gestión de Ganaderos
-- [ ] **HU-F2-04:** Gestión de Clientes
-- [ ] **HU-F2-05:** Gestión de Fleteros (F1..F4)
-- [ ] **HU-F2-06:** Control reutilizable de búsqueda y autocompletado
+### [x] Fase F2 — Parámetros y catálogos (COMPLETADA)
+- [x] **HU-F2-01:** Parámetros del Sistema (datos de la empresa)
+- [x] **HU-F2-02:** Reglas de validación y normalización de catálogos
+- [x] **HU-F2-03:** Gestión de Ganaderos
+- [x] **HU-F2-04:** Gestión de Clientes
+- [x] **HU-F2-05:** Gestión de Fleteros (F1..F4)
+- [x] **HU-F2-06:** Control reutilizable de búsqueda y autocompletado
 
 ### [ ] Fase F3 — Integración con balanza
 - [ ] **HU-F3-01:** Abstracción IScaleReader y ciclo de conexión
@@ -147,12 +147,20 @@ flowchart TD
 - **Seguridad:** Autorización basada en `Permiso` verificado en UI y servicios. Auditoría atómica de cambios. El usuario `admin/admin` se siembra con `DebeCambiarPassword = true`.
 - **Tiempo:** Siempre `TimeProvider` inyectado (obligatorio, no opcional; `FakeTimeProvider` en tests).
 - **Errores:** `ClasificadorErrores` distingue `Validacion`, `Negocio` (incluye `ConcurrenciaException`, `ConflictoException`, `EntidadNoEncontradaException`, `ReglaNegocioException` y cualquier otra `DomainException`), `NoAutorizado`, `Cancelado` (`OperationCanceledException`: sin log ni MessageBox) e `Inesperado`. Un `AggregateException` solo se desenvuelve si tiene una única excepción interna.
+- **Catálogos y normalización en mayúsculas:** persistencia forzada en mayúsculas (`ToUpperInvariant`) y colapso de espacios intermedios (`Regex.Replace(s, @"\s+", " ")`). La collation `NOCASE` de SQLite sólo pliega caracteres ASCII A–Z y no cubre caracteres acentuados ni la letra eñe (p. ej. "PEÑA" y "peña" serían tratados como distintos sin esta normalización).
+- **Unidad de trabajo y transacciones explícitas (`ITransaccion`):** extensión de `IUnidadDeTrabajo` con `IniciarTransaccionAsync` y `ITransaccion` para inserciones donde el registro de auditoría requiere el `Id` autogenerado de la entidad (catálogos), garantizando atomicidad completa y soporte de reversión en caso de error.
+- **Búsqueda tolerante a acentos y autocompletado en memoria:** plegado de texto a ASCII en mayúsculas vía `NormalizationForm.FormD` despojando marcas no espaciadoras (`UnicodeCategory.NonSpacingMark`) en `TextoBusqueda`. Motor `MotorBusqueda` con ranking en 5 niveles de relevancia (código exacto, prefijo de código, prefijo de descripción, prefijo de palabras, contiene descripción).
+- **Control reutilizable de autocompletado (`ControlBusquedaCatalogo`):** `UserControl` con lista desplegable flotante agregada dinámicamente al formulario contenedor (`FindForm().Controls`) y `BringToFront()`, evitando recortes por contenedores padre. Enrutamiento de teclado mediante `PreviewKeyDown` marcando `IsInputKey = true` condicionalmente para Enter y Escape cuando la lista está activa, evitando consumo prematuro por `AcceptButton`/`CancelButton` del formulario.
+- **Almacenamiento seguro de logo:** implementado en `AlmacenLogoArchivos` con validación estricta de encabezados binarios (firmas mágicas para PNG, JPEG y BMP) y tamaño máximo de 1 MB. El logo se referencia en base de datos mediante su nombre de archivo relativo y se almacena en `AppPaths.LogoDir`. Las cargas en UI (`FrmParametros`) emplean lectura en flujo y copia a `Bitmap` para evitar el bloqueo del archivo en disco que ocasiona `Image.FromFile`. Limpieza segura de archivos en rollback.
+- **Regla de reentrada en UI (`FormBase`, regla 0.10):** jamás invocar un método con `EjecutarAsync` interno dentro del delegado de otro `EjecutarAsync` o `Ejecutar`; los formularios modales y operaciones compuestas deben obtener el resultado y ejecutar las recargas posteriormente para evitar que la bandera `_ocupado` descarte silenciosamente la operación.
 
-### Notas hacia fases futuras (registradas en la revisión post-F0, no implementadas todavía)
-- **F2:** traducir `DbUpdateException` por restricción UNIQUE/CHECK de SQLite (`SqliteErrorCode 19`) a `ConflictoException`/`ValidacionException` en Infrastructure; la UI no debe ver `DbUpdateException` (implementado en F1 para Usuarios).
-- **F4-02:** numeración atómica con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` dentro de la misma transacción que el insert del pesaje y la auditoría.
-- **F6:** agregar token de concurrencia (`Version` entero con `IsConcurrencyToken`, incrementado en `SaveChanges`) a `Pesaje` y `ParametrosSistema`, y mapear `DbUpdateConcurrencyException` → `ConcurrenciaException`.
+### Notas hacia fases futuras (registradas en las revisiones post-F0 y post-F2)
+- **F4-02 / F6 (R6):** numeración atómica con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` dentro de la misma transacción que el insert del pesaje y la auditoría. Al cambiar la numeración desde Parámetros, verificar en la misma transacción que el valor en BD no haya variado, o gobernarlo mediante el token `Version` de F6.
+- **F4-07 (R9):** las altas rápidas desde la pantalla de pesaje requieren el permiso `AltaRapidaCatalogos` (Operador). En lugar de relajar `CrearAsync` (que exige `GestionarCatalogos`), implementar `CrearRapidoAsync` en los servicios de catálogo con motivo prefijado "Alta rápida desde pesaje". El evento `AltaRapidaSolicitada` del control ya se encuentra disponible.
+- **F5 / F8 (R10):** la impresión en F5 y los utilitarios de backup/restauración en F8 deben considerar la carpeta de logos (`AppPaths.LogoDir`). F8 debe incluir el logo en los respaldos y restauraciones; F5 debe tolerar la ausencia o ilegibilidad del logo sin fallar.
+- **F6 (R12):** agregar token de concurrencia (`Version` entero con `IsConcurrencyToken`, incrementado en `SaveChanges`) a `Pesaje` y `ParametrosSistema`, y mapear `DbUpdateConcurrencyException` → `ConcurrenciaException`. Si en el futuro se permite acceso multi-terminal concurrente, extender `Version` también a los catálogos.
 - **F7:** QuestPDF 2024.x exige `QuestPDF.Settings.License = LicenseType.Community` al iniciar.
+- **F9-04 (R11):** `ConfiguracionInicialCompleta` permanece en `false` tras guardar parámetros en F2. El asistente de primer arranque en F9-04 debe decidir si marcarla o si detecta el nombre de empresa distinto del valor por defecto.
 - **F9:** el instalador debe dar permisos de Modificar a `Users` sobre `%ProgramData%\PesajeFaeneo` (por defecto, archivos creados por un admin son de solo lectura para usuarios estándar → la app no podría escribir la BD). Revisar si el mutex `Global\` (bloquea a un segundo usuario de Windows en otra sesión) es el comportamiento deseado.
 
 ---
@@ -205,3 +213,29 @@ flowchart TD
   - D9: Módulos de fases futuras deshabilitados con ToolTip explicativo.
   - D10: Mensajes de login unificados ("Usuario o contraseña incorrectos.") con auditoría disociada de credenciales.
 - **Siguiente paso:** Fase F2 — Parámetros y catálogos.
+
+### Fase F2 — Parámetros y catálogos
+- **Fecha:** 2026-09-24
+- **Estado:** ✅ Completado con éxito (6/6 HUs).
+- **Compilación:** `dotnet build` en `Release` con 0 warnings y 0 errores (`TreatWarningsAsErrors=true`).
+- **Pruebas:** 292 tests unitarios y de integración ejecutados y en verde (0 fallos, 0 omitidos; incremento de 172 a 292 tests, +120 tests añadidos).
+- **Migración:** `F2_Catalogos` añadida, con reconstrucción de tablas `Ganaderos` y `Clientes` agregando restricciones CHECK de longitud y rango (`length(Marca) BETWEEN 1 AND 5`, `Codigo BETWEEN 1 AND 999999`), preservando collation `NOCASE`, recreando índices únicos y validando integridad de claves foráneas con `PRAGMA foreign_key_check`.
+- **Decisiones de diseño aplicadas (D1–D17):**
+  - D1: Guardado en mayúsculas invariantes (`ToUpperInvariant`) y colapso de espacios en blanco intermedios.
+  - D2: Validación sintáctica de marcas de ganadero (1 a 5 caracteres, regex `^[\p{Lu}\p{Nd}&./-]{1,5}$`).
+  - D3: Nombres de ganaderos y clientes de 3 a 100 caracteres.
+  - D4: No forzar unicidad en nombres de ganaderos/clientes (solo en marca y código numérico).
+  - D5: Sugerencia de reactivación al intentar dar de alta una clave existente que se encuentra inactiva.
+  - D6: Código de cliente como entero 1..999999 con sugerencia del siguiente código correlativo disponible.
+  - D7: Límite estricto de 4 fleteros activos numerados de 1 a 4 (F1..F4).
+  - D8: Validación de celulares con al menos 6 dígitos numéricos.
+  - D9: Eliminación física prohibida en catálogos (solo borrado lógico con `Activo = false`).
+  - D10: Auditoría con Id numérico real de la entidad recién creada usando transacción atómica (`ITransaccion`).
+  - D11: Normalización de snapshots de auditoría desvinculando propiedades de navegación.
+  - D12: Validación fiscal y operativa completa en parámetros del sistema.
+  - D13: Protección del contador `SiguienteNumeroBoleta` (debe ser mayor al último número emitido).
+  - D14: Almacenamiento seguro del logo con validación de firma binaria (PNG, JPEG, BMP) y límite de 1 MB.
+  - D15: Búsqueda en memoria de 5 niveles con plegado de acentos FormD y control reutilizable `ControlBusquedaCatalogo` con dropdown flotante.
+  - D16: Sin token de concurrencia en catálogos por contexto mono-usuario / ventanas modales.
+  - D17: Prevención de reentrada en `FormBase` estructurando recargas fuera de bloques bloqueados.
+- **Siguiente paso:** Fase F3 — Integración con balanza.

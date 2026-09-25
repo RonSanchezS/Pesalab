@@ -1,8 +1,12 @@
 using System.Reflection;
+using PesajeFaeneo.Application.Parametros;
 using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Domain.Enums;
+using PesajeFaeneo.WinForms.Formularios.Administracion;
+using PesajeFaeneo.WinForms.Formularios.Catalogos;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
 using PesajeFaeneo.WinForms.Infraestructura;
+using Serilog;
 
 namespace PesajeFaeneo.WinForms.Formularios;
 
@@ -17,9 +21,11 @@ public partial class FrmPrincipal : FormBase
     private readonly ISesionActual _sesion;
     private readonly IFormFactory _formFactory;
     private readonly TimeProvider _timeProvider;
+    private readonly IServicioParametros _servicioParametros;
 
     private MenuStrip menuStrip = null!;
     private StatusStrip statusStrip = null!;
+    private ToolStripStatusLabel lblStatusEmpresa = null!;
     private ToolStripStatusLabel lblStatusUsuario = null!;
     private ToolStripStatusLabel lblStatusRol = null!;
     private ToolStripStatusLabel lblStatusFechaHora = null!;
@@ -29,15 +35,18 @@ public partial class FrmPrincipal : FormBase
     public SolicitudCierreShell Solicitud { get; private set; } = SolicitudCierreShell.SalirAplicacion;
 
     internal MenuStrip MenuPrincipal => menuStrip;
+    internal ToolStripStatusLabel LblStatusEmpresa => lblStatusEmpresa;
 
     public FrmPrincipal(
         ISesionActual sesion,
         IFormFactory formFactory,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IServicioParametros servicioParametros)
     {
         _sesion = sesion ?? throw new ArgumentNullException(nameof(sesion));
         _formFactory = formFactory ?? throw new ArgumentNullException(nameof(formFactory));
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
+        _servicioParametros = servicioParametros ?? throw new ArgumentNullException(nameof(servicioParametros));
 
         InitializeComponent();
         ConfigurarMenu();
@@ -54,6 +63,8 @@ public partial class FrmPrincipal : FormBase
         }
 
         AutorizadorMenu.Aplicar(menuStrip.Items, _sesion.TienePermiso);
+
+        Shown += async (_, _) => await EjecutarAsync(ActualizarEmpresaAsync);
     }
 
     private void InitializeComponent()
@@ -106,16 +117,22 @@ public partial class FrmPrincipal : FormBase
         var mnuCatalogos = new ToolStripMenuItem("&Catálogos");
         var itemGanaderos = new ToolStripMenuItem("&Ganaderos")
         {
-            Tag = new OpcionMenu(Permiso.GestionarCatalogos, "F2")
+            Tag = new OpcionMenu(Permiso.GestionarCatalogos, null)
         };
+        itemGanaderos.Click += (_, _) => AbrirGanaderos();
+
         var itemClientes = new ToolStripMenuItem("&Clientes")
         {
-            Tag = new OpcionMenu(Permiso.GestionarCatalogos, "F2")
+            Tag = new OpcionMenu(Permiso.GestionarCatalogos, null)
         };
+        itemClientes.Click += (_, _) => AbrirClientes();
+
         var itemFleteros = new ToolStripMenuItem("&Fleteros")
         {
-            Tag = new OpcionMenu(Permiso.GestionarCatalogos, "F2")
+            Tag = new OpcionMenu(Permiso.GestionarCatalogos, null)
         };
+        itemFleteros.Click += (_, _) => AbrirFleteros();
+
         mnuCatalogos.DropDownItems.AddRange(new ToolStripItem[] { itemGanaderos, itemClientes, itemFleteros });
 
         // 4. Reportes
@@ -140,8 +157,10 @@ public partial class FrmPrincipal : FormBase
 
         var itemParametros = new ToolStripMenuItem("&Parámetros del sistema")
         {
-            Tag = new OpcionMenu(Permiso.GestionarParametros, "F2")
+            Tag = new OpcionMenu(Permiso.GestionarParametros, null)
         };
+        itemParametros.Click += async (_, _) => await AbrirParametrosAsync();
+
         var itemBalanza = new ToolStripMenuItem("Configuración de &balanza")
         {
             Tag = new OpcionMenu(Permiso.ConfigurarBalanza, "F3")
@@ -205,6 +224,13 @@ public partial class FrmPrincipal : FormBase
 
     private void ConfigurarStatusStrip()
     {
+        lblStatusEmpresa = new ToolStripStatusLabel
+        {
+            Text = string.Empty,
+            BorderSides = ToolStripStatusLabelBorderSides.Right,
+            BorderStyle = Border3DStyle.SunkenOuter
+        };
+
         var u = _sesion.Usuario;
         lblStatusUsuario = new ToolStripStatusLabel
         {
@@ -240,6 +266,7 @@ public partial class FrmPrincipal : FormBase
 
         statusStrip.Items.AddRange(new ToolStripItem[]
         {
+            lblStatusEmpresa,
             lblStatusUsuario,
             lblStatusRol,
             lblSeparador,
@@ -258,6 +285,52 @@ public partial class FrmPrincipal : FormBase
         lblStatusFechaHora.Text = ahoraLocal.ToString("dd/MM/yyyy HH:mm:ss");
     }
 
+    private async Task ActualizarEmpresaAsync()
+    {
+        try
+        {
+            var parametros = await _servicioParametros.ObtenerAsync();
+            lblStatusEmpresa.Text = string.IsNullOrWhiteSpace(parametros.NombreEmpresa)
+                ? string.Empty
+                : parametros.NombreEmpresa.Trim();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "No se pudo obtener el nombre de la empresa para la barra de estado.");
+            lblStatusEmpresa.Text = string.Empty;
+        }
+    }
+
+    private void AbrirGanaderos()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.GestionarCatalogos);
+            using var frm = _formFactory.Crear<FrmGanaderos>();
+            frm.ShowDialog(this);
+        });
+    }
+
+    private void AbrirClientes()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.GestionarCatalogos);
+            using var frm = _formFactory.Crear<FrmClientes>();
+            frm.ShowDialog(this);
+        });
+    }
+
+    private void AbrirFleteros()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.GestionarCatalogos);
+            using var frm = _formFactory.Crear<FrmFleteros>();
+            frm.ShowDialog(this);
+        });
+    }
+
     private void AbrirUsuarios()
     {
         Ejecutar(() =>
@@ -266,6 +339,22 @@ public partial class FrmPrincipal : FormBase
             using var frm = _formFactory.Crear<FrmUsuarios>();
             frm.ShowDialog(this);
         });
+    }
+
+    private async Task AbrirParametrosAsync()
+    {
+        DialogResult resultado = DialogResult.None;
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.GestionarParametros);
+            using var frm = _formFactory.Crear<FrmParametros>();
+            resultado = frm.ShowDialog(this);
+        });
+
+        if (resultado == DialogResult.OK)
+        {
+            await EjecutarAsync(ActualizarEmpresaAsync);
+        }
     }
 
     private void AbrirCambioPassword()
@@ -315,4 +404,6 @@ public partial class FrmPrincipal : FormBase
         }
         base.Dispose(disposing);
     }
+
+    internal Task ActualizarEmpresaParaTestAsync() => ActualizarEmpresaAsync();
 }

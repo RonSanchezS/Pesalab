@@ -60,5 +60,17 @@ Al iniciar la aplicación por primera vez sobre una base de datos recién creada
 
 Por motivos de seguridad, la cuenta administradora inicial tiene activada la marca `DebeCambiarPassword`. En consecuencia:
 1. El sistema solicitará obligatoriamente cambiar la contraseña antes de permitir el acceso al menú principal.
-2. La nueva contraseña no puede ser idéntica a la anterior (`admin`) y debe cumplir con la longitud mínima requerida por las políticas de seguridad (mínimo 4 caracteres).
+2. La nueva contraseña no puede ser idéntica a la anterior (`admin`) y debe cumplir con la longitud mínima requerida por las políticas de seguridad (mínimo 6 caracteres).
 3. Tras confirmar el cambio, la sesión continuará hacia la pantalla principal con el rol de Administrador.
+
+## Catálogos y Parámetros
+
+- **Catálogos de Ganaderos, Clientes y Fleteros:**
+  - Persistencia normalizada en mayúsculas invariantes (`ToUpperInvariant`) y colapso de espacios intermedios.
+  - Validación estricta con restricciones CHECK a nivel de SQLite (longitud de marca de 1 a 5 caracteres, código de cliente entre 1 y 999.999).
+  - Reglas de unicidad y de negocio: reactivación sugerida al intentar dar de alta una clave existente inactiva; máximo de 4 fleteros activos (F1 a F4).
+  - Componente de búsqueda y autocompletado en memoria con ranking de coincidencia multinivel, tolerante a acentos y caracteres especiales (plegado Unicode FormD).
+- **Parámetros del Sistema y Logo:**
+  - Configuración de datos fiscales y operativos de la empresa, y control del siguiente número de boleta.
+  - Almacenamiento seguro del logo en `%ProgramData%\PesajeFaeneo\logo` mediante nombre de archivo relativo y validación binaria de firma de imagen (PNG, JPEG, BMP).
+  - Carga desacoplada de archivos para visualización sin bloquear el archivo en el sistema operativo.

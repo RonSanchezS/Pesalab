@@ -8,7 +8,7 @@ public class ClienteConfiguration : IEntityTypeConfiguration<Cliente>
 {
     public void Configure(EntityTypeBuilder<Cliente> builder)
     {
-        builder.ToTable("Clientes");
+        builder.ToTable("Clientes", t => t.HasCheckConstraint("CK_Clientes_Codigo", "Codigo BETWEEN 1 AND 999999"));
 
         builder.HasKey(c => c.Id);
 

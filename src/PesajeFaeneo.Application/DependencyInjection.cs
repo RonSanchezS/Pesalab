@@ -9,6 +9,10 @@ public static class DependencyInjection
         services.AddSingleton<Seguridad.ISesionActual, Seguridad.SesionActual>();
         services.AddTransient<Seguridad.IServicioAutenticacion, Seguridad.ServicioAutenticacion>();
         services.AddTransient<Seguridad.IServicioUsuarios, Seguridad.ServicioUsuarios>();
+        services.AddTransient<Catalogos.IServicioGanaderos, Catalogos.ServicioGanaderos>();
+        services.AddTransient<Catalogos.IServicioClientes, Catalogos.ServicioClientes>();
+        services.AddTransient<Catalogos.IServicioFleteros, Catalogos.ServicioFleteros>();
+        services.AddTransient<Parametros.IServicioParametros, Parametros.ServicioParametros>();
         return services;
     }
 }

@@ -355,7 +355,8 @@ public class ServicioAutenticacionTests
         // hacia Usuarios y GuardarCambiosAsync falla.
         sesion.Iniciar(new UsuarioSesion(9999, "admin", "Administrador", Rol.Administrador, false));
 
-        await Assert.ThrowsAsync<DbUpdateException>(() => servicio.CerrarSesionAsync());
+        var ex = await Assert.ThrowsAsync<ReglaNegocioException>(() => servicio.CerrarSesionAsync());
+        Assert.Equal("BD_FK", ex.Codigo);
 
         Assert.False(sesion.EstaAutenticada);
         Assert.Null(sesion.Usuario);

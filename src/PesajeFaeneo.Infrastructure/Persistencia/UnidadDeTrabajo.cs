@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PesajeFaeneo.Application.Abstracciones.Persistencia;
 using PesajeFaeneo.Domain.Excepciones;
 using PesajeFaeneo.Infrastructure.Persistencia.Repositorios;
@@ -11,6 +12,10 @@ public sealed class UnidadDeTrabajo : IUnidadDeTrabajo
     private readonly PesajeDbContext _context;
     private IUsuarioRepositorio? _usuarios;
     private IAuditoriaRepositorio? _auditoria;
+    private IGanaderoRepositorio? _ganaderos;
+    private IClienteRepositorio? _clientes;
+    private IFleteroRepositorio? _fleteros;
+    private IParametrosRepositorio? _parametros;
 
     public UnidadDeTrabajo(PesajeDbContext context)
     {
@@ -19,6 +24,21 @@ public sealed class UnidadDeTrabajo : IUnidadDeTrabajo
 
     public IUsuarioRepositorio Usuarios => _usuarios ??= new UsuarioRepositorio(_context);
     public IAuditoriaRepositorio Auditoria => _auditoria ??= new AuditoriaRepositorio(_context);
+    public IGanaderoRepositorio Ganaderos => _ganaderos ??= new GanaderoRepositorio(_context);
+    public IClienteRepositorio Clientes => _clientes ??= new ClienteRepositorio(_context);
+    public IFleteroRepositorio Fleteros => _fleteros ??= new FleteroRepositorio(_context);
+    public IParametrosRepositorio Parametros => _parametros ??= new ParametrosRepositorio(_context);
+
+    public async Task<ITransaccion> IniciarTransaccionAsync(CancellationToken cancellationToken = default)
+    {
+        if (_context.Database.CurrentTransaction is not null)
+        {
+            throw new InvalidOperationException("Ya hay una transacción activa en esta unidad de trabajo.");
+        }
+
+        var tx = await _context.Database.BeginTransactionAsync(cancellationToken);
+        return new TransaccionEf(tx);
+    }
 
     public async Task GuardarCambiosAsync(CancellationToken cancellationToken = default)
     {
@@ -41,6 +61,10 @@ public sealed class UnidadDeTrabajo : IUnidadDeTrabajo
             {
                 throw new ReglaNegocioException("BD_CHECK", "Los datos no cumplen una regla de integridad.", ex);
             }
+            if (msg.Contains("FOREIGN KEY"))
+            {
+                throw new ReglaNegocioException("BD_FK", "El registro está relacionado con otros datos y no se puede guardar así.", ex);
+            }
             throw;
         }
     }
@@ -48,5 +72,25 @@ public sealed class UnidadDeTrabajo : IUnidadDeTrabajo
     public async ValueTask DisposeAsync()
     {
         await _context.DisposeAsync();
+    }
+}
+
+internal sealed class TransaccionEf : ITransaccion
+{
+    private readonly IDbContextTransaction _transaction;
+
+    public TransaccionEf(IDbContextTransaction transaction)
+    {
+        _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
+    }
+
+    public Task ConfirmarAsync(CancellationToken cancellationToken = default)
+    {
+        return _transaction.CommitAsync(cancellationToken);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return _transaction.DisposeAsync();
     }
 }

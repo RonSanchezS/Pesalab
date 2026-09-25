@@ -29,6 +29,7 @@ public static class DependencyInjection
 
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<PesajeFaeneo.Application.Abstracciones.Persistencia.IUnidadDeTrabajoFactory, UnidadDeTrabajoFactory>();
+        services.AddSingleton<IAlmacenLogo, Archivos.AlmacenLogoArchivos>();
         services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
         services.AddScoped<IDataSeeder, DataSeeder>();
 

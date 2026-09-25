@@ -32,7 +32,8 @@ public class ArquitecturaTests
             "PesajeFaeneo.Infrastructure",
             "PesajeFaeneo.WinForms",
             "Serilog",
-            "Microsoft.Extensions.Hosting");
+            "Microsoft.Extensions.Hosting",
+            "System.Drawing");
     }
 
     [Fact]

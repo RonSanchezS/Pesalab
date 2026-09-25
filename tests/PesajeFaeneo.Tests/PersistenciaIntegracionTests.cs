@@ -342,6 +342,50 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
         Assert.Equal(bloqueadoHasta, releido.BloqueadoHasta.Value);
     }
 
+    [Fact]
+    public async Task Ganadero_MarcaVacia_LanzaDbUpdateException()
+    {
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+
+        var ganadero = new GanaderoBuilder().ConMarca("").ConNombre("Ganadero Sin Marca").Build();
+
+        ctx.Ganaderos.Add(ganadero);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Ganadero_MarcaDeSeisCaracteres_LanzaDbUpdateException()
+    {
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+
+        var ganadero = new GanaderoBuilder().ConMarca("ABCDEF").ConNombre("Ganadero Marca Larga").Build();
+
+        ctx.Ganaderos.Add(ganadero);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Cliente_CodigoCero_LanzaDbUpdateException()
+    {
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+
+        var cliente = new ClienteBuilder().ConCodigo(0).ConNombre("Cliente Codigo Cero").Build();
+
+        ctx.Clientes.Add(cliente);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Cliente_CodigoMayorAlMaximo_LanzaDbUpdateException()
+    {
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+
+        var cliente = new ClienteBuilder().ConCodigo(1_000_000).ConNombre("Cliente Codigo Millon").Build();
+
+        ctx.Clientes.Add(cliente);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
     private async Task<(Ganadero Ganadero, Cliente Cliente, Usuario Usuario)> CrearCatalogosBaseAsync(
         string marcaGanadero,
         int codigoCliente,

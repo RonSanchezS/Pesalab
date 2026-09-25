@@ -8,5 +8,10 @@ public interface IUnidadDeTrabajo : IAsyncDisposable
 {
     IUsuarioRepositorio Usuarios { get; }
     IAuditoriaRepositorio Auditoria { get; }
+    IGanaderoRepositorio Ganaderos { get; }
+    IClienteRepositorio Clientes { get; }
+    IFleteroRepositorio Fleteros { get; }
+    IParametrosRepositorio Parametros { get; }
     Task GuardarCambiosAsync(CancellationToken cancellationToken = default);
+    Task<ITransaccion> IniciarTransaccionAsync(CancellationToken cancellationToken = default);
 }

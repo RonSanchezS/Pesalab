@@ -124,4 +124,115 @@ public class UnidadDeTrabajoTests
         Assert.Equal("BD_CHECK", ex.Codigo);
         Assert.Contains("Los datos no cumplen una regla de integridad.", ex.Message);
     }
+
+    [Fact]
+    public async Task IniciarTransaccionAsync_Confirmada_PersisteEntidadesYAuditoria()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var tiempo = TimeProvider.System;
+
+        int ganaderoId;
+        await using (var uow = await db.UnidadDeTrabajoFactory.CrearAsync())
+        {
+            await using var tx = await uow.IniciarTransaccionAsync();
+
+            var ganadero = new GanaderoBuilder().ConMarca("TX").ConNombre("Ganadero TX").Build();
+            uow.Ganaderos.Agregar(ganadero);
+            await uow.GuardarCambiosAsync();
+
+            ganaderoId = ganadero.Id;
+            Assert.True(ganaderoId > 0);
+
+            var auditoria = FabricaAuditoria.Crear(
+                tiempo,
+                usuarioId: null,
+                AccionAuditoria.Crear,
+                EntidadesAuditoria.Ganadero,
+                ganaderoId.ToString(),
+                despues: FabricaAuditoria.CrearSnapshot(ganadero),
+                motivo: "Alta de ganadero con tx");
+
+            uow.Auditoria.Registrar(auditoria);
+            await uow.GuardarCambiosAsync();
+
+            await tx.ConfirmarAsync();
+        }
+
+        await using var ctx = await db.ContextFactory.CreateDbContextAsync();
+        var g = await ctx.Ganaderos.FindAsync(ganaderoId);
+        Assert.NotNull(g);
+        var a = await ctx.Auditorias.FirstOrDefaultAsync(x => x.EntidadId == ganaderoId.ToString() && x.Entidad == EntidadesAuditoria.Ganadero);
+        Assert.NotNull(a);
+    }
+
+    [Fact]
+    public async Task IniciarTransaccionAsync_NoConfirmada_RevierteTodo()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+
+        int ganaderoId = 0;
+        await using (var uow = await db.UnidadDeTrabajoFactory.CrearAsync())
+        {
+            await using (var tx = await uow.IniciarTransaccionAsync())
+            {
+                var ganadero = new GanaderoBuilder().ConMarca("NO").ConNombre("Ganadero No Confirmado").Build();
+                uow.Ganaderos.Agregar(ganadero);
+                await uow.GuardarCambiosAsync();
+                ganaderoId = ganadero.Id;
+
+                // No llamamos a tx.ConfirmarAsync()
+            }
+        }
+
+        await using var ctx = await db.ContextFactory.CreateDbContextAsync();
+        var g = await ctx.Ganaderos.FindAsync(ganaderoId);
+        Assert.Null(g);
+    }
+
+    [Fact]
+    public async Task IniciarTransaccionAsync_SegundoGuardarFallaPorFk_LanzaReglaNegocioExceptionBD_FK_YRevierte()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var tiempo = TimeProvider.System;
+
+        int ganaderoId = 0;
+        await using (var uow = await db.UnidadDeTrabajoFactory.CrearAsync())
+        {
+            await using var tx = await uow.IniciarTransaccionAsync();
+
+            var ganadero = new GanaderoBuilder().ConMarca("FK").ConNombre("Ganadero FK").Build();
+            uow.Ganaderos.Agregar(ganadero);
+            await uow.GuardarCambiosAsync();
+            ganaderoId = ganadero.Id;
+
+            // Registrar auditoría con UsuarioId inexistente (viola FK con Usuarios)
+            var auditoriaInvalida = FabricaAuditoria.Crear(
+                tiempo,
+                usuarioId: 9999,
+                AccionAuditoria.Crear,
+                EntidadesAuditoria.Ganadero,
+                ganaderoId.ToString(),
+                motivo: "Auditoria con FK invalida");
+
+            uow.Auditoria.Registrar(auditoriaInvalida);
+
+            var ex = await Assert.ThrowsAsync<ReglaNegocioException>(() => uow.GuardarCambiosAsync());
+            Assert.Equal("BD_FK", ex.Codigo);
+            Assert.Contains("El registro está relacionado con otros datos", ex.Message);
+        }
+
+        await using var ctx = await db.ContextFactory.CreateDbContextAsync();
+        var g = await ctx.Ganaderos.FindAsync(ganaderoId);
+        Assert.Null(g);
+    }
+
+    [Fact]
+    public async Task IniciarTransaccionAsync_DosVecesEnMismaUnidad_LanzaInvalidOperationException()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        await using var uow = await db.UnidadDeTrabajoFactory.CrearAsync();
+
+        await using var tx1 = await uow.IniciarTransaccionAsync();
+        await Assert.ThrowsAsync<InvalidOperationException>(() => uow.IniciarTransaccionAsync());
+    }
 }
