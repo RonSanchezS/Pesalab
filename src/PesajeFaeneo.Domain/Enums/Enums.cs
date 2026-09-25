@@ -42,6 +42,19 @@ public enum BitsParada
     OnePointFive = 3
 }
 
+public enum DelimitadorTrama
+{
+    FinDeLinea = 1,
+    Espacio = 2,
+    SignoIgual = 3
+}
+
+public enum UnidadPesoTrama
+{
+    Kilogramos = 1,
+    Gramos = 2
+}
+
 public enum AccionAuditoria
 {
     Crear = 1,

@@ -33,6 +33,10 @@ public static class DependencyInjection
         services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
         services.AddScoped<IDataSeeder, DataSeeder>();
 
+        services.AddSingleton<Application.Balanza.ISimuladorBalanza, Balanza.Simulador.SimuladorBalanza>();
+        services.AddSingleton<Application.Balanza.IFabricaLectorBalanza, Balanza.FabricaLectorBalanza>();
+        services.AddSingleton<Application.Balanza.IEnumeradorPuertosSerie, Balanza.EnumeradorPuertosSerie>();
+
         services.AddSingleton(TimeProvider.System);
 
         return services;

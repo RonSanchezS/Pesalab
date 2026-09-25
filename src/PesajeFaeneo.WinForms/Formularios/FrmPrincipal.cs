@@ -22,12 +22,15 @@ public partial class FrmPrincipal : FormBase
     private readonly IFormFactory _formFactory;
     private readonly TimeProvider _timeProvider;
     private readonly IServicioParametros _servicioParametros;
+    private readonly PesajeFaeneo.Application.Balanza.IServicioBalanza _servicioBalanza;
+    private readonly MonitorBalanzaUi _monitorBalanza;
 
     private MenuStrip menuStrip = null!;
     private StatusStrip statusStrip = null!;
     private ToolStripStatusLabel lblStatusEmpresa = null!;
     private ToolStripStatusLabel lblStatusUsuario = null!;
     private ToolStripStatusLabel lblStatusRol = null!;
+    private ToolStripStatusLabel lblStatusBalanza = null!;
     private ToolStripStatusLabel lblStatusFechaHora = null!;
     private ToolStripStatusLabel lblStatusVersion = null!;
     private System.Windows.Forms.Timer? _relojTimer;
@@ -36,17 +39,24 @@ public partial class FrmPrincipal : FormBase
 
     internal MenuStrip MenuPrincipal => menuStrip;
     internal ToolStripStatusLabel LblStatusEmpresa => lblStatusEmpresa;
+    internal ToolStripStatusLabel LblStatusBalanza => lblStatusBalanza;
+    internal MonitorBalanzaUi MonitorBalanza => _monitorBalanza;
 
     public FrmPrincipal(
         ISesionActual sesion,
         IFormFactory formFactory,
         TimeProvider timeProvider,
-        IServicioParametros servicioParametros)
+        IServicioParametros servicioParametros,
+        PesajeFaeneo.Application.Balanza.IServicioBalanza servicioBalanza)
     {
         _sesion = sesion ?? throw new ArgumentNullException(nameof(sesion));
         _formFactory = formFactory ?? throw new ArgumentNullException(nameof(formFactory));
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
         _servicioParametros = servicioParametros ?? throw new ArgumentNullException(nameof(servicioParametros));
+        _servicioBalanza = servicioBalanza ?? throw new ArgumentNullException(nameof(servicioBalanza));
+
+        _monitorBalanza = new MonitorBalanzaUi(_servicioBalanza);
+        _monitorBalanza.Actualizado += (_, i) => ActualizarBalanza(i);
 
         InitializeComponent();
         ConfigurarMenu();
@@ -65,6 +75,7 @@ public partial class FrmPrincipal : FormBase
         AutorizadorMenu.Aplicar(menuStrip.Items, _sesion.TienePermiso);
 
         Shown += async (_, _) => await EjecutarAsync(ActualizarEmpresaAsync);
+        Shown += (_, _) => _monitorBalanza.Iniciar();
     }
 
     private void InitializeComponent()
@@ -163,8 +174,9 @@ public partial class FrmPrincipal : FormBase
 
         var itemBalanza = new ToolStripMenuItem("Configuración de &balanza")
         {
-            Tag = new OpcionMenu(Permiso.ConfigurarBalanza, "F3")
+            Tag = new OpcionMenu(Permiso.ConfigurarBalanza, null)
         };
+        itemBalanza.Click += (_, _) => AbrirConfiguracionBalanza();
         var itemAuditoria = new ToolStripMenuItem("Visor de &auditoría")
         {
             Tag = new OpcionMenu(Permiso.VerAuditoria, "F6")
@@ -246,6 +258,13 @@ public partial class FrmPrincipal : FormBase
             BorderStyle = Border3DStyle.SunkenOuter
         };
 
+        lblStatusBalanza = new ToolStripStatusLabel
+        {
+            BorderSides = ToolStripStatusLabelBorderSides.Right,
+            BorderStyle = Border3DStyle.SunkenOuter,
+            Text = "Balanza: iniciando…"
+        };
+
         var lblSeparador = new ToolStripStatusLabel
         {
             Spring = true
@@ -269,6 +288,7 @@ public partial class FrmPrincipal : FormBase
             lblStatusEmpresa,
             lblStatusUsuario,
             lblStatusRol,
+            lblStatusBalanza,
             lblSeparador,
             lblStatusFechaHora,
             lblStatusVersion
@@ -357,6 +377,16 @@ public partial class FrmPrincipal : FormBase
         }
     }
 
+    private void AbrirConfiguracionBalanza()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.ConfigurarBalanza);
+            using var frm = _formFactory.Crear<FrmConfiguracionBalanza>();
+            frm.ShowDialog(this);
+        });
+    }
+
     private void AbrirCambioPassword()
     {
         Ejecutar(() =>
@@ -394,10 +424,18 @@ public partial class FrmPrincipal : FormBase
         });
     }
 
+    private void ActualizarBalanza(PesajeFaeneo.Application.Balanza.Dtos.InstantaneaBalanza i)
+    {
+        lblStatusBalanza.Text = $"{PresentacionBalanza.TextoEstado(i)}  {PresentacionBalanza.TextoPeso(i)}";
+        lblStatusBalanza.ForeColor = PresentacionBalanza.ColorEstado(i);
+        lblStatusBalanza.BackColor = i.EsSimulador ? PresentacionBalanza.ColorFondoSimulador : SystemColors.Control;
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
+            _monitorBalanza?.Dispose();
             _relojTimer?.Stop();
             _relojTimer?.Dispose();
             _relojTimer = null;

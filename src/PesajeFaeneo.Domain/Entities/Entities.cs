@@ -45,10 +45,12 @@ public class ConfiguracionBalanza
     public BitsParada BitsParada { get; set; } = BitsParada.One;
     public string HostTcp { get; set; } = "192.168.1.100";
     public int PuertoTcp { get; set; } = 4001;
-    public string PatronRegex { get; set; } = @"(?<peso>[-+]?\d+(?:[.,]\d+)?)";
+    public string PatronRegex { get; set; } = @"(?<peso>[-+]?\s*\d+(?:[.,]\d+)?)";
     public int LecturasParaEstable { get; set; } = 5;
     public decimal ToleranciaKg { get; set; } = 0.5m;
     public int TimeoutMs { get; set; } = 3000;
+    public DelimitadorTrama DelimitadorTrama { get; set; } = DelimitadorTrama.FinDeLinea;
+    public UnidadPesoTrama UnidadPeso { get; set; } = UnidadPesoTrama.Kilogramos;
     public DateTime ModificadoEn { get; set; }
 }
 

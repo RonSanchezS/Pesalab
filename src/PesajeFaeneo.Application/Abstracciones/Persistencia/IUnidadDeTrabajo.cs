@@ -12,6 +12,7 @@ public interface IUnidadDeTrabajo : IAsyncDisposable
     IClienteRepositorio Clientes { get; }
     IFleteroRepositorio Fleteros { get; }
     IParametrosRepositorio Parametros { get; }
+    IConfiguracionBalanzaRepositorio ConfiguracionBalanza { get; }
     Task GuardarCambiosAsync(CancellationToken cancellationToken = default);
     Task<ITransaccion> IniciarTransaccionAsync(CancellationToken cancellationToken = default);
 }

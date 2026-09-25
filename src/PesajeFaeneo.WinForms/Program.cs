@@ -131,9 +131,30 @@ public static class Program
                 seeder.SembrarAsync().GetAwaiter().GetResult();
             }
 
-            // 6. Ejecutar ciclo de aplicación con login y contexto de sesión
+            // 6. Balanza: se inicia después de migrar (lee su configuración de la BD) y nunca impide abrir la
+            // aplicación; si falla, la barra de estado lo mostrará y el administrador podrá corregirlo.
+            var servicioBalanza = host.Services.GetRequiredService<PesajeFaeneo.Application.Balanza.IServicioBalanza>();
+            try
+            {
+                servicioBalanza.IniciarAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "No se pudo iniciar el servicio de balanza. La aplicación continúa sin lectura de balanza.");
+            }
+
+            // 7. Ejecutar ciclo de aplicación con login y contexto de sesión
             using var contexto = ActivatorUtilities.CreateInstance<ContextoAplicacion>(host.Services);
             WinFormsApp.Run(contexto);
+
+            try
+            {
+                servicioBalanza.DetenerAsync().WaitAsync(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "La balanza no se detuvo correctamente al salir.");
+            }
 
             host.StopAsync().GetAwaiter().GetResult();
             return 0;

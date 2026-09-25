@@ -16,6 +16,7 @@ public sealed class UnidadDeTrabajo : IUnidadDeTrabajo
     private IClienteRepositorio? _clientes;
     private IFleteroRepositorio? _fleteros;
     private IParametrosRepositorio? _parametros;
+    private IConfiguracionBalanzaRepositorio? _configuracionBalanza;
 
     public UnidadDeTrabajo(PesajeDbContext context)
     {
@@ -28,6 +29,7 @@ public sealed class UnidadDeTrabajo : IUnidadDeTrabajo
     public IClienteRepositorio Clientes => _clientes ??= new ClienteRepositorio(_context);
     public IFleteroRepositorio Fleteros => _fleteros ??= new FleteroRepositorio(_context);
     public IParametrosRepositorio Parametros => _parametros ??= new ParametrosRepositorio(_context);
+    public IConfiguracionBalanzaRepositorio ConfiguracionBalanza => _configuracionBalanza ??= new ConfiguracionBalanzaRepositorio(_context);
 
     public async Task<ITransaccion> IniciarTransaccionAsync(CancellationToken cancellationToken = default)
     {

@@ -116,6 +116,9 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.Property<int>("DataBits")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("DelimitadorTrama")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("HostTcp")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -152,17 +155,42 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.Property<double>("ToleranciaKg")
                         .HasColumnType("REAL");
 
+                    b.Property<int>("UnidadPeso")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.ToTable("ConfiguracionesBalanza", null, t =>
                         {
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_BaudRate", "BaudRate BETWEEN 110 AND 921600");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_BitsParada", "BitsParada IN (1, 2, 3)");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_DataBits", "DataBits BETWEEN 5 AND 8");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_DelimitadorTrama", "DelimitadorTrama IN (1, 2, 3)");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_HostTcp", "length(HostTcp) BETWEEN 1 AND 100");
+
                             t.HasCheckConstraint("CK_ConfiguracionBalanza_Id", "Id = 1");
 
-                            t.HasCheckConstraint("CK_ConfiguracionBalanza_LecturasParaEstable", "LecturasParaEstable >= 1");
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_LecturasParaEstable", "LecturasParaEstable BETWEEN 1 AND 50");
 
-                            t.HasCheckConstraint("CK_ConfiguracionBalanza_TimeoutMs", "TimeoutMs > 0");
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_Paridad", "Paridad IN (0, 1, 2, 3, 4)");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_PatronRegex", "length(PatronRegex) BETWEEN 1 AND 250");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_PuertoCom", "length(PuertoCom) BETWEEN 1 AND 20");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_PuertoTcp", "PuertoTcp BETWEEN 1 AND 65535");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_TimeoutMs", "TimeoutMs BETWEEN 500 AND 60000");
 
                             t.HasCheckConstraint("CK_ConfiguracionBalanza_TipoConexion", "TipoConexion IN (1, 2, 3)");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_ToleranciaKg", "ToleranciaKg >= 0 AND ToleranciaKg <= 10");
+
+                            t.HasCheckConstraint("CK_ConfiguracionBalanza_UnidadPeso", "UnidadPeso IN (1, 2)");
                         });
 
                     b.HasData(
@@ -172,16 +200,18 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                             BaudRate = 9600,
                             BitsParada = 1,
                             DataBits = 8,
+                            DelimitadorTrama = 1,
                             HostTcp = "192.168.1.100",
                             LecturasParaEstable = 5,
                             ModificadoEn = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Paridad = 0,
-                            PatronRegex = "(?<peso>[-+]?\\d+(?:[.,]\\d+)?)",
+                            PatronRegex = "^[^-+\\d]*(?<peso>[-+]?\\s*\\d+(?:[.,]\\d+)?)",
                             PuertoCom = "COM1",
                             PuertoTcp = 4001,
                             TimeoutMs = 3000,
                             TipoConexion = 3,
-                            ToleranciaKg = 0.5
+                            ToleranciaKg = 0.5,
+                            UnidadPeso = 1
                         });
                 });
 

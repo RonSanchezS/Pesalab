@@ -44,4 +44,42 @@ public class FabricaAuditoriaTests
         Assert.Contains("\"Nombre\":\"GANADERO EJEMPLO\"", auditoria.DatosDespuesJson);
         Assert.Contains("\"Activo\":true", auditoria.DatosDespuesJson);
     }
+
+    [Fact]
+    public void Crear_ConfiguracionBalanza_SerializaEnumComoTextoYSinIdNiModificadoEn()
+    {
+        var config = new ConfiguracionBalanza
+        {
+            Id = 1,
+            TipoConexion = TipoConexion.Serial,
+            PuertoCom = "COM3",
+            BaudRate = 9600,
+            DataBits = 8,
+            Paridad = ParidadSerial.None,
+            BitsParada = BitsParada.One,
+            HostTcp = "192.168.1.100",
+            PuertoTcp = 4001,
+            PatronRegex = @"(?<peso>[-+]?\s*\d+(?:[.,]\d+)?)",
+            LecturasParaEstable = 5,
+            ToleranciaKg = 0.5m,
+            TimeoutMs = 3000,
+            ModificadoEn = DateTime.UtcNow
+        };
+
+        var auditoria = FabricaAuditoria.Crear(
+            TimeProvider.System,
+            usuarioId: 1,
+            AccionAuditoria.CambioConfigBalanza,
+            EntidadesAuditoria.ConfiguracionBalanza,
+            "1",
+            despues: config,
+            motivo: "Actualización de configuración de balanza");
+
+        Assert.NotNull(auditoria.DatosDespuesJson);
+        Assert.Contains("\"TipoConexion\":\"Serial\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"Paridad\":\"None\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"BitsParada\":\"One\"", auditoria.DatosDespuesJson);
+        Assert.DoesNotContain("\"Id\"", auditoria.DatosDespuesJson);
+        Assert.DoesNotContain("ModificadoEn", auditoria.DatosDespuesJson);
+    }
 }

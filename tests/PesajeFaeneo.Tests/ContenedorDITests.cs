@@ -58,6 +58,17 @@ public class ContenedorDITests
             Assert.NotNull(proveedor.GetService<IServicioParametros>());
             Assert.NotNull(proveedor.GetService<IAlmacenLogo>());
 
+            // F3: Servicios de balanza
+            var balanza1 = proveedor.GetService<PesajeFaeneo.Application.Balanza.IServicioBalanza>();
+            var balanza2 = proveedor.GetService<PesajeFaeneo.Application.Balanza.IServicioBalanza>();
+            Assert.NotNull(balanza1);
+            Assert.Same(balanza1, balanza2);
+
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Balanza.IFabricaLectorBalanza>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Balanza.ISimuladorBalanza>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Balanza.IEnumeradorPuertosSerie>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Balanza.IServicioConfiguracionBalanza>());
+
             using (var scope = proveedor.CreateScope())
             {
                 Assert.NotNull(scope.ServiceProvider.GetService<IDatabaseInitializer>());
@@ -107,6 +118,10 @@ public class ContenedorDITests
 
                 using var frmParametros = formFactory.Crear<FrmParametros>();
                 Assert.NotNull(frmParametros);
+
+                // F3: Formulario de configuración de balanza
+                using var frmConfigBalanza = formFactory.Crear<FrmConfiguracionBalanza>();
+                Assert.NotNull(frmConfigBalanza);
             });
         }
         finally

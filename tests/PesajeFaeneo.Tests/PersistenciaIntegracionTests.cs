@@ -386,6 +386,66 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
         await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
     }
 
+    [Fact]
+    public async Task ConfiguracionBalanza_LecturasParaEstableMayorA50_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.LecturasParaEstable = 51);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_TimeoutMsMenorA500_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.TimeoutMs = 499);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_BaudRateMenorA110_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.BaudRate = 100);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_DataBitsMayorA8_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.DataBits = 9);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_ParidadInvalida_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.Paridad = (ParidadSerial)7);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_BitsParadaInvalido_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.BitsParada = (BitsParada)4);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_PuertoTcpCero_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.PuertoTcp = 0);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_PuertoTcpMayorA65535_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.PuertoTcp = 65536);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_ToleranciaKgNegativa_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.ToleranciaKg = -0.1m);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_ToleranciaKgMayorA10_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.ToleranciaKg = 10.1m);
+
+    [Fact]
+    public async Task ConfiguracionBalanza_PuertoComVacio_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.PuertoCom = "");
+
+    [Fact]
+    public async Task ConfiguracionBalanza_HostTcpVacio_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.HostTcp = "");
+
+    [Fact]
+    public async Task ConfiguracionBalanza_PatronRegexVacio_LanzaDbUpdateException() =>
+        await ProbarCheckConstraintConfiguracionBalanzaAsync(c => c.PatronRegex = "");
+
+    private async Task ProbarCheckConstraintConfiguracionBalanzaAsync(Action<ConfiguracionBalanza> mutar)
+    {
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var config = await ctx.ConfiguracionesBalanza.SingleAsync(c => c.Id == 1);
+        mutar(config);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
     private async Task<(Ganadero Ganadero, Cliente Cliente, Usuario Usuario)> CrearCatalogosBaseAsync(
         string marcaGanadero,
         int codigoCliente,

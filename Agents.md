@@ -31,8 +31,8 @@ flowchart TD
 | **F0** | **Fundaciones del proyecto** | ✅ Completado | 7 | 7 | 2026-09-24 |
 | **F1** | **Seguridad, usuarios y shell principal** | ✅ Completado | 6 | 6 | 2026-09-24 |
 | **F2** | **Parámetros y catálogos** | ✅ Completado | 6 | 6 | 2026-09-24 |
-| **F3** | **Integración con balanza** | ⏳ Siguiente en turno | 0 | 7 | — |
-| **F4** | **Registro de pesaje** | ⏳ Pendiente | 0 | 7 | — |
+| **F3** | **Integración con balanza** | ✅ Completado | 7 | 7 | 2026-09-25 |
+| **F4** | **Registro de pesaje** | ⏳ Siguiente en turno | 0 | 7 | — |
 | **F5** | **Boleta de pesaje** | ⏳ Pendiente | 0 | 6 | — |
 | **F6** | **Edición, anulación y auditoría** | ⏳ Pendiente | 0 | 5 | — |
 | **F7** | **Reportes** | ⏳ Pendiente | 0 | 6 | — |
@@ -68,14 +68,14 @@ flowchart TD
 - [x] **HU-F2-05:** Gestión de Fleteros (F1..F4)
 - [x] **HU-F2-06:** Control reutilizable de búsqueda y autocompletado
 
-### [ ] Fase F3 — Integración con balanza
-- [ ] **HU-F3-01:** Abstracción IScaleReader y ciclo de conexión
-- [ ] **HU-F3-02:** Parser de tramas configurable por regex
-- [ ] **HU-F3-03:** Detector de estabilidad
-- [ ] **HU-F3-04:** Lectores Serial (RS-232/USB) y TCP
-- [ ] **HU-F3-05:** Simulador de balanza
-- [ ] **HU-F3-06:** Servicio de balanza compartido y entrega segura a la UI
-- [ ] **HU-F3-07:** Configuración y diagnóstico de balanza
+### [x] Fase F3 — Integración con balanza (COMPLETADA)
+- [x] **HU-F3-01:** Abstracción IScaleReader y ciclo de conexión
+- [x] **HU-F3-02:** Parser de tramas configurable por regex
+- [x] **HU-F3-03:** Detector de estabilidad
+- [x] **HU-F3-04:** Lectores Serial (RS-232/USB) y TCP
+- [x] **HU-F3-05:** Simulador de balanza
+- [x] **HU-F3-06:** Servicio de balanza compartido y entrega segura a la UI
+- [x] **HU-F3-07:** Configuración y diagnóstico de balanza
 
 ### [ ] Fase F4 — Registro de pesaje
 - [ ] **HU-F4-01:** Reglas de dominio del pesaje
@@ -153,15 +153,23 @@ flowchart TD
 - **Control reutilizable de autocompletado (`ControlBusquedaCatalogo`):** `UserControl` con lista desplegable flotante agregada dinámicamente al formulario contenedor (`FindForm().Controls`) y `BringToFront()`, evitando recortes por contenedores padre. Enrutamiento de teclado mediante `PreviewKeyDown` marcando `IsInputKey = true` condicionalmente para Enter y Escape cuando la lista está activa, evitando consumo prematuro por `AcceptButton`/`CancelButton` del formulario.
 - **Almacenamiento seguro de logo:** implementado en `AlmacenLogoArchivos` con validación estricta de encabezados binarios (firmas mágicas para PNG, JPEG y BMP) y tamaño máximo de 1 MB. El logo se referencia en base de datos mediante su nombre de archivo relativo y se almacena en `AppPaths.LogoDir`. Las cargas en UI (`FrmParametros`) emplean lectura en flujo y copia a `Bitmap` para evitar el bloqueo del archivo en disco que ocasiona `Image.FromFile`. Limpieza segura de archivos en rollback.
 - **Regla de reentrada en UI (`FormBase`, regla 0.10):** jamás invocar un método con `EjecutarAsync` interno dentro del delegado de otro `EjecutarAsync` o `Ejecutar`; los formularios modales y operaciones compuestas deben obtener el resultado y ejecutar las recargas posteriormente para evitar que la bandera `_ocupado` descarte silenciosamente la operación.
+- **Balanza e integración de pesaje:** servicio singleton (`IServicioBalanza`) con un único lector activo creado por fábrica (`IFabricaLectorBalanza`). Ciclo de vida explícito en `Program.Main` tras migrar la base de datos (sin `IHostedService`, porque el Host arrancaría antes de migrar y sembrar). El servicio implementa tanto `IAsyncDisposable` como `IDisposable` síncrono para evitar excepciones de MS.DI al cerrar el host. `ConfigureAwait(false)` estricto en todas las operaciones asíncronas de balanza para prevenir interbloqueos con el contexto de sincronización de WinForms al salir. Puerto serie sobre kernel32 directo (`PuertoSerieWin32`, **no** `System.IO.Ports.SerialPort`): se lee el DCB actual del driver y solo se modifican baudios/bits/paridad/parada si difieren; si el driver rechaza `SetCommState`, se relee y se acepta cuando el formato ya coincide. DTR/RTS y control de flujo quedan como los deja el driver. Motivo: `SerialPort.Open()` siempre reescribe el DCB completo y el driver CH340 rechaza cualquier `SetCommState` con error 31 ("el dispositivo no funciona"), incluso sin cambios (verificado en sitio con el indicador RX8 Accurex). Lectura en hilo dedicado (`Thread` con `IsBackground = true`, `AboveNormal`) con `ReadFile` no bloqueante sondeado hasta 250 ms; el cierre usa `SafeFileHandle` (seguro ante un `ReadFile` concurrente). Tramas separadas por fin de línea (CR/LF/ETX) o, si se configura, también por espacio; el peso de la trama puede venir en kilogramos o en gramos (se convierte antes de redondear a 0,1 kg). Entrega segura a la UI por sondeo desacoplado (`MonitorBalanzaUi` con `System.Windows.Forms.Timer` cada 100 ms) sobre una instantánea inmutable (`InstantaneaBalanza`) sin cruzar eventos entre hilos ni fugar referencias a formularios cerrados. Parser de tramas basado en regex con grupos obligatorios `(?<peso>...)` y opcionales `(?<estable>...)`, reemplazo de coma por punto decimal y límite de ejecución de 100 ms contra expresiones catastróficas. Detector de estabilidad con ventana deslizante de lecturas y dispersión menor o igual a la tolerancia configurable. Vigilancia continua para estados `SinDatos` (tras 3 timeouts) y `TramasNoReconocidas` (tras 3 tramas consecutivas sin parsear). Pausa obligatoria de 500 ms tras cerrar un puerto COM para permitir su liberación por el sistema operativo antes de reabrir. Método `EsCapturable` para consumo de F4 (conectada, estable, peso no nulo y lectura reciente dentro del timeout). Diagnóstico interactivo (`ProbarAsync`) que suspende temporalmente el bucle de producción (estado `EnDiagnostico`) y lo reanuda de forma garantizada en `finally`.
 
-### Notas hacia fases futuras (registradas en las revisiones post-F0 y post-F2)
+### Notas hacia fases futuras (registradas en las revisiones post-F0, post-F2 y post-F3)
 - **F4-02 / F6 (R6):** numeración atómica con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` dentro de la misma transacción que el insert del pesaje y la auditoría. Al cambiar la numeración desde Parámetros, verificar en la misma transacción que el valor en BD no haya variado, o gobernarlo mediante el token `Version` de F6.
+- **F4-05 (R13):** capturar peso desde la balanza **únicamente** cuando `Instantanea.EsCapturable(ahora, TimeSpan.FromMilliseconds(TimeoutMs))` sea `true` y el peso sea estrictamente positivo (`PesoKg > 0`).
 - **F4-07 (R9):** las altas rápidas desde la pantalla de pesaje requieren el permiso `AltaRapidaCatalogos` (Operador). En lugar de relajar `CrearAsync` (que exige `GestionarCatalogos`), implementar `CrearRapidoAsync` en los servicios de catálogo con motivo prefijado "Alta rápida desde pesaje". El evento `AltaRapidaSolicitada` del control ya se encuentra disponible.
+- **F4 / F5 (R14):** decidir comportamiento con el modo simulador en producción: (a) solo alerta visual naranja en barra de estado y formularios (comportamiento actual en F3), (b) bloquear la grabación de pesajes en modo simulador para operadores y supervisores (permitido solo a administradores), o (c) imprimir obligatoriamente la leyenda "SIMULADO" en la boleta de pesaje. Además, en F9-04 (asistente de primer arranque) obligar a seleccionar explícitamente el tipo de conexión física.
 - **F5 / F8 (R10):** la impresión en F5 y los utilitarios de backup/restauración en F8 deben considerar la carpeta de logos (`AppPaths.LogoDir`). F8 debe incluir el logo en los respaldos y restauraciones; F5 debe tolerar la ausencia o ilegibilidad del logo sin fallar.
 - **F6 (R12):** agregar token de concurrencia (`Version` entero con `IsConcurrencyToken`, incrementado en `SaveChanges`) a `Pesaje` y `ParametrosSistema`, y mapear `DbUpdateConcurrencyException` → `ConcurrenciaException`. Si en el futuro se permite acceso multi-terminal concurrente, extender `Version` también a los catálogos.
 - **F7:** QuestPDF 2024.x exige `QuestPDF.Settings.License = LicenseType.Community` al iniciar.
 - **F9-04 (R11):** `ConfiguracionInicialCompleta` permanece en `false` tras guardar parámetros en F2. El asistente de primer arranque en F9-04 debe decidir si marcarla o si detecta el nombre de empresa distinto del valor por defecto.
+- **F9-06 (R21):** la guía de balanza debe documentar cómo fijar el número de puerto COM estático en el Administrador de dispositivos de Windows para adaptadores USB-serie.
 - **F9:** el instalador debe dar permisos de Modificar a `Users` sobre `%ProgramData%\PesajeFaeneo` (por defecto, archivos creados por un admin son de solo lectura para usuarios estándar → la app no podría escribir la BD). Revisar si el mutex `Global\` (bloquea a un segundo usuario de Windows en otra sesión) es el comportamiento deseado.
+- **F3-Futuro (R22):** si el indicador de balanza del cliente no opera en modo continuo sino bajo demanda, incorporar campo `ComandoSolicitud` (p. ej. `P`, `W` o `ENQ`) y sondeo periódico mediante temporizador.
+- **F3 (R23) — resuelto:** el indicador RX8 Accurex del sitio transmite `=NNNNNN ` en **gramos**, separado por espacios y sin CR/LF. Configuración de campo: Serie, COM del adaptador CH340, 9600 8N1, separación de tramas "Inicio con '='" (`DelimitadorTrama.SignoIgual`: en ráfagas el RX8 encadena tramas sin espacio, p. ej. `=650000-=381000-`), unidad "Gramos", patrón sembrado. Pendiente: validar la conversión con un peso patrón conocido; si otro indicador usa libras, agregar `UnidadPesoTrama.Libras`.
+- **F3-Futuro (R34):** si algún indicador de balanza específico requiere forzar DTR/RTS o control de flujo por hardware (CTS/RTS o XON/XOFF), hacerlo con `EscapeCommFunction` o flags explícitos y configurables, nunca reescribiendo el DCB completo (rompe CH340). Hoy se respetan los valores del driver.
+- **F9-06 (R35):** documentar en la guía de balanza que reconectar el adaptador USB-serie puede cambiar el número de COM (COM3 → COM4 observado en sitio) y dejar entradas fantasma en el Administrador de dispositivos.
 
 ---
 
@@ -239,3 +247,58 @@ flowchart TD
   - D16: Sin token de concurrencia en catálogos por contexto mono-usuario / ventanas modales.
   - D17: Prevención de reentrada en `FormBase` estructurando recargas fuera de bloques bloqueados.
 - **Siguiente paso:** Fase F3 — Integración con balanza.
+
+### Fase F3 — Integración con balanza
+- **Fecha:** 2026-09-25
+- **Estado:** ✅ Completado con éxito (7/7 HUs).
+- **Compilación:** `dotnet build` en `Release` con 0 warnings y 0 errores (`TreatWarningsAsErrors=true`).
+- **Pruebas:** 488 tests unitarios y de integración ejecutados y en verde (0 fallos, 0 omitidos; incremento de 292 a 488 tests, +196 tests añadidos).
+- **Migración:** `F3_Balanza` añadida, aplicando 11 restricciones CHECK sobre `ConfiguracionesBalanza` (`TipoConexion`, `PuertoCom`, `BaudRate`, `DataBits`, `Paridad`, `BitsParada`, `PuertoTcp`, `LongitudPatron`, `LecturasParaEstable`, `ToleranciaKg`, `TimeoutMs`), actualizando el patrón por defecto en la fila sembrada a `^[^-+\d]*(?<peso>[-+]?\s*\d+(?:[.,]\d+)?)` (ver nota sobre el grupo `estable` en la remediación post-revisión), preservando collation `NOCASE` y verificando integridad con `PRAGMA foreign_key_check`.
+- **Decisiones de diseño aplicadas (D1–D17):**
+  - D1: Exclusión de sondeo bidireccional; soporte completo para modo transmisión continua.
+  - D2: Separador de tramas configurable por delimitador de fin de línea con búfer de seguridad acotado a 256 bytes y truncado ante sobreflujo.
+  - D3: Parser de tramas con grupos nombrados (?<peso>) y (?<estable>), unificación de coma y punto decimal, y timeout de 100 ms contra regex catastrófica.
+  - D4: Patrón sembrado robusto que admite espacios intermedios entre signos y dígitos (`[-+]?\s*\d+`).
+  - D5: Detector de estabilidad de doble vía (reportado por indicador en trama o deducido matemáticamente por dispersión sobre ventana deslizante).
+  - D6: Vigilancia de conexión con estados `SinDatos` (3 timeouts) y `TramasNoReconocidas` (3 tramas consecutivas inválidas), y anulación inmediata de capturabilidad.
+  - D7: Lector serie en hilo dedicado (`Thread` prioritario con `IsBackground = true`) con lectura bloqueante en fragmentos y desbloqueo seguro vía `Close()`.
+  - D8: Lector TCP asíncrono con `TcpClient` y `NetworkStream` cancelable.
+  - D9: Entrega segura a UI desacoplada mediante sondeo con `MonitorBalanzaUi` e inmutabilidad (`InstantaneaBalanza`), erradicando eventos cruzando hilos.
+  - D10: Lector simulador con generación senoidal amortiguada hacia peso objetivo, ruido estocástico y simulación de desconexión.
+  - D11: Validación integral de todos los campos de configuración independientemente del transporte activo.
+  - D12: Diagnóstico con suspensión garantizada y reanudación en `finally` del bucle principal (`ProbarAsync`).
+  - D13: Log throttled en warnings de balanza (un solo log por transición o cambio de mensaje de error) y tramas crudas solo en `Debug`.
+  - D14: ~~Líneas DTR/RTS habilitadas y descarte de búferes (`DiscardInBuffer`) tras apertura del puerto COM.~~ Reemplazada por D18 (incompatible con CH340).
+  - D15: Pausa de 500 ms tras cerrar puertos COM para garantizar su liberación en el sistema operativo.
+  - D16: Subgrupos de configuración siempre visibles y solo deshabilitados para evitar errores invisibles.
+  - D17: Cancelación de prueba interactiva mediante `CancellationToken` y preservación de cierre de formulario seguro si una prueba está en curso.
+- **Siguiente paso:** Fase F4 — Registro de pesaje.
+
+### Fase F3 — Remediación post-revisión
+- **Fecha:** 2026-09-25
+- **Origen:** revisión QA senior de F3 contra esta matriz (D1–D17), ejecutada sobre el árbol de trabajo de `feat/f3-balanza` (sin commit, cambios dejados en el árbol de trabajo para revisión).
+- **Defectos corregidos:**
+  - **Patrón sembrado y D5 (severidad alta, con corrección de rumbo):** el patrón por defecto llegó a implementarse sin el grupo `(?<estable>...)` que la bitácora original afirmaba (`^(?<estable>ST)?[^-+\d]*(?<peso>...)`). Al intentar alinear el código a esa afirmación se detectó, vía regresión de pruebas, que ese patrón rompe la detección de estabilidad "de fábrica": toda trama sin el prefijo `ST` (incluida la que emite el simulador) hace que `ParserTramas` reporte `estableReportado = false` explícito, y `DetectorEstabilidad` reinicia su ventana en cada lectura sin llegar nunca a estable. Se corrigió la bitácora en vez del código: el patrón sembrado por defecto es `^[^-+\d]*(?<peso>[-+]?\s*\d+(?:[.,]\d+)?)` (ancla + descarte de basura inicial, D4, sin grupo `estable`), dejando el grupo `(?<estable>...)` como capacidad opcional que un técnico configura para hardware que sí reporta estabilidad en la trama (ya soportado y probado en `ParserTramas`/`ParserTramasTests`).
+  - **`ServicioBalanza` no implementaba `IAsyncDisposable`** pese a estar documentado como requisito; `Dispose()` además disponía `_control` sin haberlo adquirido, con riesgo de `ObjectDisposedException` en operaciones concurrentes durante el apagado. Ahora implementa `IDisposable` + `IAsyncDisposable`, con una bandera `_disposed` (Interlocked) verificada antes y después de tomar el semáforo interno en `Iniciar/Detener/Reiniciar/ProbarAsync`, y `DisposeAsync` adquiere ese mismo semáforo antes de cancelar/liberar recursos.
+  - **D6 no se cumplía literalmente:** `EstadoBalanza.SinDatos` se publicaba desde el primer timeout (no "tras 3"), y `TramasNoReconocidas` se basaba en tiempo transcurrido en vez de un conteo de tramas inválidas consecutivas. Corregido con contadores explícitos (`vencimientosSeguidos`, `tramasInvalidasSeguidas`) gateados por `ReglasBalanza.TimeoutsAntesDeReconectar`/`TramasInvalidasConsecutivasParaAlerta` (= 3); se añadió `ConexionBalanzaException.EsSinDatos` para que el catch genérico de reconexión no sobrescriba el estado `SinDatos` recién publicado con `Error`.
+  - **Falta de defensa en profundidad en `ReiniciarAsync`:** no exigía `Permiso.ConfigurarBalanza` (a diferencia de `ProbarAsync`), pese a ser invocable directamente desde el botón "Reconectar". Se agregó `ExigirPermiso`. `IniciarAsync`/`DetenerAsync` se dejaron sin ese chequeo intencionalmente: son operaciones de ciclo de vida invocadas por `Program.cs` antes de que exista sesión de usuario.
+  - **D15 se aplicaba de forma inconsistente:** la pausa de 500 ms tras cerrar un puerto serie se aplicaba antes de probar la configuración candidata en `ProbarAsync`, pero no al reanudar la configuración de producción guardada (ni en `ReiniciarAsync`). Se centralizó en `IniciarInternoAsync` mediante un parámetro `trasDetenerLectorPropio`, aplicado solo cuando el arranque sigue a un cierre propio (evita el error de aplicar la pausa también en el primer arranque de `IniciarAsync`, que no cierra ningún puerto previo).
+  - **`ProbarAsync` podía lanzar `OperationCanceledException` sin traducir a `Cancelada = true`** si la cancelación llegaba mientras esperaba el turno del semáforo interno (contención). Se movió la espera del semáforo a un bloque que atrapa esa cancelación puntual.
+  - **D10 no implementado:** `GeneradorPesoSimulado` era una aproximación monótona (`actual + diferencia*0.35 + ruido`), sin oscilación. Reescrito como clase con estado (fase/paso, amplitud inicial por cambio de objetivo) que produce una senoidal amortiguada (`amplitud · e^(-ζt) · cos(ωt)`) con snap determinístico al objetivo una vez la envolvente decae bajo el umbral, preservando los límites y la convergencia garantizada en ≤40 pasos.
+  - **D7 parcial:** el hilo de lectura serie no fijaba prioridad pese a exigirse "hilo prioritario"; se agregó `ThreadPriority.AboveNormal`.
+  - **D16 no se cumplía para el subgrupo del simulador:** `FrmConfiguracionBalanza` ocultaba (`.Visible = false`) el grupo en vez de solo deshabilitarlo, a diferencia de los subgrupos serie/red. Corregido a `.Enabled`, manteniéndolo siempre visible.
+  - **Hueco crítico de prueba en D17:** no existía ningún test que cerrara el formulario mientras una prueba de conexión seguía en curso. Se añadió, junto con manejo defensivo de `OperationCanceledException` en `ProbarConexionInternoAsync` y honrando `_cerrarAlTerminar` sin importar el camino de salida del try/catch.
+  - **Huecos de prueba en la migración F3:** solo se verificaba una de las 11 CHECK constraints nuevas; se añadieron casos para las 10 restantes.
+- **Pruebas:** 509 tests unitarios y de integración en verde (0 fallos, 0 omitidos; incremento de 488 a 509, +21 tests).
+- **Compilación:** `dotnet build src/PesajeFaeneo.sln -c Release` con 0 warnings y 0 errores; `dotnet ef migrations has-pending-model-changes` sin cambios pendientes.
+
+### Fase F3 — Integración con hardware real (RX8 Accurex + adaptador CH340)
+- **Fecha:** 2026-09-25
+- **Síntoma:** "No se pudo abrir el puerto" en Configuración y diagnóstico de balanza (COM3/COM4, 9600 baudios). Reproducido fuera de la app con `System.IO.Ports.SerialPort.Open()`: error Win32 31. La app de referencia ScaleLogger (Tauri/Rust, `src-tauri/src/raw_serial.rs`) sí lee la misma balanza.
+- **Causa raíz (verificada con una sonda Win32 sobre el hardware):** el driver CH340 rechaza **cualquier** `SetCommState`, incluso con el DCB idéntico al actual (9600 8N1, flags 0x1001). `SerialPort.Open()` siempre lo invoca; ScaleLogger lo omite cuando no hay cambios. Además el RX8 envía `=000000 =000000 …` sin CR/LF (nuestro separador nunca cortaba una trama) y en gramos.
+- **Decisiones nuevas:**
+  - D18: `PuertoSerieWin32` (P/Invoke kernel32) reemplaza a `PuertoSerieSystem`, replicando `raw_serial.rs`: preservar el DCB del driver, escribir solo si el formato difiere, verificar tras un rechazo; mensaje accionable si el driver rechaza un formato distinto. Mantiene el contrato de `IPuertoSerie`, por lo que `LectorSerial` no cambió.
+  - D19: configuración `DelimitadorTrama` (`FinDeLinea` por defecto | `Espacio` | `SignoIgual`, este último agregado con la migración `F3_DelimitadorSignoIgual` tras observar ráfagas sin espacio en sitio) y `UnidadPeso` (`Kilogramos` por defecto | `Gramos`), con CHECK en BD, validación, auditoría (incluidos en el snapshot para que "Guardar" detecte el cambio) y dos combos en la pantalla. Migración nueva `F3_ProtocoloTrama` (no se editó `F3_Balanza`, ya aplicada en la BD local); las filas existentes quedan en los valores por defecto sin tocar el resto de la configuración.
+- **Verificación en hardware:** con el `LectorSerial` de Pesalab sobre COM4 (Espacio + Gramos): conexión correcta, 22/22 tramas válidas, estabilidad alcanzada, reapertura inmediata sin error; puerto inexistente → mensaje de cable/adaptador. Pendiente en sitio: validar la conversión con un peso patrón.
+- **Pruebas:** 533 tests en verde (+24: lógica de DCB con el perfil real del CH340, separador por espacio, parser en gramos, validación, auditoría, migración y formulario). Build Release 0 warnings / 0 errores; sin cambios de modelo pendientes.
+- **Siguiente paso:** Fase F4 — Registro de pesaje.

@@ -13,6 +13,7 @@ public static class EntidadesAuditoria
     public const string Cliente = "Cliente";
     public const string Fletero = "Fletero";
     public const string ParametrosSistema = "ParametrosSistema";
+    public const string ConfiguracionBalanza = "ConfiguracionBalanza";
 }
 
 public sealed record UsuarioAuditoria(
@@ -36,6 +37,22 @@ public sealed record ParametrosAuditoria(
     string ObservacionPorDefecto,
     string? LogoPath,
     long SiguienteNumeroBoleta);
+
+public sealed record ConfiguracionBalanzaAuditoria(
+    TipoConexion TipoConexion,
+    string PuertoCom,
+    int BaudRate,
+    int DataBits,
+    ParidadSerial Paridad,
+    BitsParada BitsParada,
+    string HostTcp,
+    int PuertoTcp,
+    string PatronRegex,
+    int LecturasParaEstable,
+    decimal ToleranciaKg,
+    int TimeoutMs,
+    DelimitadorTrama DelimitadorTrama,
+    UnidadPesoTrama UnidadPeso);
 
 public static class FabricaAuditoria
 {
@@ -140,6 +157,26 @@ public static class FabricaAuditoria
             parametros.SiguienteNumeroBoleta);
     }
 
+    public static ConfiguracionBalanzaAuditoria CrearSnapshot(ConfiguracionBalanza config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        return new ConfiguracionBalanzaAuditoria(
+            config.TipoConexion,
+            config.PuertoCom,
+            config.BaudRate,
+            config.DataBits,
+            config.Paridad,
+            config.BitsParada,
+            config.HostTcp,
+            config.PuertoTcp,
+            config.PatronRegex,
+            config.LecturasParaEstable,
+            config.ToleranciaKg,
+            config.TimeoutMs,
+            config.DelimitadorTrama,
+            config.UnidadPeso);
+    }
+
     private static object? NormalizarObjeto(object? obj) => obj switch
     {
         Usuario u => CrearSnapshot(u),
@@ -147,6 +184,7 @@ public static class FabricaAuditoria
         Cliente c => CrearSnapshot(c),
         Fletero f => CrearSnapshot(f),
         ParametrosSistema p => CrearSnapshot(p),
+        ConfiguracionBalanza cb => CrearSnapshot(cb),
         _ => obj
     };
 }

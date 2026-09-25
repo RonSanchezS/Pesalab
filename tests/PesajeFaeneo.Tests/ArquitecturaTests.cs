@@ -33,7 +33,8 @@ public class ArquitecturaTests
             "PesajeFaeneo.WinForms",
             "Serilog",
             "Microsoft.Extensions.Hosting",
-            "System.Drawing");
+            "System.Drawing",
+            "System.IO.Ports");
     }
 
     [Fact]

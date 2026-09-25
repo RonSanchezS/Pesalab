@@ -24,4 +24,8 @@
     <PackageReference Include="CsvHelper" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="PesajeFaeneo.Tests" />
+  </ItemGroup>
+
 </Project>
