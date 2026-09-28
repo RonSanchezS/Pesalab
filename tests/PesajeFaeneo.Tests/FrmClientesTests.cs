@@ -28,6 +28,9 @@ public class FrmClientesTests
         public Task<int> CrearAsync(CrearCliente dto, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
+        public Task<int> CrearRapidoAsync(CrearCliente dto, CancellationToken cancellationToken = default) =>
+            throw new NotImplementedException();
+
         public Task EditarAsync(EditarCliente dto, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 

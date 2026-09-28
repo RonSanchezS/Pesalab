@@ -26,6 +26,13 @@ public enum EstadoPesaje
     Anulado = 2
 }
 
+public enum OrigenPeso
+{
+    Balanza = 1,
+    Simulador = 2,
+    Importado = 3
+}
+
 public enum ParidadSerial
 {
     None = 0,

@@ -361,4 +361,48 @@ public class FrmPrincipalTests
             Assert.False(mnuAdminOp.Available);
         });
     }
+
+    [Theory]
+    [InlineData(Rol.Operador)]
+    [InlineData(Rol.Supervisor)]
+    [InlineData(Rol.Administrador)]
+    public void FrmPrincipal_ItemRegistrarPesaje_DisponibleYHabilitadoParaTodosLosRoles(Rol rol)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "usuario", "Usuario", rol, false));
+            var formFactory = new FalsaFormFactory();
+            var tiempo = TimeProvider.System;
+            var paramService = new FalsoServicioParametros();
+            var balanza = new ServicioBalanzaFalso();
+
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+
+            ToolStripMenuItem? mnuPesaje = null;
+            foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
+            {
+                if (item.Text?.Contains("Pesaje") == true)
+                {
+                    mnuPesaje = item;
+                    break;
+                }
+            }
+            Assert.NotNull(mnuPesaje);
+            Assert.True(mnuPesaje.Available);
+
+            ToolStripMenuItem? itemRegistrarPesaje = null;
+            foreach (ToolStripItem sub in mnuPesaje.DropDownItems)
+            {
+                if (sub.Text?.Contains("Registrar pesaje") == true)
+                {
+                    itemRegistrarPesaje = (ToolStripMenuItem)sub;
+                    break;
+                }
+            }
+            Assert.NotNull(itemRegistrarPesaje);
+            Assert.True(itemRegistrarPesaje.Available);
+            Assert.True(itemRegistrarPesaje.Enabled);
+        });
+    }
 }

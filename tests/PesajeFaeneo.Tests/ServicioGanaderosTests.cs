@@ -37,6 +37,7 @@ public class ServicioGanaderosTests
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ObtenerAsync(1));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ListarParaBusquedaAsync());
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearAsync(new CrearGanadero("AH", "Ganadero")));
+        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearRapidoAsync(new CrearGanadero("AH", "Ganadero")));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.EditarAsync(new EditarGanadero(1, "AH", "Ganadero")));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CambiarEstadoAsync(1, false));
     }
@@ -109,6 +110,44 @@ public class ServicioGanaderosTests
 
         var ex = await Assert.ThrowsAsync<ValidacionException>(() => servicio.CrearAsync(new CrearGanadero("AH", "OTRO GANADERO")));
         Assert.Contains(ex.Errores, e => e.Campo == CamposCatalogo.Marca && e.Mensaje.Contains("Reactívelo en lugar de crear uno nuevo."));
+    }
+
+    [Fact]
+    public async Task CrearRapidoAsync_ConSesionOperador_CreaGanaderoYRegistraAuditoriaConMotivoAltaRapida()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _) = CrearServicio(db);
+        var usr = await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Operador);
+
+        var id = await servicio.CrearRapidoAsync(new CrearGanadero("GR", "GANADERO RAPIDO"));
+        Assert.True(id > 0);
+
+        await using var ctx = await db.ContextFactory.CreateDbContextAsync();
+        var ganadero = await ctx.Ganaderos.FindAsync(id);
+        Assert.NotNull(ganadero);
+        Assert.Equal("GR", ganadero.Marca);
+        Assert.Equal("GANADERO RAPIDO", ganadero.Nombre);
+
+        var auditoria = await ctx.Auditorias.FirstOrDefaultAsync(a => a.EntidadId == id.ToString() && a.Entidad == EntidadesAuditoria.Ganadero);
+        Assert.NotNull(auditoria);
+        Assert.Equal(AccionAuditoria.Crear, auditoria.Accion);
+        Assert.Equal(usr.Id, auditoria.UsuarioId);
+        Assert.Equal("Alta rápida desde pesaje", auditoria.Motivo);
+    }
+
+    [Fact]
+    public async Task CrearRapidoAsync_MarcaPerteneceAInactivo_LanzaValidacionExceptionConMensajePidaASupervisor()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _) = CrearServicio(db);
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador, "admin_inactivo");
+
+        var id = await servicio.CrearAsync(new CrearGanadero("IN", "GANADERO INACTIVO"));
+        await servicio.CambiarEstadoAsync(id, false);
+
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Operador, "operador_inactivo");
+        var ex = await Assert.ThrowsAsync<ValidacionException>(() => servicio.CrearRapidoAsync(new CrearGanadero("IN", "OTRO")));
+        Assert.Contains(ex.Errores, e => e.Campo == CamposCatalogo.Marca && e.Mensaje.Contains("Pida a un supervisor que lo reactive."));
     }
 
     [Fact]

@@ -95,3 +95,25 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
   - La barra inferior muestra el estado de conexión de la balanza en tiempo real y el peso actual con código de color (verde estable, rojo error/desconexión).
   - Cuando el tipo de conexión activo es **Simulador**, la barra de estado destaca el indicador con prefijo `[SIMULADOR]` y fondo naranja de advertencia.
 
+## Registro de Pesaje
+
+- **Acceso rápido:** Tecla `F2` desde la pantalla principal o menú **Pesaje › Registrar pesaje** (requiere permiso `Pesar`).
+- **Display en vivo:** Panel superior con visualización de peso vivo en tiempo real (fuente 48 pt negrita), indicador de estabilidad ("ESTABLE" / "INESTABLE"), estado de conexión de la balanza y próxima boleta a emitir.
+- **Tipos de desposte:**
+  - **Res Completa:** Requiere capturar ambos lados (izquierdo y derecho). Entre la captura del primer lado y del segundo, la balanza debe descender obligatoriamente a cero (peso ≤ 2,0 kg) para impedir capturar dos veces el mismo cuarto.
+  - **Media Res:** Requiere capturar un único lado (izquierdo o derecho).
+- **Rangos de peso válidos:** 10,0 a 600,0 kg por lado. Total de 10,0 a 1200,0 kg para Res Completa y 10,0 a 600,0 kg para Media Res. Resolución de 0,1 kg con redondeo estándar (`AwayFromZero`).
+- **Atajos de teclado y flujo operativo:**
+  - `F5`: Capturar lado izquierdo (solo si la balanza está conectada, estable y dentro de rango).
+  - `F6`: Capturar lado derecho.
+  - `F8`: Borrar pesos capturados para reiniciar la pesada del animal.
+  - `F12`: Grabar pesaje (habilitado únicamente cuando los datos requeridos y los pesos están completos).
+  - `Enter`: Navegación secuencial entre los campos de datos (ganadero → secuencia → cliente → dirección → color/raza → sexo → desposte → observación). En los buscadores de catálogo, `Enter` autoselecciona cuando hay una única coincidencia.
+  - `Escape`: Cerrar la pantalla de pesaje (con advertencia si existen pesos capturados sin grabar).
+- **Numeración atómica garantizada:** La asignación del número de boleta se realiza atómicamente a nivel de base de datos (`UPDATE ... RETURNING`) en la misma transacción que el insert del pesaje y su auditoría, garantizando unicidad y continuidad sin huecos ni carreras.
+- **Sugerencia de secuencia:** Al seleccionar un ganadero, el sistema sugiere automáticamente el siguiente número de secuencia según los pesajes del día para dicho ganadero (iniciando en 1 cada nuevo día).
+- **Alta rápida de ganaderos y clientes:** Si el texto tecleado en el buscador no existe en el catálogo, al pulsar `Enter` se abre directamente el diálogo de alta rápida (prellenando marca/código y nombre) bajo el permiso `AltaRapidaCatalogos`. Tras guardar, el nuevo registro se selecciona inmediatamente en la pantalla de pesaje.
+- **Política de balanza en modo simulador:**
+  - Cuando la balanza está configurada en modo **Simulador**, únicamente los administradores (`ConfigurarBalanza`) tienen permitido capturar y grabar pesajes.
+  - Para los operadores y supervisores, los botones de captura y grabado se bloquean con mensaje guía de advertencia y el panel de control del simulador permanece oculto.
+  - Todo pesaje grabado en este modo queda marcado con origen `SIMULADO` en base de datos, en la grilla del día y en los registros de auditoría.

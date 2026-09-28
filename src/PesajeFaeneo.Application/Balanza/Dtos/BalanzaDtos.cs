@@ -42,6 +42,16 @@ public sealed record InstantaneaBalanza(
         new(0, EstadoBalanza.Detenida, null, false, null, null, string.Empty, false);
 
     /// <summary>
+    /// TimeoutMs de la configuración con la que se produjo la lectura (para EsCapturable sin leer la configuración).
+    /// </summary>
+    public int TimeoutMs { get; init; } = ReglasBalanza.TimeoutPorDefectoMs;
+
+    /// <summary>
+    /// Lo usará F4-05 para capturar: conectada, estable, con peso y con lectura reciente dentro de TimeoutMs.
+    /// </summary>
+    public bool EsCapturable(DateTimeOffset ahora) => EsCapturable(ahora, TimeSpan.FromMilliseconds(TimeoutMs));
+
+    /// <summary>
     /// Lo usará F4-05 para capturar: conectada, estable, con peso y con lectura reciente.
     /// </summary>
     public bool EsCapturable(DateTimeOffset ahora, TimeSpan antiguedadMaxima) =>

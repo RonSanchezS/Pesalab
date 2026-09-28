@@ -60,15 +60,10 @@ public class MigracionF2Tests
             context.Clientes.Add(cliente);
             await context.SaveChangesAsync();
 
-            var pesaje = new PesajeBuilder()
-                .ConNumeroBoleta(5001)
-                .ConGanaderoId(ganadero.Id)
-                .ConClienteId(cliente.Id)
-                .ConUsuarioId(usuario.Id)
-                .Build();
-
-            context.Pesajes.Add(pesaje);
-            await context.SaveChangesAsync();
+            await context.Database.ExecuteSqlInterpolatedAsync($@"
+                INSERT INTO Pesajes (NumeroBoleta, FechaHora, GanaderoId, ClienteId, Direccion, Secuencia, ColorRaza, Sexo, TipoDesposte, PesoIzquierdo, PesoDerecho, PesoTotal, Observacion, Estado, UsuarioId, CreadoEn)
+                VALUES (5001, '2026-09-20 12:00:00', {ganadero.Id}, {cliente.Id}, 'FRIAL EJEMPLO', 1, 'BLANCO', 'M', 1, 106.0, 0.0, 106.0, 'SIN NOVEDAD', 1, {usuario.Id}, '2026-09-20 12:00:00');
+            ");
         }
 
         // 3. Migrar hasta la última (F2_Catalogos)

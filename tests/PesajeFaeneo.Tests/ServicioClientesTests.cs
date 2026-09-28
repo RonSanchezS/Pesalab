@@ -38,6 +38,7 @@ public class ServicioClientesTests
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ListarParaBusquedaAsync());
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.SugerirSiguienteCodigoAsync());
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearAsync(new CrearCliente(100, "Cliente", null)));
+        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearRapidoAsync(new CrearCliente(100, "Cliente", null)));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.EditarAsync(new EditarCliente(1, 100, "Cliente", null)));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CambiarEstadoAsync(1, false));
     }
@@ -51,10 +52,12 @@ public class ServicioClientesTests
 
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ListarAsync(true));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ObtenerAsync(1));
-        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.SugerirSiguienteCodigoAsync());
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearAsync(new CrearCliente(100, "Cliente", null)));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.EditarAsync(new EditarCliente(1, 100, "Cliente", null)));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CambiarEstadoAsync(1, false));
+
+        var siguienteCodigo = await servicio.SugerirSiguienteCodigoAsync();
+        Assert.True(siguienteCodigo >= 1);
 
         var listaBusqueda = await servicio.ListarParaBusquedaAsync();
         Assert.NotNull(listaBusqueda);
@@ -130,6 +133,44 @@ public class ServicioClientesTests
 
         var ex = await Assert.ThrowsAsync<ValidacionException>(() => servicio.CrearAsync(new CrearCliente(200, "NUEVO CLIENTE", null)));
         Assert.Contains(ex.Errores, e => e.Campo == CamposCatalogo.Codigo && e.Mensaje.Contains("Reactívelo en lugar de crear uno nuevo."));
+    }
+
+    [Fact]
+    public async Task CrearRapidoAsync_ConSesionOperador_CreaClienteYRegistraAuditoriaConMotivoAltaRapida()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _) = CrearServicio(db);
+        var usr = await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Operador);
+
+        var id = await servicio.CrearRapidoAsync(new CrearCliente(350, "CLIENTE RAPIDO", null));
+        Assert.True(id > 0);
+
+        await using var ctx = await db.ContextFactory.CreateDbContextAsync();
+        var cliente = await ctx.Clientes.FindAsync(id);
+        Assert.NotNull(cliente);
+        Assert.Equal(350, cliente.Codigo);
+        Assert.Equal("CLIENTE RAPIDO", cliente.Nombre);
+
+        var auditoria = await ctx.Auditorias.FirstOrDefaultAsync(a => a.EntidadId == id.ToString() && a.Entidad == EntidadesAuditoria.Cliente);
+        Assert.NotNull(auditoria);
+        Assert.Equal(AccionAuditoria.Crear, auditoria.Accion);
+        Assert.Equal(usr.Id, auditoria.UsuarioId);
+        Assert.Equal("Alta rápida desde pesaje", auditoria.Motivo);
+    }
+
+    [Fact]
+    public async Task CrearRapidoAsync_CodigoPerteneceAInactivo_LanzaValidacionExceptionConMensajePidaASupervisor()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _) = CrearServicio(db);
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador, "admin_inactivo");
+
+        var id = await servicio.CrearAsync(new CrearCliente(400, "CLIENTE INACTIVO", null));
+        await servicio.CambiarEstadoAsync(id, false);
+
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Operador, "operador_inactivo");
+        var ex = await Assert.ThrowsAsync<ValidacionException>(() => servicio.CrearRapidoAsync(new CrearCliente(400, "CLIENTE REPETIDO", null)));
+        Assert.Contains(ex.Errores, e => e.Campo == CamposCatalogo.Codigo && e.Mensaje.Contains("Pida a un supervisor que lo reactive."));
     }
 
     [Fact]

@@ -28,4 +28,18 @@ public class ParametrosRepositorio : IParametrosRepositorio
     {
         return await _context.Pesajes.MaxAsync(p => (long?)p.NumeroBoleta, cancellationToken);
     }
+
+    public async Task<long> ReservarNumeroBoletaAsync(CancellationToken cancellationToken = default)
+    {
+        if (_context.Database.CurrentTransaction is null)
+            throw new InvalidOperationException("ReservarNumeroBoletaAsync requiere una transacción explícita.");
+
+        var numeros = await _context.Database
+            .SqlQuery<long>($"UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING SiguienteNumeroBoleta - 1 AS Value")
+            .ToListAsync(cancellationToken);
+
+        return numeros.Count == 1
+            ? numeros[0]
+            : throw new InvalidOperationException("No existe la fila de parámetros del sistema (Id = 1).");
+    }
 }

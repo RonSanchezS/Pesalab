@@ -70,10 +70,22 @@ public class ServicioGanaderos : IServicioGanaderos
             .AsReadOnly();
     }
 
-    public async Task<int> CrearAsync(CrearGanadero dto, CancellationToken cancellationToken = default)
+    public Task<int> CrearAsync(CrearGanadero dto, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
         _sesionActual.ExigirPermiso(Permiso.GestionarCatalogos);
+        return CrearInternoAsync(dto, altaRapida: false, cancellationToken);
+    }
+
+    public Task<int> CrearRapidoAsync(CrearGanadero dto, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        _sesionActual.ExigirPermiso(Permiso.AltaRapidaCatalogos);
+        return CrearInternoAsync(dto, altaRapida: true, cancellationToken);
+    }
+
+    private async Task<int> CrearInternoAsync(CrearGanadero dto, bool altaRapida, CancellationToken cancellationToken)
+    {
         var sesion = _sesionActual.ExigirSesion();
 
         var marca = ValidadorCatalogos.NormalizarMarca(dto.Marca);
@@ -93,7 +105,12 @@ public class ServicioGanaderos : IServicioGanaderos
             {
                 throw new ValidacionException(CamposCatalogo.Marca, $"Ya existe un ganadero con la marca '{marca}'.");
             }
-            throw new ValidacionException(CamposCatalogo.Marca, $"La marca '{marca}' pertenece a un ganadero desactivado ({existente.Nombre}). Reactívelo en lugar de crear uno nuevo.");
+
+            var mensajeInactivo = altaRapida
+                ? $"La marca '{marca}' pertenece a un ganadero desactivado ({existente.Nombre}). Pida a un supervisor que lo reactive."
+                : $"La marca '{marca}' pertenece a un ganadero desactivado ({existente.Nombre}). Reactívelo en lugar de crear uno nuevo.";
+
+            throw new ValidacionException(CamposCatalogo.Marca, mensajeInactivo);
         }
 
         var entidad = new Ganadero
@@ -108,6 +125,7 @@ public class ServicioGanaderos : IServicioGanaderos
         uow.Ganaderos.Agregar(entidad);
         await uow.GuardarCambiosAsync(cancellationToken);
 
+        var motivo = altaRapida ? "Alta rápida desde pesaje" : "Alta de ganadero";
         var auditoria = FabricaAuditoria.Crear(
             _timeProvider,
             sesion.Id,
@@ -115,13 +133,21 @@ public class ServicioGanaderos : IServicioGanaderos
             EntidadesAuditoria.Ganadero,
             entidad.Id.ToString(CultureInfo.InvariantCulture),
             despues: FabricaAuditoria.CrearSnapshot(entidad),
-            motivo: "Alta de ganadero");
+            motivo: motivo);
 
         uow.Auditoria.Registrar(auditoria);
         await uow.GuardarCambiosAsync(cancellationToken);
         await tx.ConfirmarAsync(cancellationToken);
 
-        _logger.LogInformation("Ganadero creado con Id {Id}, Marca '{Marca}' por usuario {Usuario}", entidad.Id, marca, sesion.NombreUsuario);
+        if (altaRapida)
+        {
+            _logger.LogInformation("Ganadero creado por alta rápida con Id {Id}, Marca '{Marca}' por usuario {Usuario}", entidad.Id, marca, sesion.NombreUsuario);
+        }
+        else
+        {
+            _logger.LogInformation("Ganadero creado con Id {Id}, Marca '{Marca}' por usuario {Usuario}", entidad.Id, marca, sesion.NombreUsuario);
+        }
+
         return entidad.Id;
     }
 

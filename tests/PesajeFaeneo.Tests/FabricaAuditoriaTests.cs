@@ -82,4 +82,51 @@ public class FabricaAuditoriaTests
         Assert.DoesNotContain("\"Id\"", auditoria.DatosDespuesJson);
         Assert.DoesNotContain("ModificadoEn", auditoria.DatosDespuesJson);
     }
+
+    [Fact]
+    public void Crear_Pesaje_SerializaSoloSnapshotSinNavegacionesYEnumsComoTexto()
+    {
+        var pesaje = new Pesaje
+        {
+            Id = 5,
+            NumeroBoleta = 1001,
+            FechaHora = new DateTime(2026, 9, 27, 10, 0, 0, DateTimeKind.Utc),
+            GanaderoId = 2,
+            ClienteId = 3,
+            Direccion = "CALLE 123",
+            Secuencia = 1,
+            ColorRaza = "BLANCO",
+            Sexo = 'M',
+            TipoDesposte = TipoDesposte.ResCompleta,
+            PesoIzquierdo = 120.0m,
+            PesoDerecho = 118.5m,
+            PesoTotal = 238.5m,
+            Observacion = "OBSERVACION",
+            Estado = EstadoPesaje.Vigente,
+            OrigenPeso = OrigenPeso.Balanza,
+            UsuarioId = 4,
+            CreadoEn = new DateTime(2026, 9, 27, 10, 0, 0, DateTimeKind.Utc),
+            Ganadero = new Ganadero { Id = 2, Marca = "AH", Nombre = "GANADERO" },
+            Cliente = new Cliente { Id = 3, Codigo = 10, Nombre = "CLIENTE", Direccion = "DIR" },
+            Usuario = new Usuario { Id = 4, NombreUsuario = "operador", NombreCompleto = "Op", Hash = "hash", Salt = "salt" }
+        };
+
+        var auditoria = FabricaAuditoria.Crear(
+            TimeProvider.System,
+            usuarioId: 4,
+            AccionAuditoria.Crear,
+            EntidadesAuditoria.Pesaje,
+            pesaje.Id.ToString(),
+            despues: pesaje,
+            motivo: "Alta de pesaje boleta 1001");
+
+        Assert.NotNull(auditoria.DatosDespuesJson);
+        Assert.Contains("\"Sexo\":\"M\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"TipoDesposte\":\"ResCompleta\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"OrigenPeso\":\"Balanza\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"Estado\":\"Vigente\"", auditoria.DatosDespuesJson);
+        Assert.DoesNotContain("\"Ganadero\":{", auditoria.DatosDespuesJson);
+        Assert.DoesNotContain("\"Cliente\":{", auditoria.DatosDespuesJson);
+        Assert.DoesNotContain("\"Usuario\":{", auditoria.DatosDespuesJson);
+    }
 }

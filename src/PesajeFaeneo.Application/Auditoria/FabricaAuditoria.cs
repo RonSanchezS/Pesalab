@@ -14,6 +14,7 @@ public static class EntidadesAuditoria
     public const string Fletero = "Fletero";
     public const string ParametrosSistema = "ParametrosSistema";
     public const string ConfiguracionBalanza = "ConfiguracionBalanza";
+    public const string Pesaje = "Pesaje";
 }
 
 public sealed record UsuarioAuditoria(
@@ -53,6 +54,25 @@ public sealed record ConfiguracionBalanzaAuditoria(
     int TimeoutMs,
     DelimitadorTrama DelimitadorTrama,
     UnidadPesoTrama UnidadPeso);
+
+public sealed record PesajeAuditoria(
+    int Id,
+    long NumeroBoleta,
+    DateTime FechaHora,
+    int GanaderoId,
+    int ClienteId,
+    string Direccion,
+    int Secuencia,
+    string ColorRaza,
+    char Sexo,
+    TipoDesposte TipoDesposte,
+    decimal PesoIzquierdo,
+    decimal PesoDerecho,
+    decimal PesoTotal,
+    string Observacion,
+    EstadoPesaje Estado,
+    OrigenPeso OrigenPeso,
+    int UsuarioId);
 
 public static class FabricaAuditoria
 {
@@ -177,6 +197,29 @@ public static class FabricaAuditoria
             config.UnidadPeso);
     }
 
+    public static PesajeAuditoria CrearSnapshot(Pesaje pesaje)
+    {
+        ArgumentNullException.ThrowIfNull(pesaje);
+        return new PesajeAuditoria(
+            pesaje.Id,
+            pesaje.NumeroBoleta,
+            pesaje.FechaHora,
+            pesaje.GanaderoId,
+            pesaje.ClienteId,
+            pesaje.Direccion,
+            pesaje.Secuencia,
+            pesaje.ColorRaza,
+            pesaje.Sexo,
+            pesaje.TipoDesposte,
+            pesaje.PesoIzquierdo,
+            pesaje.PesoDerecho,
+            pesaje.PesoTotal,
+            pesaje.Observacion,
+            pesaje.Estado,
+            pesaje.OrigenPeso,
+            pesaje.UsuarioId);
+    }
+
     private static object? NormalizarObjeto(object? obj) => obj switch
     {
         Usuario u => CrearSnapshot(u),
@@ -185,6 +228,7 @@ public static class FabricaAuditoria
         Fletero f => CrearSnapshot(f),
         ParametrosSistema p => CrearSnapshot(p),
         ConfiguracionBalanza cb => CrearSnapshot(cb),
+        Pesaje pesaje => CrearSnapshot(pesaje),
         _ => obj
     };
 }

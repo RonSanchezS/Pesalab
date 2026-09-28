@@ -22,6 +22,9 @@ public class FrmClienteEdicionTests
         public Task<int> CrearAsync(CrearCliente dto, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
+        public Task<int> CrearRapidoAsync(CrearCliente dto, CancellationToken cancellationToken = default) =>
+            throw new NotImplementedException();
+
         public Task EditarAsync(EditarCliente dto, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
@@ -44,6 +47,42 @@ public class FrmClienteEdicionTests
             form.ConfigurarAlta(215);
 
             Assert.Equal(215, form.NumCodigo.Value);
+        });
+    }
+
+    [Fact]
+    public void FrmClienteEdicion_ConfigurarAltaRapida_ConTextoNumerico_AsignaCodigoYFocoEnNombre()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var fakeServicio = new FalsoServicioClientes();
+            using var form = new FrmClienteEdicion(fakeServicio);
+            form.Show();
+
+            form.ConfigurarAltaRapida(10, "25");
+
+            Assert.Equal(25, form.NumCodigo.Value);
+            Assert.Equal(string.Empty, form.TxtNombre.Text);
+            Assert.Equal("Alta rápida de cliente", form.Text);
+            Assert.Same(form.TxtNombre, form.ActiveControl);
+        });
+    }
+
+    [Fact]
+    public void FrmClienteEdicion_ConfigurarAltaRapida_ConTextoNoNumerico_AsignaCodigoSugeridoYNombreYFocoEnNombre()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var fakeServicio = new FalsoServicioClientes();
+            using var form = new FrmClienteEdicion(fakeServicio);
+            form.Show();
+
+            form.ConfigurarAltaRapida(10, "Juan Perez");
+
+            Assert.Equal(10, form.NumCodigo.Value);
+            Assert.Equal("JUAN PEREZ", form.TxtNombre.Text);
+            Assert.Equal("Alta rápida de cliente", form.Text);
+            Assert.Same(form.TxtNombre, form.ActiveControl);
         });
     }
 }

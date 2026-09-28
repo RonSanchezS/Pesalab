@@ -118,6 +118,7 @@ public class PesajeBuilder
     private decimal _pesoTotal = 106.0m;
     private string _observacion = "SIN NOVEDAD";
     private EstadoPesaje _estado = EstadoPesaje.Vigente;
+    private OrigenPeso _origenPeso = OrigenPeso.Balanza;
     private int _usuarioId;
     private string? _motivoAnulacion;
     private int? _anuladoPorId;
@@ -128,6 +129,16 @@ public class PesajeBuilder
     public PesajeBuilder ConClienteId(int id) { _clienteId = id; return this; }
     public PesajeBuilder ConUsuarioId(int id) { _usuarioId = id; return this; }
     public PesajeBuilder ConFechaHora(DateTime fechaHora) { _fechaHora = fechaHora; return this; }
+    public PesajeBuilder ConSecuencia(int secuencia) { _secuencia = secuencia; return this; }
+    public PesajeBuilder ConOrigen(OrigenPeso origen) { _origenPeso = origen; return this; }
+    public PesajeBuilder ConEstadoVigente()
+    {
+        _estado = EstadoPesaje.Vigente;
+        _motivoAnulacion = null;
+        _anuladoPorId = null;
+        _anuladoEn = null;
+        return this;
+    }
     public PesajeBuilder ConPesos(decimal izq, decimal der)
     {
         _pesoIzquierdo = izq;
@@ -165,6 +176,7 @@ public class PesajeBuilder
         PesoIzquierdo = _pesoIzquierdo,
         PesoDerecho = _pesoDerecho,
         PesoTotal = _pesoTotal,
+        OrigenPeso = _origenPeso,
         Observacion = _observacion,
         Estado = _estado,
         MotivoAnulacion = _motivoAnulacion,

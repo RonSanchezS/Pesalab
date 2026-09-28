@@ -13,6 +13,7 @@ public interface IUnidadDeTrabajo : IAsyncDisposable
     IFleteroRepositorio Fleteros { get; }
     IParametrosRepositorio Parametros { get; }
     IConfiguracionBalanzaRepositorio ConfiguracionBalanza { get; }
+    IPesajeRepositorio Pesajes { get; }
     Task GuardarCambiosAsync(CancellationToken cancellationToken = default);
     Task<ITransaccion> IniciarTransaccionAsync(CancellationToken cancellationToken = default);
 }

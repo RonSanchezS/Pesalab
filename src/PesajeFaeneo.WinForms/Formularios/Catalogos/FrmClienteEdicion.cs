@@ -9,6 +9,7 @@ public class FrmClienteEdicion : FormBase
     private readonly Dictionary<string, Control> _controlesPorCampo;
 
     private bool _esEdicion;
+    private bool _esAltaRapida;
     private int _id;
 
     internal Label lblTitulo = null!;
@@ -159,6 +160,7 @@ public class FrmClienteEdicion : FormBase
     public void ConfigurarAlta(int codigoSugerido)
     {
         _esEdicion = false;
+        _esAltaRapida = false;
         _id = 0;
         Text = "Nuevo Cliente";
         lblTitulo.Text = "Nuevo Cliente";
@@ -171,12 +173,33 @@ public class FrmClienteEdicion : FormBase
     {
         ArgumentNullException.ThrowIfNull(dto);
         _esEdicion = true;
+        _esAltaRapida = false;
         _id = dto.Id;
         Text = "Editar Cliente";
         lblTitulo.Text = "Editar Cliente";
         numCodigo.Value = Math.Clamp(dto.Codigo, ReglasCatalogos.CodigoClienteMinimo, ReglasCatalogos.CodigoClienteMaximo);
         txtNombre.Text = dto.Nombre;
         txtDireccion.Text = dto.Direccion;
+    }
+
+    public void ConfigurarAltaRapida(int codigoSugerido, string textoBuscado)
+    {
+        ConfigurarAlta(codigoSugerido);
+        _esAltaRapida = true;
+        Text = "Alta rápida de cliente";
+        lblTitulo.Text = "Alta rápida de cliente";
+        var t = (textoBuscado ?? string.Empty).Trim();
+        if (int.TryParse(t, out var cod) && cod >= ReglasCatalogos.CodigoClienteMinimo && cod <= ReglasCatalogos.CodigoClienteMaximo)
+        {
+            numCodigo.Value = cod;
+            ActiveControl = txtNombre;
+        }
+        else
+        {
+            numCodigo.Value = Math.Clamp(codigoSugerido, ReglasCatalogos.CodigoClienteMinimo, ReglasCatalogos.CodigoClienteMaximo);
+            txtNombre.Text = ValidadorCatalogos.NormalizarMayusculas(t);
+            ActiveControl = txtNombre;
+        }
     }
 
     private Task GuardarAsync()
@@ -189,6 +212,10 @@ public class FrmClienteEdicion : FormBase
                 {
                     await _servicioClientes.EditarAsync(new EditarCliente(_id, (int)numCodigo.Value, txtNombre.Text, txtDireccion.Text));
                     IdGuardado = _id;
+                }
+                else if (_esAltaRapida)
+                {
+                    IdGuardado = await _servicioClientes.CrearRapidoAsync(new CrearCliente((int)numCodigo.Value, txtNombre.Text, txtDireccion.Text));
                 }
                 else
                 {

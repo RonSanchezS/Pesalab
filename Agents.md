@@ -32,8 +32,8 @@ flowchart TD
 | **F1** | **Seguridad, usuarios y shell principal** | ✅ Completado | 6 | 6 | 2026-09-24 |
 | **F2** | **Parámetros y catálogos** | ✅ Completado | 6 | 6 | 2026-09-24 |
 | **F3** | **Integración con balanza** | ✅ Completado | 7 | 7 | 2026-09-25 |
-| **F4** | **Registro de pesaje** | ⏳ Siguiente en turno | 0 | 7 | — |
-| **F5** | **Boleta de pesaje** | ⏳ Pendiente | 0 | 6 | — |
+| **F4** | **Registro de pesaje** | ✅ Completado | 7 | 7 | 2026-09-27 |
+| **F5** | **Boleta de pesaje** | ⏳ Siguiente en turno | 0 | 6 | — |
 | **F6** | **Edición, anulación y auditoría** | ⏳ Pendiente | 0 | 5 | — |
 | **F7** | **Reportes** | ⏳ Pendiente | 0 | 6 | — |
 | **F8** | **Utilitarios** | ⏳ Pendiente | 0 | 6 | — |
@@ -77,14 +77,14 @@ flowchart TD
 - [x] **HU-F3-06:** Servicio de balanza compartido y entrega segura a la UI
 - [x] **HU-F3-07:** Configuración y diagnóstico de balanza
 
-### [ ] Fase F4 — Registro de pesaje
-- [ ] **HU-F4-01:** Reglas de dominio del pesaje
-- [ ] **HU-F4-02:** Grabar pesaje con numeración atómica y auditoría
-- [ ] **HU-F4-03:** Sugerencia de secuencia por ganadero del día
-- [ ] **HU-F4-04:** Pantalla de pesaje y display en vivo
-- [ ] **HU-F4-05:** Captura de pesos desde la balanza
-- [ ] **HU-F4-06:** Flujo por teclado, estados de botones y mensajes guía
-- [ ] **HU-F4-07:** Alta rápida de ganadero y cliente desde el pesaje
+### [x] Fase F4 — Registro de pesaje (COMPLETADA)
+- [x] **HU-F4-01:** Reglas de dominio del pesaje
+- [x] **HU-F4-02:** Grabar pesaje con numeración atómica y auditoría
+- [x] **HU-F4-03:** Sugerencia de secuencia por ganadero del día
+- [x] **HU-F4-04:** Pantalla de pesaje y display en vivo
+- [x] **HU-F4-05:** Captura de pesos desde la balanza
+- [x] **HU-F4-06:** Flujo por teclado, estados de botones y mensajes guía
+- [x] **HU-F4-07:** Alta rápida de ganadero y cliente desde el pesaje
 
 ### [ ] Fase F5 — Boleta de pesaje
 - [ ] **HU-F5-01:** Datos de boleta y configuración de impresión por equipo
@@ -154,12 +154,14 @@ flowchart TD
 - **Almacenamiento seguro de logo:** implementado en `AlmacenLogoArchivos` con validación estricta de encabezados binarios (firmas mágicas para PNG, JPEG y BMP) y tamaño máximo de 1 MB. El logo se referencia en base de datos mediante su nombre de archivo relativo y se almacena en `AppPaths.LogoDir`. Las cargas en UI (`FrmParametros`) emplean lectura en flujo y copia a `Bitmap` para evitar el bloqueo del archivo en disco que ocasiona `Image.FromFile`. Limpieza segura de archivos en rollback.
 - **Regla de reentrada en UI (`FormBase`, regla 0.10):** jamás invocar un método con `EjecutarAsync` interno dentro del delegado de otro `EjecutarAsync` o `Ejecutar`; los formularios modales y operaciones compuestas deben obtener el resultado y ejecutar las recargas posteriormente para evitar que la bandera `_ocupado` descarte silenciosamente la operación.
 - **Balanza e integración de pesaje:** servicio singleton (`IServicioBalanza`) con un único lector activo creado por fábrica (`IFabricaLectorBalanza`). Ciclo de vida explícito en `Program.Main` tras migrar la base de datos (sin `IHostedService`, porque el Host arrancaría antes de migrar y sembrar). El servicio implementa tanto `IAsyncDisposable` como `IDisposable` síncrono para evitar excepciones de MS.DI al cerrar el host. `ConfigureAwait(false)` estricto en todas las operaciones asíncronas de balanza para prevenir interbloqueos con el contexto de sincronización de WinForms al salir. Puerto serie sobre kernel32 directo (`PuertoSerieWin32`, **no** `System.IO.Ports.SerialPort`): se lee el DCB actual del driver y solo se modifican baudios/bits/paridad/parada si difieren; si el driver rechaza `SetCommState`, se relee y se acepta cuando el formato ya coincide. DTR/RTS y control de flujo quedan como los deja el driver. Motivo: `SerialPort.Open()` siempre reescribe el DCB completo y el driver CH340 rechaza cualquier `SetCommState` con error 31 ("el dispositivo no funciona"), incluso sin cambios (verificado en sitio con el indicador RX8 Accurex). Lectura en hilo dedicado (`Thread` con `IsBackground = true`, `AboveNormal`) con `ReadFile` no bloqueante sondeado hasta 250 ms; el cierre usa `SafeFileHandle` (seguro ante un `ReadFile` concurrente). Tramas separadas por fin de línea (CR/LF/ETX) o, si se configura, también por espacio; el peso de la trama puede venir en kilogramos o en gramos (se convierte antes de redondear a 0,1 kg). Entrega segura a la UI por sondeo desacoplado (`MonitorBalanzaUi` con `System.Windows.Forms.Timer` cada 100 ms) sobre una instantánea inmutable (`InstantaneaBalanza`) sin cruzar eventos entre hilos ni fugar referencias a formularios cerrados. Parser de tramas basado en regex con grupos obligatorios `(?<peso>...)` y opcionales `(?<estable>...)`, reemplazo de coma por punto decimal y límite de ejecución de 100 ms contra expresiones catastróficas. Detector de estabilidad con ventana deslizante de lecturas y dispersión menor o igual a la tolerancia configurable. Vigilancia continua para estados `SinDatos` (tras 3 timeouts) y `TramasNoReconocidas` (tras 3 tramas consecutivas sin parsear). Pausa obligatoria de 500 ms tras cerrar un puerto COM para permitir su liberación por el sistema operativo antes de reabrir. Método `EsCapturable` para consumo de F4 (conectada, estable, peso no nulo y lectura reciente dentro del timeout). Diagnóstico interactivo (`ProbarAsync`) que suspende temporalmente el bucle de producción (estado `EnDiagnostico`) y lo reanuda de forma garantizada en `finally`.
+- **Registro de pesaje y captura (F4):** reglas puras en `Domain/Reglas/ReglasPesaje` con redondeo decimal AwayFromZero a 1 decimal (0,1 kg), tolerancia total de +/- 0,1 kg, límites estrictos por lado (10,0 a 600,0 kg) y totales según tipo de desposte (`ResCompleta` 10,0 a 1200,0 kg; `MediaRes` 10,0 a 600,0 kg). Numeración atómica garantizada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING SiguienteNumeroBoleta - 1` mediante `SqlQuery<long>(...).ToListAsync()` como primera sentencia dentro de una transacción explícita (`ITransaccion`), precedida por validación de ganadero y cliente en BD. Grabado atómico de `Pesaje` y `Auditoria` en la misma transacción (`PesajeAuditoria` con snapshot sanitizado). Captura desacoplada en `ControlCapturas`: únicamente cuando la balanza es capturable (`EsCapturable(ahora)` dentro de `TimeoutMs`), peso dentro de rango y exigencia obligatoria de retorno a cero (peso <= 2 kg) entre el primer y segundo lado en res completa para evitar pesajes accidentales del mismo lado. Política de simulador estricta: solo usuarios con permiso `ConfigurarBalanza` (Administrador) pueden capturar o grabar pesos simulados; para Operadores se deshabilitan las capturas y se oculta el panel de control del simulador. `RangoDiaLocal` calcula los límites del día local y los proyecta a UTC para la sugerencia de secuencias y consultas del día. Sugerencia de secuencia asíncrona fuera de `EjecutarAsync` con token de versión (`_versionSugerencia`) para descartar respuestas tardías. Teclado y navegación en `FrmPesaje` gobernados por `ProcessCmdKey` estricto (F5, F6, F8, F12, Escape, Enter con descenso en `ContainerControl` mediante `ControlEnfocado()`) y botones con `TabStop = false`. Hook `OnPesajeGrabado(PesajeRegistrado r)` preparado como punto de extensión para la impresión automática de boletas en F5-04.
 
-### Notas hacia fases futuras (registradas en las revisiones post-F0, post-F2 y post-F3)
-- **F4-02 / F6 (R6):** numeración atómica con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` dentro de la misma transacción que el insert del pesaje y la auditoría. Al cambiar la numeración desde Parámetros, verificar en la misma transacción que el valor en BD no haya variado, o gobernarlo mediante el token `Version` de F6.
-- **F4-05 (R13):** capturar peso desde la balanza **únicamente** cuando `Instantanea.EsCapturable(ahora, TimeSpan.FromMilliseconds(TimeoutMs))` sea `true` y el peso sea estrictamente positivo (`PesoKg > 0`).
-- **F4-07 (R9):** las altas rápidas desde la pantalla de pesaje requieren el permiso `AltaRapidaCatalogos` (Operador). En lugar de relajar `CrearAsync` (que exige `GestionarCatalogos`), implementar `CrearRapidoAsync` en los servicios de catálogo con motivo prefijado "Alta rápida desde pesaje". El evento `AltaRapidaSolicitada` del control ya se encuentra disponible.
-- **F4 / F5 (R14):** decidir comportamiento con el modo simulador en producción: (a) solo alerta visual naranja en barra de estado y formularios (comportamiento actual en F3), (b) bloquear la grabación de pesajes en modo simulador para operadores y supervisores (permitido solo a administradores), o (c) imprimir obligatoriamente la leyenda "SIMULADO" en la boleta de pesaje. Además, en F9-04 (asistente de primer arranque) obligar a seleccionar explícitamente el tipo de conexión física.
+### Notas hacia fases futuras (registradas en las revisiones post-F0, post-F2, post-F3 y post-F4)
+- **F4-02 / F6 (R6) — resuelto en F4:** numeración atómica implementada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` en `SqlQuery<long>`.
+- **F4-05 (R13) — resuelto en F4:** captura condicionada a `Instantanea.EsCapturable(ahora)` y retorno a cero estricto entre lados.
+- **F4-07 (R9) — resuelto en F4:** altas rápidas desde la pantalla de pesaje implementadas con `CrearRapidoAsync` en catálogos bajo permiso `AltaRapidaCatalogos` (Operador).
+- **F4 / F5 (R14) — resuelto en F4:** política de simulador en producción: bloqueada la captura y grabado para operadores/supervisores (permitida solo a administradores), grilla y auditoría marcan origen "SIMULADO". En F5, imprimir obligatoriamente la leyenda "SIMULADO" en la boleta si `Origen == Simulador`.
+- **F5-04 (R15):** enganchar la impresión automática de la boleta de pesaje sobreescribiendo el método virtual protegido `OnPesajeGrabado(PesajeRegistrado r)` de `FrmPesaje` o mediante servicio inyectado.
 - **F5 / F8 (R10):** la impresión en F5 y los utilitarios de backup/restauración en F8 deben considerar la carpeta de logos (`AppPaths.LogoDir`). F8 debe incluir el logo en los respaldos y restauraciones; F5 debe tolerar la ausencia o ilegibilidad del logo sin fallar.
 - **F6 (R12):** agregar token de concurrencia (`Version` entero con `IsConcurrencyToken`, incrementado en `SaveChanges`) a `Pesaje` y `ParametrosSistema`, y mapear `DbUpdateConcurrencyException` → `ConcurrenciaException`. Si en el futuro se permite acceso multi-terminal concurrente, extender `Version` también a los catálogos.
 - **F7:** QuestPDF 2024.x exige `QuestPDF.Settings.License = LicenseType.Community` al iniciar.
@@ -302,3 +304,20 @@ flowchart TD
 - **Verificación en hardware:** con el `LectorSerial` de Pesalab sobre COM4 (Espacio + Gramos): conexión correcta, 22/22 tramas válidas, estabilidad alcanzada, reapertura inmediata sin error; puerto inexistente → mensaje de cable/adaptador. Pendiente en sitio: validar la conversión con un peso patrón.
 - **Pruebas:** 533 tests en verde (+24: lógica de DCB con el perfil real del CH340, separador por espacio, parser en gramos, validación, auditoría, migración y formulario). Build Release 0 warnings / 0 errores; sin cambios de modelo pendientes.
 - **Siguiente paso:** Fase F4 — Registro de pesaje.
+
+### Fase F4 — Registro de pesaje
+- **Fecha:** 2026-09-27
+- **Estado:** ✅ Completado con éxito (7/7 HUs).
+- **Compilación:** `dotnet build src/PesajeFaeneo.sln -c Release` con 0 warnings y 0 errores (`TreatWarningsAsErrors=true`).
+- **Pruebas:** 664 tests unitarios y de integración ejecutados y en verde (0 fallos, 0 omitidos; incremento de 538 a 664 tests, +126 tests).
+- **Base de datos:** Migración `20260927144821_F4_Pesaje` creada y aplicada. Se incorporó `OrigenPeso` (`Balanza`, `Simulador`, `Importado`), índices únicos por boleta y compuestos por ganadero/fecha y cliente/fecha, y CHECK constraints exhaustivas (secuencia 1..9999, boleta >= 1, coherencia de anulación, tolerancia de peso total, longitudes máximas).
+- **Decisiones clave implementadas:**
+  - D1-D3: reglas puras de dominio (`ReglasPesaje`), pesos con redondeo AwayFromZero a 1 decimal, tolerancia total +/- 0,1 kg y rangos según tipo de desposte.
+  - D4-D6: numeración atómica estricta con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING SiguienteNumeroBoleta - 1` ejecutada como primera sentencia de la transacción vía `SqlQuery<long>(...).ToListAsync()`.
+  - D7-D8: control de captura en `ControlCapturas` con exigencia obligatoria de retorno a cero (peso <= 2 kg) entre lados en res completa y captura condicionada a `Instantanea.EsCapturable(ahora)`.
+  - D9-D11: cálculo de secuencias y consultas del día basadas en `RangoDiaLocal`, proyectando el inicio y fin del día local a UTC para comparaciones precisas contra la base de datos.
+  - D12-D15: `ServicioPesajes` atómico con validaciones previas de ganadero y cliente, inserción de `Pesaje` y `Auditoria` en la misma transacción (`PesajeAuditoria` sanitizada), mapeo de errores UNIQUE a `ConflictoException`.
+  - D16-D18: evaluación desacoplada de la UI (`EvaluadorPantallaPesaje`), visualización en vivo mediante sondeo de `MonitorBalanzaUi` cada 100 ms sin cruzar hilos, mensaje verde post-grabado y restablecimiento de campos.
+  - D19-D21: navegación de teclado gobernada por `ProcessCmdKey` estricto (F5, F6, F8, F12, Escape, Enter con `ControlEnfocado()` descendiendo en `ContainerControl`), botones con `TabStop = false` para evitar trampas de foco.
+  - D22-D23: alta rápida de ganadero y cliente desde el pesaje (`CrearRapidoAsync` bajo permiso `AltaRapidaCatalogos`, Operador), prellenado inteligente y selección automática tras el alta.
+- **Siguiente paso:** Fase F5 — Boleta de pesaje.

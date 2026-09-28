@@ -235,4 +235,83 @@ public class ControlBusquedaCatalogoTests
             Assert.False(form.Controls.Contains(control.ListaResultados));
         });
     }
+
+    [Fact]
+    public void EnterConUnResultado_SeleccionaAutomaticamenteSinNavegar()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            using var form = new Form();
+            using var control = new ControlBusquedaCatalogo();
+            form.Controls.Add(control);
+            form.Show();
+
+            control.EstablecerElementos(ElementosPrueba);
+            control.CajaTexto.Text = "OTRO";
+
+            int eventos = 0;
+            control.ElementoSeleccionado += (_, _) => eventos++;
+
+            var procesada = control.ProcesarTecla(Keys.Enter);
+
+            Assert.True(procesada);
+            Assert.Equal(1, eventos);
+            Assert.NotNull(control.Seleccion);
+            Assert.Equal("200", control.Seleccion.Codigo);
+            Assert.False(control.ListaVisible);
+        });
+    }
+
+    [Fact]
+    public void EnterConDosResultados_MuestraListaYNingunoAutoseleccionado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            using var form = new Form();
+            using var control = new ControlBusquedaCatalogo();
+            form.Controls.Add(control);
+            form.Show();
+
+            control.EstablecerElementos(ElementosPrueba);
+            control.CajaTexto.Text = "CIENTO";
+
+            int eventos = 0;
+            control.ElementoSeleccionado += (_, _) => eventos++;
+
+            var procesada = control.ProcesarTecla(Keys.Enter);
+
+            Assert.True(procesada);
+            Assert.Equal(0, eventos);
+            Assert.Null(control.Seleccion);
+            Assert.True(control.ListaVisible);
+            Assert.Equal(2, control.ListaResultados.Items.Count);
+        });
+    }
+
+    [Fact]
+    public void EnterSinResultados_SinPermitirAltaRapida_NoSelecciona()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            using var form = new Form();
+            using var control = new ControlBusquedaCatalogo
+            {
+                PermitirAltaRapida = false
+            };
+            form.Controls.Add(control);
+            form.Show();
+
+            control.EstablecerElementos(ElementosPrueba);
+            control.CajaTexto.Text = "XYZ_INEXISTENTE";
+
+            int eventos = 0;
+            control.ElementoSeleccionado += (_, _) => eventos++;
+
+            var procesada = control.ProcesarTecla(Keys.Enter);
+
+            Assert.False(procesada);
+            Assert.Equal(0, eventos);
+            Assert.Null(control.Seleccion);
+        });
+    }
 }

@@ -249,6 +249,157 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
     }
 
     [Fact]
+    public async Task Pesaje_SecuenciaMayorA9999_LanzaDbUpdateException()
+    {
+        var (ganadero, cliente, usuario) = await CrearCatalogosBaseAsync("P1", 71007, "pesador_secuencia_10000");
+
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var pesaje = new PesajeBuilder()
+            .ConNumeroBoleta(71007)
+            .ConGanaderoId(ganadero.Id)
+            .ConClienteId(cliente.Id)
+            .ConUsuarioId(usuario.Id)
+            .ConSecuencia(10000)
+            .Build();
+
+        ctx.Pesajes.Add(pesaje);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Pesaje_NumeroBoletaCero_LanzaDbUpdateException()
+    {
+        var (ganadero, cliente, usuario) = await CrearCatalogosBaseAsync("P2", 71008, "pesador_boleta_cero");
+
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var pesaje = new PesajeBuilder()
+            .ConNumeroBoleta(0)
+            .ConGanaderoId(ganadero.Id)
+            .ConClienteId(cliente.Id)
+            .ConUsuarioId(usuario.Id)
+            .Build();
+
+        ctx.Pesajes.Add(pesaje);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Pesaje_PesoTotalIncoherente_LanzaDbUpdateException()
+    {
+        var (ganadero, cliente, usuario) = await CrearCatalogosBaseAsync("P3", 71009, "pesador_total_incoherente");
+
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var pesaje = new PesajeBuilder()
+            .ConNumeroBoleta(71009)
+            .ConGanaderoId(ganadero.Id)
+            .ConClienteId(cliente.Id)
+            .ConUsuarioId(usuario.Id)
+            .ConPesos(100.0m, 100.0m)
+            .Build();
+        pesaje.PesoTotal = 150.0m;
+
+        ctx.Pesajes.Add(pesaje);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Pesaje_OrigenPesoInvalido_LanzaDbUpdateException()
+    {
+        var (ganadero, cliente, usuario) = await CrearCatalogosBaseAsync("P4", 71010, "pesador_origen_invalido");
+
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var pesaje = new PesajeBuilder()
+            .ConNumeroBoleta(71010)
+            .ConGanaderoId(ganadero.Id)
+            .ConClienteId(cliente.Id)
+            .ConUsuarioId(usuario.Id)
+            .ConOrigen((OrigenPeso)9)
+            .Build();
+
+        ctx.Pesajes.Add(pesaje);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Pesaje_DireccionMayorA150Caracteres_LanzaDbUpdateException()
+    {
+        var (ganadero, cliente, usuario) = await CrearCatalogosBaseAsync("P5", 71011, "pesador_direccion_larga");
+
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var pesaje = new PesajeBuilder()
+            .ConNumeroBoleta(71011)
+            .ConGanaderoId(ganadero.Id)
+            .ConClienteId(cliente.Id)
+            .ConUsuarioId(usuario.Id)
+            .Build();
+        pesaje.Direccion = new string('A', 151);
+
+        ctx.Pesajes.Add(pesaje);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Pesaje_ColorRazaMayorA30Caracteres_LanzaDbUpdateException()
+    {
+        var (ganadero, cliente, usuario) = await CrearCatalogosBaseAsync("P6", 71012, "pesador_color_largo");
+
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var pesaje = new PesajeBuilder()
+            .ConNumeroBoleta(71012)
+            .ConGanaderoId(ganadero.Id)
+            .ConClienteId(cliente.Id)
+            .ConUsuarioId(usuario.Id)
+            .Build();
+        pesaje.ColorRaza = new string('B', 31);
+
+        ctx.Pesajes.Add(pesaje);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Pesaje_ObservacionMayorA250Caracteres_LanzaDbUpdateException()
+    {
+        var (ganadero, cliente, usuario) = await CrearCatalogosBaseAsync("P7", 71013, "pesador_obs_larga");
+
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var pesaje = new PesajeBuilder()
+            .ConNumeroBoleta(71013)
+            .ConGanaderoId(ganadero.Id)
+            .ConClienteId(cliente.Id)
+            .ConUsuarioId(usuario.Id)
+            .Build();
+        pesaje.Observacion = new string('C', 251);
+
+        ctx.Pesajes.Add(pesaje);
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Pesaje_PesosConDecimalesDentroDeTolerancia_SeGuardaCorrectamente()
+    {
+        var (ganadero, cliente, usuario) = await CrearCatalogosBaseAsync("P8", 71014, "pesador_pesos_ok");
+
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+        var pesaje = new PesajeBuilder()
+            .ConNumeroBoleta(71014)
+            .ConGanaderoId(ganadero.Id)
+            .ConClienteId(cliente.Id)
+            .ConUsuarioId(usuario.Id)
+            .ConPesos(100.1m, 99.9m)
+            .Build();
+
+        ctx.Pesajes.Add(pesaje);
+        await ctx.SaveChangesAsync();
+
+        ctx.ChangeTracker.Clear();
+        var releido = await ctx.Pesajes.AsNoTracking().SingleAsync(p => p.Id == pesaje.Id);
+        Assert.Equal(100.1m, releido.PesoIzquierdo);
+        Assert.Equal(99.9m, releido.PesoDerecho);
+        Assert.Equal(200.0m, releido.PesoTotal);
+        Assert.Equal(OrigenPeso.Balanza, releido.OrigenPeso);
+    }
+
+    [Fact]
     public async Task Usuario_RolInvalido_LanzaDbUpdateException()
     {
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();

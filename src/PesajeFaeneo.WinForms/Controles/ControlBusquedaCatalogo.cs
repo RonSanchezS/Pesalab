@@ -351,6 +351,12 @@ public partial class ControlBusquedaCatalogo : UserControl
                     return false;
                 }
 
+                if (resultados.Count == 1)
+                {
+                    SeleccionarElemento(resultados[0]);
+                    return true;
+                }
+
                 if (resultados.Count > 1)
                 {
                     _lstResultados.BeginUpdate();

@@ -108,6 +108,7 @@ public class Pesaje
     public decimal PesoIzquierdo { get; set; }
     public decimal PesoDerecho { get; set; }
     public decimal PesoTotal { get; set; }
+    public OrigenPeso OrigenPeso { get; set; } = OrigenPeso.Balanza;
 
     public string Observacion { get; set; } = string.Empty;
     public EstadoPesaje Estado { get; set; } = EstadoPesaje.Vigente;

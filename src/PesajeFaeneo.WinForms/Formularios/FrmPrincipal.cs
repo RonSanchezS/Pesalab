@@ -4,6 +4,7 @@ using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Domain.Enums;
 using PesajeFaeneo.WinForms.Formularios.Administracion;
 using PesajeFaeneo.WinForms.Formularios.Catalogos;
+using PesajeFaeneo.WinForms.Formularios.Pesaje;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
 using PesajeFaeneo.WinForms.Infraestructura;
 using Serilog;
@@ -104,8 +105,9 @@ public partial class FrmPrincipal : FormBase
         var itemRegistrarPesaje = new ToolStripMenuItem("&Registrar pesaje")
         {
             ShortcutKeys = Keys.F2,
-            Tag = new OpcionMenu(Permiso.Pesar, "F4")
+            Tag = new OpcionMenu(Permiso.Pesar, null)
         };
+        itemRegistrarPesaje.Click += (_, _) => AbrirPesaje();
         mnuPesaje.DropDownItems.Add(itemRegistrarPesaje);
 
         // 2. Boletas
@@ -319,6 +321,16 @@ public partial class FrmPrincipal : FormBase
             Log.Warning(ex, "No se pudo obtener el nombre de la empresa para la barra de estado.");
             lblStatusEmpresa.Text = string.Empty;
         }
+    }
+
+    private void AbrirPesaje()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.Pesar);
+            using var frm = _formFactory.Crear<FrmPesaje>();
+            frm.ShowDialog(this);
+        });
     }
 
     private void AbrirGanaderos()

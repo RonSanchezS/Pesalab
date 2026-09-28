@@ -25,6 +25,7 @@ public sealed class ServicioBalanza : IServicioBalanza, IDisposable, IAsyncDispo
     private readonly Queue<string> _tramasRecientes = new();
     private string? _ultimoMensajeRegistrado;
     private int _disposed;
+    private int _timeoutMsActivo = ReglasBalanza.TimeoutPorDefectoMs;
 
     public ServicioBalanza(
         IUnidadDeTrabajoFactory uowFactory,
@@ -300,6 +301,7 @@ public sealed class ServicioBalanza : IServicioBalanza, IDisposable, IAsyncDispo
 
     private async Task BucleAsync(ConfiguracionBalanzaDto config, CancellationToken ct)
     {
+        Volatile.Write(ref _timeoutMsActivo, config.TimeoutMs);
         var descripcion = DescripcionConexion.Crear(config);
         var esSimulador = config.TipoConexion == TipoConexion.Simulador;
 
@@ -581,7 +583,10 @@ public sealed class ServicioBalanza : IServicioBalanza, IDisposable, IAsyncDispo
             instante,
             mensaje,
             descripcion,
-            esSimulador);
+            esSimulador)
+        {
+            TimeoutMs = Volatile.Read(ref _timeoutMsActivo)
+        };
 
         Volatile.Write(ref _instantanea, nueva);
     }

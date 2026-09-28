@@ -28,6 +28,9 @@ public class FrmGanaderosTests
         public Task<int> CrearAsync(CrearGanadero dto, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 
+        public Task<int> CrearRapidoAsync(CrearGanadero dto, CancellationToken cancellationToken = default) =>
+            throw new NotImplementedException();
+
         public Task EditarAsync(EditarGanadero dto, CancellationToken cancellationToken = default) =>
             throw new NotImplementedException();
 

@@ -778,4 +778,48 @@ public class ServicioBalanzaTests
         bool capturable = instantanea.EsCapturable(ahora, TimeSpan.FromSeconds(segundosMaximos));
         Assert.Equal(esperado, capturable);
     }
+
+    [Fact]
+    public void EsCapturable_SobrecargaConTimeoutMs_RespetaLimiteExacto()
+    {
+        var ahora = new DateTimeOffset(2026, 9, 25, 10, 0, 10, TimeSpan.Zero);
+        var instantanea = new InstantaneaBalanza(
+            Secuencia: 1,
+            Estado: EstadoBalanza.Conectada,
+            PesoKg: 100.0m,
+            Estable: true,
+            InstanteLectura: ahora.AddMilliseconds(-2500),
+            Mensaje: null,
+            Descripcion: "Test",
+            EsSimulador: false)
+        {
+            TimeoutMs = 2500
+        };
+
+        Assert.True(instantanea.EsCapturable(ahora));
+
+        var instantaneaVieja = instantanea with { InstanteLectura = ahora.AddMilliseconds(-2501) };
+        Assert.False(instantaneaVieja.EsCapturable(ahora));
+    }
+
+    [Fact]
+    public async Task Iniciar_PublicaInstantaneaConTimeoutMsDeConfiguracion()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
+        {
+            await ctx.Database.ExecuteSqlRawAsync(
+                "UPDATE ConfiguracionesBalanza SET TimeoutMs = 2500 WHERE Id = 1;");
+        }
+
+        var reloj = new FakeTimeProvider(new DateTimeOffset(2026, 9, 25, 10, 0, 0, TimeSpan.Zero));
+        var sesion = new SesionActual();
+        var fabrica = new FabricaLectorFalsa();
+        using var servicio = new ServicioBalanza(db.UnidadDeTrabajoFactory, fabrica, sesion, reloj, NullLogger<ServicioBalanza>.Instance);
+
+        await servicio.IniciarAsync();
+        await Esperar.HastaAsync(() => servicio.Instantanea.Estado == EstadoBalanza.Conectada, "esperando conexión");
+
+        Assert.Equal(2500, servicio.Instantanea.TimeoutMs);
+    }
 }

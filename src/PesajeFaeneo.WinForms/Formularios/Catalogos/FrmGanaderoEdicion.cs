@@ -9,6 +9,7 @@ public class FrmGanaderoEdicion : FormBase
     private readonly Dictionary<string, Control> _controlesPorCampo;
 
     private bool _esEdicion;
+    private bool _esAltaRapida;
     private int _id;
 
     internal Label lblTitulo = null!;
@@ -140,6 +141,7 @@ public class FrmGanaderoEdicion : FormBase
     public void ConfigurarAlta()
     {
         _esEdicion = false;
+        _esAltaRapida = false;
         _id = 0;
         Text = "Nuevo Ganadero";
         lblTitulo.Text = "Nuevo Ganadero";
@@ -151,11 +153,31 @@ public class FrmGanaderoEdicion : FormBase
     {
         ArgumentNullException.ThrowIfNull(dto);
         _esEdicion = true;
+        _esAltaRapida = false;
         _id = dto.Id;
         Text = "Editar Ganadero";
         lblTitulo.Text = "Editar Ganadero";
         txtMarca.Text = dto.Marca;
         txtNombre.Text = dto.Nombre;
+    }
+
+    public void ConfigurarAltaRapida(string textoBuscado)
+    {
+        ConfigurarAlta();
+        _esAltaRapida = true;
+        Text = "Alta rápida de ganadero";
+        lblTitulo.Text = "Alta rápida de ganadero";
+        var t = ValidadorCatalogos.NormalizarMarca(textoBuscado ?? string.Empty);
+        if (System.Text.RegularExpressions.Regex.IsMatch(t, ReglasCatalogos.PatronMarca))
+        {
+            txtMarca.Text = t;
+            ActiveControl = txtNombre;
+        }
+        else
+        {
+            txtNombre.Text = ValidadorCatalogos.NormalizarMayusculas(textoBuscado ?? string.Empty);
+            ActiveControl = txtMarca;
+        }
     }
 
     private Task GuardarAsync()
@@ -168,6 +190,10 @@ public class FrmGanaderoEdicion : FormBase
                 {
                     await _servicioGanaderos.EditarAsync(new EditarGanadero(_id, txtMarca.Text, txtNombre.Text));
                     IdGuardado = _id;
+                }
+                else if (_esAltaRapida)
+                {
+                    IdGuardado = await _servicioGanaderos.CrearRapidoAsync(new CrearGanadero(txtMarca.Text, txtNombre.Text));
                 }
                 else
                 {

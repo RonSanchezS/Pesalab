@@ -1,0 +1,22 @@
+using PesajeFaeneo.Domain.Entities;
+
+namespace PesajeFaeneo.Application.Abstracciones.Persistencia;
+
+public interface IPesajeRepositorio
+{
+    void Agregar(Pesaje pesaje);
+
+    Task<Pesaje?> ObtenerPorIdAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// MAX(Secuencia) de pesajes VIGENTES del ganadero con FechaHora en [desdeUtc, hastaUtc); null si no hay.
+    /// </summary>
+    Task<int?> ObtenerSecuenciaMaximaAsync(int ganaderoId, DateTime desdeUtc, DateTime hastaUtc, CancellationToken cancellationToken = default);
+
+    Task<int> ContarVigentesAsync(int ganaderoId, DateTime desdeUtc, DateTime hastaUtc, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sin tracking, Include Ganadero y Cliente, orden NumeroBoleta descendente, Take(maximo).
+    /// </summary>
+    Task<IReadOnlyList<Pesaje>> ListarPorRangoAsync(DateTime desdeUtc, DateTime hastaUtc, int maximo, CancellationToken cancellationToken = default);
+}

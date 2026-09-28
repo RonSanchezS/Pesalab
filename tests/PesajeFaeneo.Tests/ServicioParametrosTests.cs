@@ -68,6 +68,7 @@ public class ServicioParametrosTests
             public IFleteroRepositorio Fleteros => _inner.Fleteros;
             public IParametrosRepositorio Parametros => _inner.Parametros;
             public IConfiguracionBalanzaRepositorio ConfiguracionBalanza => _inner.ConfiguracionBalanza;
+            public IPesajeRepositorio Pesajes => _inner.Pesajes;
 
             public Task GuardarCambiosAsync(CancellationToken cancellationToken = default)
             {

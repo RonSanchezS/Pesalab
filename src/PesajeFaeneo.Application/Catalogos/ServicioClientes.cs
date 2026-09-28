@@ -72,7 +72,8 @@ public class ServicioClientes : IServicioClientes
 
     public async Task<int> SugerirSiguienteCodigoAsync(CancellationToken cancellationToken = default)
     {
-        _sesionActual.ExigirPermiso(Permiso.GestionarCatalogos);
+        if (!_sesionActual.TienePermiso(Permiso.GestionarCatalogos) && !_sesionActual.TienePermiso(Permiso.AltaRapidaCatalogos))
+            throw new NoAutorizadoException();
 
         await using var uow = await _uowFactory.CrearAsync(cancellationToken);
         var max = await uow.Clientes.ObtenerCodigoMaximoAsync(cancellationToken);
@@ -80,10 +81,22 @@ public class ServicioClientes : IServicioClientes
         return siguiente > ReglasCatalogos.CodigoClienteMaximo ? ReglasCatalogos.CodigoClienteMaximo : siguiente;
     }
 
-    public async Task<int> CrearAsync(CrearCliente dto, CancellationToken cancellationToken = default)
+    public Task<int> CrearAsync(CrearCliente dto, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
         _sesionActual.ExigirPermiso(Permiso.GestionarCatalogos);
+        return CrearInternoAsync(dto, altaRapida: false, cancellationToken);
+    }
+
+    public Task<int> CrearRapidoAsync(CrearCliente dto, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        _sesionActual.ExigirPermiso(Permiso.AltaRapidaCatalogos);
+        return CrearInternoAsync(dto, altaRapida: true, cancellationToken);
+    }
+
+    private async Task<int> CrearInternoAsync(CrearCliente dto, bool altaRapida, CancellationToken cancellationToken)
+    {
         var sesion = _sesionActual.ExigirSesion();
 
         var nombre = ValidadorCatalogos.NormalizarMayusculas(dto.Nombre);
@@ -103,7 +116,12 @@ public class ServicioClientes : IServicioClientes
             {
                 throw new ValidacionException(CamposCatalogo.Codigo, $"Ya existe un cliente con el código {dto.Codigo}.");
             }
-            throw new ValidacionException(CamposCatalogo.Codigo, $"El código {dto.Codigo} pertenece a un cliente desactivado ({existente.Nombre}). Reactívelo en lugar de crear uno nuevo.");
+
+            var mensajeInactivo = altaRapida
+                ? $"El código {dto.Codigo} pertenece a un cliente desactivado ({existente.Nombre}). Pida a un supervisor que lo reactive."
+                : $"El código {dto.Codigo} pertenece a un cliente desactivado ({existente.Nombre}). Reactívelo en lugar de crear uno nuevo.";
+
+            throw new ValidacionException(CamposCatalogo.Codigo, mensajeInactivo);
         }
 
         var entidad = new Cliente
@@ -119,6 +137,7 @@ public class ServicioClientes : IServicioClientes
         uow.Clientes.Agregar(entidad);
         await uow.GuardarCambiosAsync(cancellationToken);
 
+        var motivo = altaRapida ? "Alta rápida desde pesaje" : "Alta de cliente";
         var auditoria = FabricaAuditoria.Crear(
             _timeProvider,
             sesion.Id,
@@ -126,13 +145,21 @@ public class ServicioClientes : IServicioClientes
             EntidadesAuditoria.Cliente,
             entidad.Id.ToString(CultureInfo.InvariantCulture),
             despues: FabricaAuditoria.CrearSnapshot(entidad),
-            motivo: "Alta de cliente");
+            motivo: motivo);
 
         uow.Auditoria.Registrar(auditoria);
         await uow.GuardarCambiosAsync(cancellationToken);
         await tx.ConfirmarAsync(cancellationToken);
 
-        _logger.LogInformation("Cliente creado con Id {Id}, Código {Codigo} por usuario {Usuario}", entidad.Id, dto.Codigo, sesion.NombreUsuario);
+        if (altaRapida)
+        {
+            _logger.LogInformation("Cliente creado por alta rápida con Id {Id}, Código {Codigo} por usuario {Usuario}", entidad.Id, dto.Codigo, sesion.NombreUsuario);
+        }
+        else
+        {
+            _logger.LogInformation("Cliente creado con Id {Id}, Código {Codigo} por usuario {Usuario}", entidad.Id, dto.Codigo, sesion.NombreUsuario);
+        }
+
         return entidad.Id;
     }
 

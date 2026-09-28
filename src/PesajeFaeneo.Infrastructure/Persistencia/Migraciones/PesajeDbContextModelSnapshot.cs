@@ -423,6 +423,9 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                         .HasMaxLength(250)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("OrigenPeso")
+                        .HasColumnType("INTEGER");
+
                     b.Property<double>("PesoDerecho")
                         .HasColumnType("REAL");
 
@@ -465,11 +468,25 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                         {
                             t.HasCheckConstraint("CK_Pesajes_Anulacion", "(Estado = 1 AND MotivoAnulacion IS NULL AND AnuladoPorId IS NULL AND AnuladoEn IS NULL) OR (Estado = 2 AND MotivoAnulacion IS NOT NULL AND AnuladoPorId IS NOT NULL AND AnuladoEn IS NOT NULL)");
 
+                            t.HasCheckConstraint("CK_Pesajes_ColorRaza", "length(ColorRaza) <= 30");
+
+                            t.HasCheckConstraint("CK_Pesajes_Direccion", "length(Direccion) <= 150");
+
                             t.HasCheckConstraint("CK_Pesajes_Estado", "Estado IN (1, 2)");
+
+                            t.HasCheckConstraint("CK_Pesajes_MotivoAnulacion", "MotivoAnulacion IS NULL OR length(MotivoAnulacion) BETWEEN 1 AND 250");
+
+                            t.HasCheckConstraint("CK_Pesajes_NumeroBoleta", "NumeroBoleta >= 1");
+
+                            t.HasCheckConstraint("CK_Pesajes_Observacion", "length(Observacion) <= 250");
+
+                            t.HasCheckConstraint("CK_Pesajes_OrigenPeso", "OrigenPeso IN (1, 2, 3)");
+
+                            t.HasCheckConstraint("CK_Pesajes_PesoTotal", "abs(PesoTotal - (PesoIzquierdo + PesoDerecho)) < 0.05");
 
                             t.HasCheckConstraint("CK_Pesajes_Pesos", "PesoIzquierdo >= 0 AND PesoDerecho >= 0 AND PesoTotal >= 0");
 
-                            t.HasCheckConstraint("CK_Pesajes_Secuencia", "Secuencia >= 1");
+                            t.HasCheckConstraint("CK_Pesajes_Secuencia", "Secuencia BETWEEN 1 AND 9999");
 
                             t.HasCheckConstraint("CK_Pesajes_Sexo", "Sexo IN ('M', 'H')");
 

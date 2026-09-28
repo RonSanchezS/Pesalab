@@ -13,6 +13,7 @@ using PesajeFaeneo.WinForms;
 using PesajeFaeneo.WinForms.Formularios;
 using PesajeFaeneo.WinForms.Formularios.Administracion;
 using PesajeFaeneo.WinForms.Formularios.Catalogos;
+using PesajeFaeneo.WinForms.Formularios.Pesaje;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
 using PesajeFaeneo.WinForms.Infraestructura;
 using Xunit;
@@ -68,6 +69,7 @@ public class ContenedorDITests
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Balanza.ISimuladorBalanza>());
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Balanza.IEnumeradorPuertosSerie>());
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Balanza.IServicioConfiguracionBalanza>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Pesajes.IServicioPesajes>());
 
             using (var scope = proveedor.CreateScope())
             {
@@ -122,6 +124,10 @@ public class ContenedorDITests
                 // F3: Formulario de configuración de balanza
                 using var frmConfigBalanza = formFactory.Crear<FrmConfiguracionBalanza>();
                 Assert.NotNull(frmConfigBalanza);
+
+                // F4: Formulario de registro de pesaje
+                using var frmPesaje = formFactory.Crear<FrmPesaje>();
+                Assert.NotNull(frmPesaje);
             });
         }
         finally

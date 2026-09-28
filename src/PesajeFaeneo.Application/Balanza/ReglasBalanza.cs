@@ -38,6 +38,7 @@ public static class ReglasBalanza
     public const decimal ToleranciaMaximaKg = 10m;
     public const int TimeoutMinimoMs = 500;
     public const int TimeoutMaximoMs = 60000;
+    public const int TimeoutPorDefectoMs = 3000;
 
     public const decimal PesoMaximoAbsolutoKg = 99999.9m;
     public const int LongitudMaximaTrama = 256;
