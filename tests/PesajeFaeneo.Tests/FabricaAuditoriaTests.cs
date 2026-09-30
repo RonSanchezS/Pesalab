@@ -129,4 +129,64 @@ public class FabricaAuditoriaTests
         Assert.DoesNotContain("\"Cliente\":{", auditoria.DatosDespuesJson);
         Assert.DoesNotContain("\"Usuario\":{", auditoria.DatosDespuesJson);
     }
+
+    [Fact]
+    public void Crear_ImpresionAuditoria_SerializaEnumsComoTextoYValoresCorrectos()
+    {
+        var registro = new PesajeFaeneo.Application.Boletas.Dtos.RegistroImpresion(
+            PesajeId: 5,
+            NumeroBoleta: 1234,
+            EsReimpresion: true,
+            Copias: 2,
+            Impresora: "HP LaserJet",
+            Formato: PesajeFaeneo.Application.Boletas.Dtos.FormatoBoleta.MediaCarta,
+            NombreEquipo: "BALANZA-01");
+
+        var snapshot = FabricaAuditoria.CrearSnapshot(registro);
+
+        var auditoria = FabricaAuditoria.Crear(
+            TimeProvider.System,
+            usuarioId: 1,
+            AccionAuditoria.Reimprimir,
+            EntidadesAuditoria.Pesaje,
+            registro.PesajeId.ToString(),
+            despues: snapshot,
+            motivo: "Reimpresión de boleta 1234");
+
+        Assert.NotNull(auditoria.DatosDespuesJson);
+        Assert.Contains("\"Formato\":\"MediaCarta\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"EsReimpresion\":true", auditoria.DatosDespuesJson);
+        Assert.Contains("\"NumeroBoleta\":1234", auditoria.DatosDespuesJson);
+        Assert.Contains("\"NombreEquipo\":\"BALANZA-01\"", auditoria.DatosDespuesJson);
+    }
+
+    [Fact]
+    public void Crear_ConfiguracionImpresionAuditoria_SerializaCorrectamente()
+    {
+        var config = new PesajeFaeneo.Application.Boletas.Dtos.ConfiguracionImpresion(
+            NombreImpresora: "EPSON",
+            Formato: PesajeFaeneo.Application.Boletas.Dtos.FormatoBoleta.Ticket80mm,
+            NombrePapel: "80mm",
+            Copias: 1,
+            ImprimirAlGrabar: true,
+            DesplazamientoXMm: 1.5m,
+            DesplazamientoYMm: -2.0m);
+
+        var snapshot = FabricaAuditoria.CrearSnapshot(config, "PC-01");
+
+        var auditoria = FabricaAuditoria.Crear(
+            TimeProvider.System,
+            usuarioId: 1,
+            AccionAuditoria.CambioConfigImpresion,
+            EntidadesAuditoria.ConfiguracionImpresion,
+            "PC-01",
+            despues: snapshot,
+            motivo: "Configuración actualizada");
+
+        Assert.NotNull(auditoria.DatosDespuesJson);
+        Assert.Contains("\"Formato\":\"Ticket80mm\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"NombreEquipo\":\"PC-01\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"ImprimirAlGrabar\":true", auditoria.DatosDespuesJson);
+    }
 }
+

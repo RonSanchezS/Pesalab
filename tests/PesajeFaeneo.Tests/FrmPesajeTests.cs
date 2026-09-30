@@ -14,8 +14,10 @@ using PesajeFaeneo.Domain.Reglas;
 using PesajeFaeneo.Tests.Utilidades;
 using PesajeFaeneo.Tests.Utilidades.Balanza;
 using PesajeFaeneo.Tests.Utilidades.Pesaje;
+using PesajeFaeneo.Tests.Utilidades.Boletas;
 using PesajeFaeneo.WinForms.Formularios.Catalogos;
 using PesajeFaeneo.WinForms.Formularios.Pesaje;
+using PesajeFaeneo.WinForms.Impresion;
 using PesajeFaeneo.WinForms.Presentacion.Pesaje;
 using Xunit;
 
@@ -34,6 +36,7 @@ public class FrmPesajeTests
         public SesionActual Sesion { get; } = new();
         public FormFactoryFalsa FormFactory { get; } = new();
         public FakeTimeProvider Reloj { get; } = new();
+        public ServicioImpresionBoletasFalso ServicioImpresion { get; } = new();
 
         public ContextoPruebaFrmPesaje(Rol rol = Rol.Administrador)
         {
@@ -63,7 +66,8 @@ public class FrmPesajeTests
                 SimuladorBalanza,
                 Sesion,
                 FormFactory,
-                Reloj);
+                Reloj,
+                ServicioImpresion);
         }
     }
 
@@ -604,6 +608,294 @@ public class FrmPesajeTests
 
             Assert.False(formSin.ctlGanadero.PermitirAltaRapida);
             Assert.False(formSin.ctlCliente.PermitirAltaRapida);
+        });
+    }
+
+    [Fact]
+    public void GrabarAsync_ConResultadoImpresa_EnviaAutomaticaAlGrabarYGuiaIndicaGrabadaEImpresa()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            form.ctlGanadero.Seleccionar(1);
+            form.ctlCliente.Seleccionar(10);
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                1, EstadoBalanza.Conectada, 120m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.CapturarParaTest(LadoPesaje.Izquierdo);
+
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                2, EstadoBalanza.Conectada, 0m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.SondearBalanzaParaTest();
+
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                3, EstadoBalanza.Conectada, 130m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.CapturarParaTest(LadoPesaje.Derecho);
+
+            ctx.ServicioPesajes.ResultadoRegistrar = new PesajeRegistrado(
+                Id: 10,
+                NumeroBoleta: 55,
+                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
+                PesoTotal: 250m,
+                Origen: OrigenPeso.Balanza);
+
+            ctx.ServicioImpresion.ResultadoPorDefecto = new ResultadoImpresion(
+                EstadoImpresion.Impresa, "Boleta N° 55 impresa", 1, true);
+
+            form.GrabarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Single(ctx.ServicioImpresion.Solicitudes);
+            Assert.Equal((10, SolicitudImpresion.AutomaticaAlGrabar), ctx.ServicioImpresion.Solicitudes[0]);
+            Assert.Contains("grabada", form.lblGuia.Text);
+            Assert.Contains("impresa", form.lblGuia.Text);
+        });
+    }
+
+    [Fact]
+    public void GrabarAsync_ConResultadoOmitida_GuiaIndicaPulseF9ParaImprimir()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            form.ctlGanadero.Seleccionar(1);
+            form.ctlCliente.Seleccionar(10);
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                1, EstadoBalanza.Conectada, 120m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.CapturarParaTest(LadoPesaje.Izquierdo);
+
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                2, EstadoBalanza.Conectada, 0m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.SondearBalanzaParaTest();
+
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                3, EstadoBalanza.Conectada, 130m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.CapturarParaTest(LadoPesaje.Derecho);
+
+            ctx.ServicioPesajes.ResultadoRegistrar = new PesajeRegistrado(
+                Id: 10,
+                NumeroBoleta: 55,
+                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
+                PesoTotal: 250m,
+                Origen: OrigenPeso.Balanza);
+
+            ctx.ServicioImpresion.ResultadoPorDefecto = new ResultadoImpresion(
+                EstadoImpresion.Omitida, "Impresión automática desactivada", 0, false);
+
+            form.GrabarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Contains("pulse F9 para imprimir", form.lblGuia.Text);
+        });
+    }
+
+    [Fact]
+    public void GrabarAsync_ConResultadoFallida_GuiaIndicaNoSeImprimioYConservaGrabado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            form.ctlGanadero.Seleccionar(1);
+            form.ctlCliente.Seleccionar(10);
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                1, EstadoBalanza.Conectada, 120m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.CapturarParaTest(LadoPesaje.Izquierdo);
+
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                2, EstadoBalanza.Conectada, 0m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.SondearBalanzaParaTest();
+
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                3, EstadoBalanza.Conectada, 130m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.CapturarParaTest(LadoPesaje.Derecho);
+
+            ctx.ServicioPesajes.ResultadoRegistrar = new PesajeRegistrado(
+                Id: 10,
+                NumeroBoleta: 55,
+                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
+                PesoTotal: 250m,
+                Origen: OrigenPeso.Balanza);
+
+            ctx.ServicioImpresion.ResultadoPorDefecto = new ResultadoImpresion(
+                EstadoImpresion.Fallida, "Sin papel", 0, false);
+
+            form.GrabarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Contains("NO se imprimió: Sin papel", form.lblGuia.Text);
+            Assert.Equal(string.Empty, form.txtPesoIzquierdo.Text);
+            Assert.Single(ctx.ServicioPesajes.DtosRegistrados);
+        });
+    }
+
+    [Fact]
+    public void GrabarAsync_ConValidacionException_NoLlamaAServicioImpresion()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            ctx.ServicioPesajes.AlRegistrarAsync = _ =>
+                throw new ValidacionException(new[] { new ErrorValidacion("Ganadero", "Requerido") });
+
+            form.GrabarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Empty(ctx.ServicioImpresion.Solicitudes);
+        });
+    }
+
+    [Fact]
+    public void ImpresionManual_ConBoletasEnGrilla_ImprimeSeleccionada_GrillaVaciaDeshabilitaBoton()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioPesajes.PesajesDelDia.Add(new PesajeResumen(
+                Id: 5,
+                NumeroBoleta: 102,
+                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
+                Marca: "AH",
+                NombreGanadero: "JUAN PEREZ",
+                Secuencia: 2,
+                NombreCliente: "CARLOS LOPEZ",
+                TipoDesposte: TipoDesposte.ResCompleta,
+                PesoIzquierdo: 120m,
+                PesoDerecho: 130m,
+                PesoTotal: 250m,
+                Estado: EstadoPesaje.Vigente,
+                Origen: OrigenPeso.Balanza));
+            ctx.ServicioPesajes.PesajesDelDia.Add(new PesajeResumen(
+                Id: 4,
+                NumeroBoleta: 101,
+                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
+                Marca: "AH",
+                NombreGanadero: "JUAN PEREZ",
+                Secuencia: 1,
+                NombreCliente: "CARLOS LOPEZ",
+                TipoDesposte: TipoDesposte.ResCompleta,
+                PesoIzquierdo: 110m,
+                PesoDerecho: 120m,
+                PesoTotal: 230m,
+                Estado: EstadoPesaje.Vigente,
+                Origen: OrigenPeso.Balanza));
+
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.False(form.btnImprimir.TabStop);
+            Assert.Equal(5, form.IdBoletaParaImprimirParaTest);
+            Assert.True(form.btnImprimir.Enabled);
+
+            form.ProcesarTeclaParaTest(Keys.F9);
+            System.Windows.Forms.Application.DoEvents();
+
+            Assert.Single(ctx.ServicioImpresion.Solicitudes);
+            Assert.Equal((5, SolicitudImpresion.Manual), ctx.ServicioImpresion.Solicitudes[0]);
+
+            // Grilla vacía
+            var ctxVacio = new ContextoPruebaFrmPesaje();
+            using var formVacio = ctxVacio.CrearFormulario();
+            formVacio.ConfirmarCierre = false;
+            formVacio.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.False(formVacio.btnImprimir.Enabled);
+            formVacio.ProcesarTeclaParaTest(Keys.F9);
+            System.Windows.Forms.Application.DoEvents();
+            Assert.Empty(ctxVacio.ServicioImpresion.Solicitudes);
+        });
+    }
+
+    [Fact]
+    public void ImpresionManual_Concurrente_UnaSolaLlamada_YBloqueaCierreHastaCompletar()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioPesajes.PesajesDelDia.Add(new PesajeResumen(
+                Id: 1,
+                NumeroBoleta: 10,
+                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
+                Marca: "AH",
+                NombreGanadero: "JUAN PEREZ",
+                Secuencia: 1,
+                NombreCliente: "CARLOS LOPEZ",
+                TipoDesposte: TipoDesposte.ResCompleta,
+                PesoIzquierdo: 120m,
+                PesoDerecho: 130m,
+                PesoTotal: 250m,
+                Estado: EstadoPesaje.Vigente,
+                Origen: OrigenPeso.Balanza));
+
+            var tcs = new TaskCompletionSource<ResultadoImpresion>();
+            ctx.ServicioImpresion.TcsImpresion = tcs;
+
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            // Dos F9 seguidos
+            form.ProcesarTeclaParaTest(Keys.F9);
+            form.ProcesarTeclaParaTest(Keys.F9);
+
+            Assert.Single(ctx.ServicioImpresion.Solicitudes);
+
+            // Intento de cierre mientras imprime
+            var e = new FormClosingEventArgs(CloseReason.UserClosing, false);
+            form.SimularFormClosingParaTest(e);
+            Assert.True(e.Cancel);
+
+            // Completar impresión
+            tcs.SetResult(new ResultadoImpresion(EstadoImpresion.Impresa, "Impresa", 1, true));
+            System.Windows.Forms.Application.DoEvents();
+
+            // Cierre posterior
+            var e2 = new FormClosingEventArgs(CloseReason.UserClosing, false);
+            form.SimularFormClosingParaTest(e2);
+            Assert.False(e2.Cancel);
+        });
+    }
+
+    [Fact]
+    public void ProcessCmdKey_F9ConControl_NoDisparaImpresion()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioPesajes.PesajesDelDia.Add(new PesajeResumen(
+                Id: 1,
+                NumeroBoleta: 10,
+                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
+                Marca: "AH",
+                NombreGanadero: "JUAN PEREZ",
+                Secuencia: 1,
+                NombreCliente: "CARLOS LOPEZ",
+                TipoDesposte: TipoDesposte.ResCompleta,
+                PesoIzquierdo: 120m,
+                PesoDerecho: 130m,
+                PesoTotal: 250m,
+                Estado: EstadoPesaje.Vigente,
+                Origen: OrigenPeso.Balanza));
+
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            form.ProcesarTeclaParaTest(Keys.F9 | Keys.Control);
+            System.Windows.Forms.Application.DoEvents();
+
+            Assert.Empty(ctx.ServicioImpresion.Solicitudes);
         });
     }
 }

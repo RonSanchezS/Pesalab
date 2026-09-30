@@ -405,4 +405,127 @@ public class FrmPrincipalTests
             Assert.True(itemRegistrarPesaje.Enabled);
         });
     }
+
+    [Theory]
+    [InlineData(Rol.Operador)]
+    [InlineData(Rol.Supervisor)]
+    [InlineData(Rol.Administrador)]
+    public void FrmPrincipal_ItemReimprimirBoleta_DisponibleYHabilitadoParaTodosLosRoles_ConF3(Rol rol)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "usuario", "Usuario", rol, false));
+            var formFactory = new FalsaFormFactory();
+            var tiempo = TimeProvider.System;
+            var paramService = new FalsoServicioParametros();
+            var balanza = new ServicioBalanzaFalso();
+
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+
+            ToolStripMenuItem? mnuBoletas = null;
+            foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
+            {
+                if (item.Text?.Contains("Boletas") == true)
+                {
+                    mnuBoletas = item;
+                    break;
+                }
+            }
+            Assert.NotNull(mnuBoletas);
+            Assert.True(mnuBoletas.Available);
+
+            ToolStripMenuItem? itemReimprimir = null;
+            foreach (ToolStripItem sub in mnuBoletas.DropDownItems)
+            {
+                if (sub.Text?.Contains("Reimprimir boleta") == true)
+                {
+                    itemReimprimir = (ToolStripMenuItem)sub;
+                    break;
+                }
+            }
+            Assert.NotNull(itemReimprimir);
+            Assert.True(itemReimprimir.Available);
+            Assert.True(itemReimprimir.Enabled);
+            Assert.Equal(Keys.F3, itemReimprimir.ShortcutKeys);
+        });
+    }
+
+    [Fact]
+    public void FrmPrincipal_ItemConfiguracionImpresion_VisibleSoloParaAdministrador()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var formFactory = new FalsaFormFactory();
+            var tiempo = TimeProvider.System;
+            var paramService = new FalsoServicioParametros();
+            var balanza = new ServicioBalanzaFalso();
+
+            // 1. Con Administrador: disponible y habilitado
+            var sesionAdmin = new SesionActual();
+            sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
+            using var principalAdmin = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza);
+
+            ToolStripMenuItem? mnuAdmin = null;
+            foreach (ToolStripMenuItem item in principalAdmin.MenuPrincipal.Items)
+            {
+                if (item.Text?.Contains("Administración") == true) mnuAdmin = item;
+            }
+            Assert.NotNull(mnuAdmin);
+            Assert.True(mnuAdmin.Available);
+
+            ToolStripMenuItem? itemImpresion = null;
+            foreach (ToolStripItem sub in mnuAdmin.DropDownItems)
+            {
+                if (sub.Text?.Contains("impresión", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    itemImpresion = (ToolStripMenuItem)sub;
+                    break;
+                }
+            }
+            Assert.NotNull(itemImpresion);
+            Assert.True(itemImpresion.Available);
+            Assert.True(itemImpresion.Enabled);
+
+            // 2. Con Supervisor: no disponible
+            var sesionSupervisor = new SesionActual();
+            sesionSupervisor.Iniciar(new UsuarioSesion(2, "supervisor", "Supervisor", Rol.Supervisor, false));
+            using var principalSupervisor = new FrmPrincipal(sesionSupervisor, formFactory, tiempo, paramService, balanza);
+
+            ToolStripMenuItem? mnuAdminSup = null;
+            foreach (ToolStripMenuItem item in principalSupervisor.MenuPrincipal.Items)
+            {
+                if (item.Text?.Contains("Administración") == true) mnuAdminSup = item;
+            }
+            if (mnuAdminSup != null && mnuAdminSup.Available)
+            {
+                ToolStripMenuItem? itemImpresionSup = null;
+                foreach (ToolStripItem sub in mnuAdminSup.DropDownItems)
+                {
+                    if (sub.Text?.Contains("impresión", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        itemImpresionSup = (ToolStripMenuItem)sub;
+                        break;
+                    }
+                }
+                if (itemImpresionSup != null)
+                {
+                    Assert.False(itemImpresionSup.Available);
+                }
+            }
+
+            // 3. Con Operador: menú Administración no disponible
+            var sesionOperador = new SesionActual();
+            sesionOperador.Iniciar(new UsuarioSesion(3, "operador", "Operador", Rol.Operador, false));
+            using var principalOperador = new FrmPrincipal(sesionOperador, formFactory, tiempo, paramService, balanza);
+
+            ToolStripMenuItem? mnuAdminOp = null;
+            foreach (ToolStripMenuItem item in principalOperador.MenuPrincipal.Items)
+            {
+                if (item.Text?.Contains("Administración") == true) mnuAdminOp = item;
+            }
+            Assert.NotNull(mnuAdminOp);
+            Assert.False(mnuAdminOp.Available);
+        });
+    }
 }

@@ -3,6 +3,7 @@ using PesajeFaeneo.Application.Parametros;
 using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Domain.Enums;
 using PesajeFaeneo.WinForms.Formularios.Administracion;
+using PesajeFaeneo.WinForms.Formularios.Boletas;
 using PesajeFaeneo.WinForms.Formularios.Catalogos;
 using PesajeFaeneo.WinForms.Formularios.Pesaje;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
@@ -114,8 +115,10 @@ public partial class FrmPrincipal : FormBase
         var mnuBoletas = new ToolStripMenuItem("&Boletas");
         var itemReimprimir = new ToolStripMenuItem("&Reimprimir boleta")
         {
-            Tag = new OpcionMenu(Permiso.ReimprimirBoleta, "F5")
+            ShortcutKeys = Keys.F3,
+            Tag = new OpcionMenu(Permiso.ReimprimirBoleta, null)
         };
+        itemReimprimir.Click += (_, _) => AbrirReimpresion();
         var itemBuscarEditar = new ToolStripMenuItem("&Buscar / editar boleta")
         {
             Tag = new OpcionMenu(Permiso.EditarBoleta, "F6")
@@ -179,11 +182,18 @@ public partial class FrmPrincipal : FormBase
             Tag = new OpcionMenu(Permiso.ConfigurarBalanza, null)
         };
         itemBalanza.Click += (_, _) => AbrirConfiguracionBalanza();
+
+        var itemImpresion = new ToolStripMenuItem("Configuración de &impresión")
+        {
+            Tag = new OpcionMenu(Permiso.GestionarParametros, null)
+        };
+        itemImpresion.Click += (_, _) => AbrirConfiguracionImpresion();
+
         var itemAuditoria = new ToolStripMenuItem("Visor de &auditoría")
         {
             Tag = new OpcionMenu(Permiso.VerAuditoria, "F6")
         };
-        mnuAdministracion.DropDownItems.AddRange(new ToolStripItem[] { itemUsuarios, itemParametros, itemBalanza, itemAuditoria });
+        mnuAdministracion.DropDownItems.AddRange(new ToolStripItem[] { itemUsuarios, itemParametros, itemBalanza, itemImpresion, itemAuditoria });
 
         // 6. Utilitarios
         var mnuUtilitarios = new ToolStripMenuItem("&Utilitarios");
@@ -333,6 +343,16 @@ public partial class FrmPrincipal : FormBase
         });
     }
 
+    private void AbrirReimpresion()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.ReimprimirBoleta);
+            using var frm = _formFactory.Crear<FrmReimprimirBoleta>();
+            frm.ShowDialog(this);
+        });
+    }
+
     private void AbrirGanaderos()
     {
         Ejecutar(() =>
@@ -395,6 +415,16 @@ public partial class FrmPrincipal : FormBase
         {
             _sesion.ExigirPermiso(Permiso.ConfigurarBalanza);
             using var frm = _formFactory.Crear<FrmConfiguracionBalanza>();
+            frm.ShowDialog(this);
+        });
+    }
+
+    private void AbrirConfiguracionImpresion()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.GestionarParametros);
+            using var frm = _formFactory.Crear<FrmConfiguracionImpresion>();
             frm.ShowDialog(this);
         });
     }

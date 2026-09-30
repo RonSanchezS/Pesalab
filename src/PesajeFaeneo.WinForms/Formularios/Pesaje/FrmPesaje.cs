@@ -10,6 +10,7 @@ using PesajeFaeneo.Domain.Enums;
 using PesajeFaeneo.Domain.Reglas;
 using PesajeFaeneo.WinForms.Controles;
 using PesajeFaeneo.WinForms.Formularios.Catalogos;
+using PesajeFaeneo.WinForms.Impresion;
 using PesajeFaeneo.WinForms.Infraestructura;
 using PesajeFaeneo.WinForms.Presentacion.Pesaje;
 
@@ -26,6 +27,7 @@ public class FrmPesaje : FormBase
     private readonly ISesionActual _sesionActual;
     private readonly IFormFactory _formFactory;
     private readonly TimeProvider _timeProvider;
+    private readonly IServicioImpresionBoletas _servicioImpresion;
     private readonly MonitorBalanzaUi _monitor;
     private readonly ControlCapturas _capturas;
     private readonly bool _puedeUsarSimulador;
@@ -35,6 +37,7 @@ public class FrmPesaje : FormBase
     private string _observacionPorDefecto = string.Empty;
     private bool _grabando;
     private bool _cargando;
+    private bool _imprimiendo;
     private string? _mensajePostGrabado;
     private NivelMensajeGuia _nivelPostGrabado;
 
@@ -67,6 +70,7 @@ public class FrmPesaje : FormBase
 
     // Acciones y Guía
     internal Button btnGrabar = null!;
+    internal Button btnImprimir = null!;
     internal Button btnCerrar = null!;
     internal Label lblGuia = null!;
 
@@ -95,7 +99,8 @@ public class FrmPesaje : FormBase
         ISimuladorBalanza simuladorBalanza,
         ISesionActual sesionActual,
         IFormFactory formFactory,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IServicioImpresionBoletas servicioImpresion)
     {
         _servicioPesajes = servicioPesajes ?? throw new ArgumentNullException(nameof(servicioPesajes));
         _servicioGanaderos = servicioGanaderos ?? throw new ArgumentNullException(nameof(servicioGanaderos));
@@ -106,6 +111,7 @@ public class FrmPesaje : FormBase
         _sesionActual = sesionActual ?? throw new ArgumentNullException(nameof(sesionActual));
         _formFactory = formFactory ?? throw new ArgumentNullException(nameof(formFactory));
         _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
+        _servicioImpresion = servicioImpresion ?? throw new ArgumentNullException(nameof(servicioImpresion));
 
         _puedeUsarSimulador = _sesionActual.TienePermiso(Permiso.ConfigurarBalanza);
         _capturas = new ControlCapturas(_puedeUsarSimulador);
@@ -537,6 +543,16 @@ public class FrmPesaje : FormBase
         };
         btnCerrar.Click += (_, _) => Close();
 
+        btnImprimir = new Button
+        {
+            Text = "Imprimir (F9)",
+            Size = new Size(140, 42),
+            TabStop = false,
+            Font = new Font("Segoe UI", 10F, FontStyle.Regular),
+            Enabled = false
+        };
+        btnImprimir.Click += async (_, _) => await ImprimirSeleccionadaAsync();
+
         btnGrabar = new Button
         {
             Text = "&Grabar (F12)",
@@ -549,6 +565,7 @@ public class FrmPesaje : FormBase
         btnGrabar.Click += async (_, _) => await GrabarAsync();
 
         pnl.Controls.Add(btnCerrar);
+        pnl.Controls.Add(btnImprimir);
         pnl.Controls.Add(btnGrabar);
 
         return pnl;
@@ -580,6 +597,7 @@ public class FrmPesaje : FormBase
             TabStop = false,
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
         };
+        dgvHoy.SelectionChanged += (_, _) => ActualizarEstadoUi();
 
         dgvHoy.Columns.Add("Boleta", "Boleta");
         dgvHoy.Columns.Add("Hora", "Hora");
@@ -709,7 +727,7 @@ public class FrmPesaje : FormBase
             var derStr = p.PesoDerecho > 0 ? p.PesoDerecho.ToString("0.0", CultureInfo.CurrentCulture) : "-";
             var totalStr = p.PesoTotal.ToString("0.0", CultureInfo.CurrentCulture);
 
-            dgvHoy.Rows.Add(
+            var i = dgvHoy.Rows.Add(
                 p.NumeroBoleta,
                 localHora,
                 p.Marca,
@@ -722,7 +740,14 @@ public class FrmPesaje : FormBase
                 origenStr,
                 p.Estado.ToString()
             );
+            dgvHoy.Rows[i].Tag = p.Id;
         }
+    }
+
+    private int? IdBoletaParaImprimir()
+    {
+        var fila = dgvHoy.CurrentRow ?? (dgvHoy.Rows.Count > 0 ? dgvHoy.Rows[0] : null);
+        return fila?.Tag as int?;
     }
 
     private async Task ActualizarSugerenciaAsync(int ganaderoId)
@@ -827,7 +852,7 @@ public class FrmPesaje : FormBase
 
         var i = _servicioBalanza.Instantanea;
         var ahora = _timeProvider.GetUtcNow();
-        var ocupado = _grabando || _cargando;
+        var ocupado = _grabando || _cargando || _imprimiendo;
 
         var datos = new DatosPantallaPesaje(
             Instantanea: i,
@@ -846,6 +871,7 @@ public class FrmPesaje : FormBase
         btnCapturarDerecho.Enabled = estado.PuedeCapturarDerecho;
         btnBorrarPesos.Enabled = estado.PuedeBorrarPesos;
         btnGrabar.Enabled = estado.PuedeGrabar;
+        btnImprimir.Enabled = !ocupado && IdBoletaParaImprimir() is not null;
 
         if (_mensajePostGrabado is not null)
         {
@@ -893,6 +919,13 @@ public class FrmPesaje : FormBase
                 if (btnBorrarPesos.Enabled)
                 {
                     BorrarPesos();
+                }
+                return true;
+
+            case Keys.F9:
+                if (btnImprimir.Enabled)
+                {
+                    _ = ImprimirSeleccionadaAsync();
                 }
                 return true;
 
@@ -954,6 +987,7 @@ public class FrmPesaje : FormBase
         if (registrado is not null)
         {
             AplicarPostGrabado(registrado);
+            await ImprimirTrasGrabarAsync(registrado);
             await EjecutarAsync(RecargarTrasGrabarAsync);
             if (ctlGanadero.Seleccion != null)
             {
@@ -961,6 +995,84 @@ public class FrmPesaje : FormBase
             }
         }
 
+        ActualizarEstadoUi();
+    }
+
+    private static string TextoBaseGrabado(PesajeRegistrado r)
+    {
+        var extra = r.Origen == OrigenPeso.Simulador ? " (SIMULADO)" : string.Empty;
+        var totalStr = r.PesoTotal.ToString("0.0", CultureInfo.CurrentCulture);
+        return $"Boleta N° {r.NumeroBoleta} grabada — {totalStr} kg{extra}";
+    }
+
+    private async Task ImprimirTrasGrabarAsync(PesajeRegistrado r)
+    {
+        ResultadoImpresion? resultado = null;
+        _imprimiendo = true;
+        ActualizarEstadoUi();
+        try
+        {
+            await EjecutarAsync(async () =>
+                resultado = await _servicioImpresion.ImprimirAsync(r.Id, SolicitudImpresion.AutomaticaAlGrabar));
+        }
+        finally
+        {
+            _imprimiendo = false;
+        }
+        AplicarResultadoImpresionTrasGrabar(r, resultado);
+    }
+
+    private void AplicarResultadoImpresionTrasGrabar(PesajeRegistrado r, ResultadoImpresion? resultado)
+    {
+        var baseTxt = TextoBaseGrabado(r);
+        if (resultado is null)
+        {
+            _mensajePostGrabado = $"Boleta N° {r.NumeroBoleta} grabada, pero NO se imprimió. Pulse F9 para reintentar.";
+            _nivelPostGrabado = NivelMensajeGuia.Error;
+            return;
+        }
+
+        switch (resultado.Estado)
+        {
+            case EstadoImpresion.Impresa:
+                _mensajePostGrabado = $"{baseTxt} — impresa.";
+                _nivelPostGrabado = NivelMensajeGuia.Exito;
+                break;
+
+            case EstadoImpresion.Omitida:
+                _mensajePostGrabado = $"{baseTxt} — pulse F9 para imprimir.";
+                _nivelPostGrabado = NivelMensajeGuia.Exito;
+                break;
+
+            case EstadoImpresion.Fallida:
+                _mensajePostGrabado = $"Boleta N° {r.NumeroBoleta} grabada, pero NO se imprimió: {resultado.Mensaje} Pulse F9 para reintentar.";
+                _nivelPostGrabado = NivelMensajeGuia.Error;
+                try { System.Media.SystemSounds.Beep.Play(); } catch { }
+                break;
+        }
+    }
+
+    private async Task ImprimirSeleccionadaAsync()
+    {
+        var id = IdBoletaParaImprimir();
+        if (id is null) { try { System.Media.SystemSounds.Beep.Play(); } catch { } return; }
+        ResultadoImpresion? resultado = null;
+        _imprimiendo = true;
+        ActualizarEstadoUi();
+        try
+        {
+            await EjecutarAsync(async () =>
+                resultado = await _servicioImpresion.ImprimirAsync(id.Value, SolicitudImpresion.Manual), btnImprimir);
+        }
+        finally
+        {
+            _imprimiendo = false;
+        }
+        if (resultado is not null)
+        {
+            _mensajePostGrabado = resultado.Mensaje;
+            _nivelPostGrabado = resultado.Estado == EstadoImpresion.Impresa ? NivelMensajeGuia.Exito : NivelMensajeGuia.Error;
+        }
         ActualizarEstadoUi();
     }
 
@@ -996,9 +1108,7 @@ public class FrmPesaje : FormBase
         txtObservacion.Text = _observacionPorDefecto;
         _errorProvider.Clear();
 
-        var extra = r.Origen == OrigenPeso.Simulador ? " (SIMULADO)" : string.Empty;
-        var totalStr = r.PesoTotal.ToString("0.0", CultureInfo.CurrentCulture);
-        _mensajePostGrabado = $"Boleta N° {r.NumeroBoleta} grabada — {totalStr} kg{extra}";
+        _mensajePostGrabado = TextoBaseGrabado(r);
         _nivelPostGrabado = NivelMensajeGuia.Exito;
 
         try { System.Media.SystemSounds.Asterisk.Play(); } catch { }
@@ -1086,7 +1196,7 @@ public class FrmPesaje : FormBase
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        if (_grabando)
+        if (_grabando || _imprimiendo)
         {
             e.Cancel = true;
             return;
@@ -1126,6 +1236,9 @@ public class FrmPesaje : FormBase
     internal void SondearBalanzaParaTest() => _monitor.Sondear();
     internal void CapturarParaTest(LadoPesaje lado) => CapturarLado(lado);
     internal Task GrabarParaTestAsync() => GrabarAsync();
+    internal Task ImprimirParaTestAsync() => ImprimirSeleccionadaAsync();
+    internal int? IdBoletaParaImprimirParaTest => IdBoletaParaImprimir();
+    internal void SimularFormClosingParaTest(FormClosingEventArgs e) => OnFormClosing(e);
     internal bool ProcesarTeclaParaTest(Keys keyData)
     {
         Message msg = default;

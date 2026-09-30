@@ -80,4 +80,24 @@ public class PesajeRepositorio : IPesajeRepositorio
             .Take(maximo)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<Pesaje?> ObtenerParaBoletaPorIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Pesajes
+            .AsNoTracking()
+            .Include(p => p.Ganadero)
+            .Include(p => p.Cliente)
+            .Include(p => p.Usuario)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+
+    public async Task<Pesaje?> ObtenerParaBoletaPorNumeroAsync(long numeroBoleta, CancellationToken cancellationToken = default)
+    {
+        return await _context.Pesajes
+            .AsNoTracking()
+            .Include(p => p.Ganadero)
+            .Include(p => p.Cliente)
+            .Include(p => p.Usuario)
+            .FirstOrDefaultAsync(p => p.NumeroBoleta == numeroBoleta, cancellationToken);
+    }
 }

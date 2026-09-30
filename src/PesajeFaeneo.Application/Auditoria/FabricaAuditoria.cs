@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PesajeFaeneo.Application.Boletas.Dtos;
 using AuditoriaEntidad = PesajeFaeneo.Domain.Entities.Auditoria;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Domain.Enums;
@@ -15,6 +16,7 @@ public static class EntidadesAuditoria
     public const string ParametrosSistema = "ParametrosSistema";
     public const string ConfiguracionBalanza = "ConfiguracionBalanza";
     public const string Pesaje = "Pesaje";
+    public const string ConfiguracionImpresion = "ConfiguracionImpresion";
 }
 
 public sealed record UsuarioAuditoria(
@@ -73,6 +75,24 @@ public sealed record PesajeAuditoria(
     EstadoPesaje Estado,
     OrigenPeso OrigenPeso,
     int UsuarioId);
+
+public sealed record ConfiguracionImpresionAuditoria(
+    string NombreEquipo,
+    string? NombreImpresora,
+    FormatoBoleta Formato,
+    string? NombrePapel,
+    int Copias,
+    bool ImprimirAlGrabar,
+    decimal DesplazamientoXMm,
+    decimal DesplazamientoYMm);
+
+public sealed record ImpresionAuditoria(
+    long NumeroBoleta,
+    bool EsReimpresion,
+    int Copias,
+    string Impresora,
+    FormatoBoleta Formato,
+    string NombreEquipo);
 
 public static class FabricaAuditoria
 {
@@ -218,6 +238,33 @@ public static class FabricaAuditoria
             pesaje.Estado,
             pesaje.OrigenPeso,
             pesaje.UsuarioId);
+    }
+
+    public static ConfiguracionImpresionAuditoria CrearSnapshot(ConfiguracionImpresion c, string nombreEquipo)
+    {
+        ArgumentNullException.ThrowIfNull(c);
+        ArgumentNullException.ThrowIfNull(nombreEquipo);
+        return new ConfiguracionImpresionAuditoria(
+            nombreEquipo,
+            c.NombreImpresora,
+            c.Formato,
+            c.NombrePapel,
+            c.Copias,
+            c.ImprimirAlGrabar,
+            c.DesplazamientoXMm,
+            c.DesplazamientoYMm);
+    }
+
+    public static ImpresionAuditoria CrearSnapshot(RegistroImpresion r)
+    {
+        ArgumentNullException.ThrowIfNull(r);
+        return new ImpresionAuditoria(
+            r.NumeroBoleta,
+            r.EsReimpresion,
+            r.Copias,
+            r.Impresora,
+            r.Formato,
+            r.NombreEquipo);
     }
 
     private static object? NormalizarObjeto(object? obj) => obj switch

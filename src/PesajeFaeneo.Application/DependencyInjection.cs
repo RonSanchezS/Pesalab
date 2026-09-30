@@ -16,6 +16,8 @@ public static class DependencyInjection
         services.AddSingleton<Balanza.IServicioBalanza, Balanza.ServicioBalanza>();
         services.AddTransient<Balanza.IServicioConfiguracionBalanza, Balanza.ServicioConfiguracionBalanza>();
         services.AddTransient<Pesajes.IServicioPesajes, Pesajes.ServicioPesajes>();
+        services.AddTransient<Boletas.IServicioBoletas, Boletas.ServicioBoletas>();
+        services.AddTransient<Boletas.IServicioConfiguracionImpresion, Boletas.ServicioConfiguracionImpresion>();
         return services;
     }
 }

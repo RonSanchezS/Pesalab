@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PesajeFaeneo.Application.Abstracciones;
 using PesajeFaeneo.Infrastructure.Common;
 using PesajeFaeneo.Infrastructure.Persistencia;
@@ -30,6 +31,11 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<PesajeFaeneo.Application.Abstracciones.Persistencia.IUnidadDeTrabajoFactory, UnidadDeTrabajoFactory>();
         services.AddSingleton<IAlmacenLogo, Archivos.AlmacenLogoArchivos>();
+        services.AddSingleton<IAlmacenConfiguracionImpresion>(sp =>
+            new Archivos.AlmacenConfiguracionImpresionJson(
+                appPaths,
+                sp.GetRequiredService<ILogger<Archivos.AlmacenConfiguracionImpresionJson>>(),
+                Environment.MachineName));
         services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
         services.AddScoped<IDataSeeder, DataSeeder>();
 

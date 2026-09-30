@@ -5,9 +5,9 @@ Sistema de control, registro de pesaje y emisión de guías de remisión de carn
 ## Estructura de la Solución (`src/PesajeFaeneo.sln`)
 
 - **PesajeFaeneo.Domain**: Núcleo de la aplicación. Entidades de negocio, enums, excepciones y reglas puras. Sin dependencias externas ni paquetes NuGet.
-- **PesajeFaeneo.Application**: Casos de uso, interfaces, DTOs y validaciones de aplicación.
-- **PesajeFaeneo.Infrastructure**: Acceso a datos con EF Core (SQLite), comunicación con balanzas (Serial/TCP/Simulador), generación e impresión de boletas y exportación de reportes.
-- **PesajeFaeneo.WinForms**: Capa de presentación WinForms, adaptadores de interfaz de usuario y manejo de navegación.
+- **PesajeFaeneo.Application**: Casos de uso, interfaces, DTOs, modelo puro de boleta y validaciones de aplicación.
+- **PesajeFaeneo.Infrastructure**: Acceso a datos con EF Core (SQLite), comunicación con balanzas (Serial/TCP/Simulador), almacenamiento JSON por equipo, exportación de reportes y logging.
+- **PesajeFaeneo.WinForms**: Capa de presentación WinForms, adaptadores de interfaz de usuario, impresión GDI+ (`WinForms/Impresion`) y manejo de navegación.
 - **PesajeFaeneo.Tests**: Batería de pruebas unitarias y de integración sobre SQLite en memoria y archivos temporales.
 
 ## Compilación y Ejecución
@@ -117,3 +117,37 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
   - Cuando la balanza está configurada en modo **Simulador**, únicamente los administradores (`ConfigurarBalanza`) tienen permitido capturar y grabar pesajes.
   - Para los operadores y supervisores, los botones de captura y grabado se bloquean con mensaje guía de advertencia y el panel de control del simulador permanece oculto.
   - Todo pesaje grabado en este modo queda marcado con origen `SIMULADO` en base de datos, en la grilla del día y en los registros de auditoría.
+
+## Boleta de Pesaje e Impresión
+
+- **Formatos soportados:**
+  - **Media Carta (216 × 140 mm):** Diseño en dos columnas para impresoras matriciales, láser o de inyección de tinta, optimizado para formularios horizontales. Incluye encabezado con datos fiscales de la empresa y logo opcional, fecha/hora local, correlativo de boleta, datos del ganadero (marca y nombre), cliente, fleteros (F1 a F4), detalle de pesos (lado izquierdo, lado derecho y total en kg) y observaciones.
+  - **Ticket 80 mm:** Diseño continuo en una sola columna para impresoras térmicas de punto de venta.
+- **Configuración por equipo:**
+  - Accesible desde el menú **Administración › Configuración de impresión** (requiere rol Administrador / permiso `GestionarParametros`).
+  - Almacenamiento independiente por equipo en `%ProgramData%\PesajeFaeneo\config\impresion.json` con guardado atómico (archivo temporal + reemplazo atómico) y vinculado al nombre del equipo (`Environment.MachineName`). Si la base de datos se migra o restaura en otra máquina, la configuración de hardware local no se ve afectada.
+  - Selección de impresora de Windows (o uso de la impresora predeterminada).
+  - Detección de impresoras virtuales ("Microsoft Print to PDF", "XPS Document Writer", "Fax"): muestra advertencia preventiva recomendando desactivar la impresión automática para evitar bloqueos por cuadros de diálogo modales.
+  - Manejo robusto de impresoras no instaladas o apagadas: preserva el nombre configurado (`(NO INSTALADA)`) sin sustituciones silenciosas ni fallos de carga.
+- **Calibración y ajuste fino:**
+  - Función "Imprimir página de calibración": genera un recuadro de prueba a exactamente 10,0 mm de cada borde físico del papel para medir desviaciones del driver o del arrastre mecánico.
+  - Parámetros de desplazamiento horizontal (X) y vertical (Y) en milímetros (rango de -20,0 a +20,0 mm con paso de 0,5 mm) para alinear milimétricamente la impresión con formularios preimpresos.
+  - Funciones de "Vista previa (muestra)" e "Imprimir muestra" que renderizan una boleta ficticia de prueba con la leyenda `MUESTRA — SIN VALOR` sin afectar la numeración de boletas ni la base de datos.
+- **Impresión desde la pantalla de pesaje:**
+  - **Impresión automática al grabar:** Opción configurable por equipo. Al presionar `F12` (Grabar), el pesaje se persiste atómicamente y a continuación se dispara la impresión sin bloquear el hilo principal. Si la impresora está sin papel o apagada, el pesaje queda grabado de forma segura y el panel guía informa el error en rojo indicando `Pulse F9 para reintentar`.
+  - **Impresión manual (F9):** Permite imprimir en cualquier momento la boleta seleccionada en la grilla del día pulsando la tecla `F9` o el botón "Imprimir (F9)".
+- **Reimpresión de boletas:**
+  - Acceso directo mediante la tecla `F3` desde la pantalla principal o menú **Boletas › Reimprimir boleta** (disponible para Operador, Supervisor y Administrador).
+  - Búsqueda ágil por número de boleta (prellenado por defecto con la última boleta emitida). Si se cambia el número, el resumen se limpia y F4/F9 quedan deshabilitados hasta volver a buscar con `Enter`: nunca se imprime una boleta distinta de la que muestra el campo.
+  - Visualización del resumen completo de la boleta, estado de vigencia, procedencia (Balanza o Simulador) y conteo de impresiones previas.
+  - Vista previa en pantalla (`F4`) mediante visor seguro que no permite imprimir directamente para prevenir elusiones de auditoría.
+  - Botón de reimpresión (`F9`) con auditoría atómica.
+- **Leyendas y seguridad antifraude:**
+  - **ORIGINAL / COPIA:** Impresión configurable de 1 a 3 copias físicas independientes. La primera copia se rotula como `ORIGINAL` y las subsiguientes como `COPIA 1`, `COPIA 2`.
+  - **REIMPRESIÓN:** Todo documento impreso después de la primera emisión incluye en el encabezado la leyenda indeleble `REIMPRESIÓN {n} — {fecha/hora local}`.
+  - **PESO SIMULADO:** Toda boleta cuyo origen sea el simulador de balanza lleva en la cabecera `PESO SIMULADO — SIN VALOR COMERCIAL` y, en media carta, una marca de agua gris `SIMULADO` sobre los pesos (en ticket, la línea `*** SIMULADO ***`).
+  - **BOLETA ANULADA:** En boletas anuladas se estampa en letras mayúsculas la leyenda `ANULADA` y el motivo de la anulación.
+  - Las leyendas se acumulan (una boleta anulada de peso simulado lleva ambas) en el orden MUESTRA, ANULADA, PESO SIMULADO, IMPORTADA, REIMPRESIÓN, ORIGINAL/COPIA; solo la marca de agua muestra una (la de mayor prioridad).
+- **Auditoría completa:**
+  - Cada impresión física genera un registro en la tabla `Auditorias` con la acción `Imprimir` (primera emisión) o `Reimprimir`, fecha/hora UTC, ID del pesaje y usuario responsable.
+

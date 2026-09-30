@@ -33,8 +33,8 @@ flowchart TD
 | **F2** | **Parámetros y catálogos** | ✅ Completado | 6 | 6 | 2026-09-24 |
 | **F3** | **Integración con balanza** | ✅ Completado | 7 | 7 | 2026-09-25 |
 | **F4** | **Registro de pesaje** | ✅ Completado | 7 | 7 | 2026-09-27 |
-| **F5** | **Boleta de pesaje** | ⏳ Siguiente en turno | 0 | 6 | — |
-| **F6** | **Edición, anulación y auditoría** | ⏳ Pendiente | 0 | 5 | — |
+| **F5** | **Boleta de pesaje** | ✅ Completado | 6 | 6 | 2026-09-28 |
+| **F6** | **Edición, anulación y auditoría** | ⏳ Siguiente en turno | 0 | 5 | — |
 | **F7** | **Reportes** | ⏳ Pendiente | 0 | 6 | — |
 | **F8** | **Utilitarios** | ⏳ Pendiente | 0 | 6 | — |
 | **F9** | **Empaquetado, instalador y puesta en marcha** | ⏳ Pendiente | 0 | 6 | — |
@@ -86,13 +86,13 @@ flowchart TD
 - [x] **HU-F4-06:** Flujo por teclado, estados de botones y mensajes guía
 - [x] **HU-F4-07:** Alta rápida de ganadero y cliente desde el pesaje
 
-### [ ] Fase F5 — Boleta de pesaje
-- [ ] **HU-F5-01:** Datos de boleta y configuración de impresión por equipo
-- [ ] **HU-F5-02:** Renderizador del layout de boleta
-- [ ] **HU-F5-03:** Impresión y vista previa con PrintDocument
-- [ ] **HU-F5-04:** Imprimir desde el pesaje e impresión automática al grabar
-- [ ] **HU-F5-05:** Reimpresión por número y acceso rápido
-- [ ] **HU-F5-06:** Selección de impresora, papel y calibración
+### [x] Fase F5 — Boleta de pesaje (COMPLETADA)
+- [x] **HU-F5-01:** Datos de boleta y configuración de impresión por equipo
+- [x] **HU-F5-02:** Renderizador del layout de boleta
+- [x] **HU-F5-03:** Impresión y vista previa con PrintDocument
+- [x] **HU-F5-04:** Imprimir desde el pesaje e impresión automática al grabar
+- [x] **HU-F5-05:** Reimpresión por número y acceso rápido
+- [x] **HU-F5-06:** Selección de impresora, papel y calibración
 
 ### [ ] Fase F6 — Edición, anulación y auditoría
 - [ ] **HU-F6-01:** Buscador de boletas
@@ -131,8 +131,8 @@ flowchart TD
 - **Arquitectura en Capas:**
   - `PesajeFaeneo.Domain`: Sin dependencias externas ni NuGet. Entidades, Enums, Excepciones, Reglas puras.
   - `PesajeFaeneo.Application`: Servicios, Interfaces, DTOs, Seguridad, Validadores. Depende solo de Domain (+ `Microsoft.Extensions.DependencyInjection.Abstractions` para exponer extensiones `IServiceCollection`; **no** referencia `Microsoft.Extensions.Hosting`, EF Core, WinForms ni Serilog).
-  - `PesajeFaeneo.Infrastructure`: EF Core, Balanza, Impresión, Exportación, Archivos, Log. Depende de Application y Domain. No referencia WinForms.
-  - `PesajeFaeneo.WinForms`: Formularios, Controles, Presentación. Depende de las capas anteriores vía DI. `IFormFactory` vive aquí (no en Application): es un concepto de UI, restringido a `where T : Form`.
+  - `PesajeFaeneo.Infrastructure`: EF Core, Balanza, Exportación, Archivos, Log. Depende de Application y Domain. No referencia WinForms.
+  - `PesajeFaeneo.WinForms`: Formularios, Controles, Presentación, Impresión GDI+ (`WinForms/Impresion`; vive aquí y no en Infrastructure porque esta es `net8.0` sin `System.Drawing.Common` y agregarlo exigiría un paquete nuevo y rompería la compilación con CA1416, D2 de F5). Depende de las capas anteriores vía DI. `IFormFactory` vive aquí (no en Application): es un concepto de UI, restringido a `where T : Form`.
   - `PesajeFaeneo.Tests`: Tests unitarios y de integración con xUnit (solo `Assert`). `ArquitecturaTests` hace cumplir las reglas de capas anteriores por reflexión.
 - **Persistencia:** SQLite vía EF Core 8. `journal_mode=WAL` se aplica una vez tras migrar (persiste en el archivo); `busy_timeout`, `synchronous=NORMAL` y `foreign_keys=ON` son pragmas **por conexión** y se aplican con `SqlitePragmasInterceptor` (registrado a través de `SqliteOpcionesExtensiones.ConfigurarSqlite`, usado en DI, `DesignTimeDbContextFactory` y los fixtures de prueba) para cubrir a todas las conexiones del pool, no solo a la primera.
 - **Fechas y horas:** se persiste todo en **UTC**. `PesajeDbContext.ConfigureConventions` aplica `DateTimeUtcConverter`/`DateTimeUtcNulableConverter` a toda propiedad `DateTime`/`DateTime?` del modelo: al guardar convierte a UTC, al leer marca `DateTimeKind.Utc` explícitamente (SQLite no conserva `DateTimeKind`). Los filtros "del día" (secuencia por ganadero en F4-03, reportes en F7) deben convertir los límites del día local a UTC con `TimeProvider.LocalTimeZone` antes de comparar contra estas columnas.
@@ -155,14 +155,22 @@ flowchart TD
 - **Regla de reentrada en UI (`FormBase`, regla 0.10):** jamás invocar un método con `EjecutarAsync` interno dentro del delegado de otro `EjecutarAsync` o `Ejecutar`; los formularios modales y operaciones compuestas deben obtener el resultado y ejecutar las recargas posteriormente para evitar que la bandera `_ocupado` descarte silenciosamente la operación.
 - **Balanza e integración de pesaje:** servicio singleton (`IServicioBalanza`) con un único lector activo creado por fábrica (`IFabricaLectorBalanza`). Ciclo de vida explícito en `Program.Main` tras migrar la base de datos (sin `IHostedService`, porque el Host arrancaría antes de migrar y sembrar). El servicio implementa tanto `IAsyncDisposable` como `IDisposable` síncrono para evitar excepciones de MS.DI al cerrar el host. `ConfigureAwait(false)` estricto en todas las operaciones asíncronas de balanza para prevenir interbloqueos con el contexto de sincronización de WinForms al salir. Puerto serie sobre kernel32 directo (`PuertoSerieWin32`, **no** `System.IO.Ports.SerialPort`): se lee el DCB actual del driver y solo se modifican baudios/bits/paridad/parada si difieren; si el driver rechaza `SetCommState`, se relee y se acepta cuando el formato ya coincide. DTR/RTS y control de flujo quedan como los deja el driver. Motivo: `SerialPort.Open()` siempre reescribe el DCB completo y el driver CH340 rechaza cualquier `SetCommState` con error 31 ("el dispositivo no funciona"), incluso sin cambios (verificado en sitio con el indicador RX8 Accurex). Lectura en hilo dedicado (`Thread` con `IsBackground = true`, `AboveNormal`) con `ReadFile` no bloqueante sondeado hasta 250 ms; el cierre usa `SafeFileHandle` (seguro ante un `ReadFile` concurrente). Tramas separadas por fin de línea (CR/LF/ETX) o, si se configura, también por espacio; el peso de la trama puede venir en kilogramos o en gramos (se convierte antes de redondear a 0,1 kg). Entrega segura a la UI por sondeo desacoplado (`MonitorBalanzaUi` con `System.Windows.Forms.Timer` cada 100 ms) sobre una instantánea inmutable (`InstantaneaBalanza`) sin cruzar eventos entre hilos ni fugar referencias a formularios cerrados. Parser de tramas basado en regex con grupos obligatorios `(?<peso>...)` y opcionales `(?<estable>...)`, reemplazo de coma por punto decimal y límite de ejecución de 100 ms contra expresiones catastróficas. Detector de estabilidad con ventana deslizante de lecturas y dispersión menor o igual a la tolerancia configurable. Vigilancia continua para estados `SinDatos` (tras 3 timeouts) y `TramasNoReconocidas` (tras 3 tramas consecutivas sin parsear). Pausa obligatoria de 500 ms tras cerrar un puerto COM para permitir su liberación por el sistema operativo antes de reabrir. Método `EsCapturable` para consumo de F4 (conectada, estable, peso no nulo y lectura reciente dentro del timeout). Diagnóstico interactivo (`ProbarAsync`) que suspende temporalmente el bucle de producción (estado `EnDiagnostico`) y lo reanuda de forma garantizada en `finally`.
 - **Registro de pesaje y captura (F4):** reglas puras en `Domain/Reglas/ReglasPesaje` con redondeo decimal AwayFromZero a 1 decimal (0,1 kg), tolerancia total de +/- 0,1 kg, límites estrictos por lado (10,0 a 600,0 kg) y totales según tipo de desposte (`ResCompleta` 10,0 a 1200,0 kg; `MediaRes` 10,0 a 600,0 kg). Numeración atómica garantizada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING SiguienteNumeroBoleta - 1` mediante `SqlQuery<long>(...).ToListAsync()` como primera sentencia dentro de una transacción explícita (`ITransaccion`), precedida por validación de ganadero y cliente en BD. Grabado atómico de `Pesaje` y `Auditoria` en la misma transacción (`PesajeAuditoria` con snapshot sanitizado). Captura desacoplada en `ControlCapturas`: únicamente cuando la balanza es capturable (`EsCapturable(ahora)` dentro de `TimeoutMs`), peso dentro de rango y exigencia obligatoria de retorno a cero (peso <= 2 kg) entre el primer y segundo lado en res completa para evitar pesajes accidentales del mismo lado. Política de simulador estricta: solo usuarios con permiso `ConfigurarBalanza` (Administrador) pueden capturar o grabar pesos simulados; para Operadores se deshabilitan las capturas y se oculta el panel de control del simulador. `RangoDiaLocal` calcula los límites del día local y los proyecta a UTC para la sugerencia de secuencias y consultas del día. Sugerencia de secuencia asíncrona fuera de `EjecutarAsync` con token de versión (`_versionSugerencia`) para descartar respuestas tardías. Teclado y navegación en `FrmPesaje` gobernados por `ProcessCmdKey` estricto (F5, F6, F8, F12, Escape, Enter con descenso en `ContainerControl` mediante `ControlEnfocado()`) y botones con `TabStop = false`. Hook `OnPesajeGrabado(PesajeRegistrado r)` preparado como punto de extensión para la impresión automática de boletas en F5-04.
+- **Boleta e impresión (F5):** modelo y diseño puros en `Application/Boletas` (coordenadas en mm, cultura fija `es-BO`, sin dependencia de `System.Drawing`); pintor GDI+ con `Graphics.DrawString` sobre `DocumentoBoleta` (`StandardPrintController`, `OriginAtMargins = false`, compensación de `HardMargin` solo al imprimir, copias como páginas físicas independientes para soporte de térmicas/matriciales y leyenda ORIGINAL/COPIA, contador de copias reiniciado en `OnBeginPrint`); configuración por equipo en `config\impresion.json` (atómica, validada, atada a `MachineName`); auditoría `Imprimir`/`Reimprimir` tras `Print()`; detección de reimpresión por conteo en auditoría con leyenda obligatoria "REIMPRESIÓN n — {fecha}"; impresión automática en bloque secuencial tras el grabado; acceso F9 en `FrmPesaje` y F3 en shell principal.
 
-### Notas hacia fases futuras (registradas en las revisiones post-F0, post-F2, post-F3 y post-F4)
+### Notas hacia fases futuras (registradas en las revisiones post-F0, post-F2, post-F3, post-F4 y post-F5)
 - **F4-02 / F6 (R6) — resuelto en F4:** numeración atómica implementada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` en `SqlQuery<long>`.
 - **F4-05 (R13) — resuelto en F4:** captura condicionada a `Instantanea.EsCapturable(ahora)` y retorno a cero estricto entre lados.
 - **F4-07 (R9) — resuelto en F4:** altas rápidas desde la pantalla de pesaje implementadas con `CrearRapidoAsync` en catálogos bajo permiso `AltaRapidaCatalogos` (Operador).
-- **F4 / F5 (R14) — resuelto en F4:** política de simulador en producción: bloqueada la captura y grabado para operadores/supervisores (permitida solo a administradores), grilla y auditoría marcan origen "SIMULADO". En F5, imprimir obligatoriamente la leyenda "SIMULADO" en la boleta si `Origen == Simulador`.
-- **F5-04 (R15):** enganchar la impresión automática de la boleta de pesaje sobreescribiendo el método virtual protegido `OnPesajeGrabado(PesajeRegistrado r)` de `FrmPesaje` o mediante servicio inyectado.
-- **F5 / F8 (R10):** la impresión en F5 y los utilitarios de backup/restauración en F8 deben considerar la carpeta de logos (`AppPaths.LogoDir`). F8 debe incluir el logo en los respaldos y restauraciones; F5 debe tolerar la ausencia o ilegibilidad del logo sin fallar.
+- **F4 / F5 (R14) — resuelto en F5:** política de simulador en producción: bloqueada la captura y grabado para operadores/supervisores (permitida solo a administradores), grilla y auditoría marcan origen "SIMULADO". En F5, leyenda "PESO SIMULADO — SIN VALOR COMERCIAL" y marca de agua impresa en la boleta si `Origen == Simulador`.
+- **F5-04 (R15) — resuelto en F5:** impresión automática de la boleta de pesaje enganchada en `FrmPesaje` en bloque secuencial propio tras el grabado atómico.
+- **F5 / F8 (R10) — parcialmente resuelto en F5:** la impresión en F5 tolera la ausencia o ilegibilidad del logo sin fallar (cargador de logo seguro con copia a Bitmap). En F8, incluir el directorio de logos en los respaldos y restauraciones.
+- **F5 / F8 (R14):** respaldo de configuración de impresión: si se restaura en otra PC con diferente `NombreEquipo`, el archivo se ignora y se usan valores por defecto; F8 debe evaluar si excluir la carpeta `config` de los respaldos.
+- **F5-Futuro (R29):** formato real de la boleta de faeneo (posible formulario preimpreso o papel continuo matricial); requerir boleta escaneada al cliente para ajustar coordenadas si es necesario.
+- **F5-Futuro (R30):** reimpresiones usan maestros actuales (empresa, logo, fleteros); evaluar si en F6 se almacena snapshot JSON de la boleta en auditoría `Imprimir`.
+- **F5 / F9-06 (R31):** si en sitio las matriciales con drivers GDI genéricos son lentas o dentadas, considerar implementar `IImpresorBoletas` en modo texto crudo (ESC/P); documentar en manual.
+- **F5 / F9 (R32):** el instalador Inno Setup debe dar permisos de escritura a `Users` sobre `%ProgramData%\PesajeFaeneo\config` (igual que para la BD).
+- **F6 (R-F6-1, remediación F5):** en media carta las leyendas van en una sola línea de 200 mm (`NoWrap` + "…"). Al implementar la anulación, un motivo largo puede cortar las leyendas siguientes ("PESO SIMULADO…", "REIMPRESIÓN n"): limitar el motivo impreso en la leyenda o pasar esa fila a dos líneas.
+- **F5-Futuro (R40):** `Print()` se ejecuta en el hilo de UI de forma síncrona; si un spooler de red causa bloqueos prolongados, evaluar mover solo `Print()` a hilo STA dedicado con el documento instanciado en él.
 - **F6 (R12):** agregar token de concurrencia (`Version` entero con `IsConcurrencyToken`, incrementado en `SaveChanges`) a `Pesaje` y `ParametrosSistema`, y mapear `DbUpdateConcurrencyException` → `ConcurrenciaException`. Si en el futuro se permite acceso multi-terminal concurrente, extender `Version` también a los catálogos.
 - **F7:** QuestPDF 2024.x exige `QuestPDF.Settings.License = LicenseType.Community` al iniciar.
 - **F9-04 (R11):** `ConfiguracionInicialCompleta` permanece en `false` tras guardar parámetros en F2. El asistente de primer arranque en F9-04 debe decidir si marcarla o si detecta el nombre de empresa distinto del valor por defecto.
@@ -321,3 +329,35 @@ flowchart TD
   - D19-D21: navegación de teclado gobernada por `ProcessCmdKey` estricto (F5, F6, F8, F12, Escape, Enter con `ControlEnfocado()` descendiendo en `ContainerControl`), botones con `TabStop = false` para evitar trampas de foco.
   - D22-D23: alta rápida de ganadero y cliente desde el pesaje (`CrearRapidoAsync` bajo permiso `AltaRapidaCatalogos`, Operador), prellenado inteligente y selección automática tras el alta.
 - **Siguiente paso:** Fase F5 — Boleta de pesaje.
+
+### Fase F5 — Boleta de pesaje
+- **Fecha:** 2026-09-28
+- **Estado:** ✅ Completado con éxito (6/6 HUs).
+- **Compilación:** `dotnet build src/PesajeFaeneo.sln -c Release` con 0 warnings y 0 errores (`TreatWarningsAsErrors=true`).
+- **Pruebas:** 810 tests unitarios y de integración ejecutados y en verde (0 fallos, 0 omitidos; incremento monótono de 664 a 810 tests, +146 tests nuevos).
+- **Base de datos:** Sin migraciones de base de datos (esquema intacto, `has-pending-model-changes` limpio). La configuración de impresión reside en archivo JSON por equipo (`%ProgramData%\PesajeFaeneo\config\impresion.json`) validado y con escritura atómica; el historial de impresiones se apoya en la tabla `Auditorias` existente mediante acciones `Imprimir` y `Reimprimir`.
+- **Decisiones clave implementadas (D1–D25):**
+  - D1-D3: Modelo y diseño de boleta puramente desacoplados en `Application/Boletas`, con coordenadas en milímetros y formateo estricto bajo cultura `es-BO` (separadores de miles y decimales deterministas), totalmente agnósticos a `System.Drawing` y testeables sin impresora física.
+  - D4-D6: Configuración de impresión persistida por equipo (`NombreEquipo == Environment.MachineName`), resolución a valores por defecto si el archivo no existe o pertenece a otro equipo, e impresión automática desactivada hasta su configuración explícita por un Administrador.
+  - D7-D9: Documento de impresión GDI+ (`DocumentoBoleta`) con `StandardPrintController` para suprimir diálogos de spooler que roban foco, compensación de márgenes físicos (`HardMargin`) solo al imprimir físicamente, y copias implementadas como páginas físicas independientes para compatibilidad total con impresoras térmicas/matriciales y estampado de ORIGINAL/COPIA.
+  - D10-D12: Servicio de boletas (`ServicioBoletas`) con detección de reimpresión a través del conteo de auditorías `Imprimir`/`Reimprimir` registradas bajo la clave `(Pesaje, pesajeId)`. Registro de auditoría posterior a la invocación exitosa de `Print()`, garantizando trazabilidad antifraude.
+  - D13-D15: Soporte de zonas horarias convirtiendo fechas UTC a hora local vía `TimeProvider.LocalTimeZone`, y tolerancia robusta ante ausencia o corrupción del archivo de logotipo (cargado de flujo a Bitmap sin retención de descriptores).
+  - D16-D18: Formularios dedicados `FrmVistaPrevia` (con `PrintPreviewControl` exclusivo de solo lectura sin botón de impresión para evitar elusiones de auditoría) y `FrmReimprimirBoleta` con búsqueda ágil por número y atajo global F3.
+  - D19-D21: Pantalla de administración `FrmConfiguracionImpresion` con detección de impresoras virtuales (advertencia contra impresión automática), manejo de impresoras guardadas pero no instaladas (preservando el nombre sin sustituciones silenciosas) y prueba de calibración con recuadro a 10 mm de bordes.
+  - D22-D25: Integración fluida en `FrmPesaje` con impresión automática tras grabar ejecutada en bloque secuencial desacoplado (evitando anidamientos en `EjecutarAsync`), impresión manual rápida con tecla F9 (`btnImprimir.TabStop = false`), estampado de leyenda "PESO SIMULADO — SIN VALOR COMERCIAL" cuando el pesaje proviene de simulador, y bloqueo estricto de cierre de pantalla si hay una impresión en curso.
+- **Siguiente paso:** Fase F6 — Edición, anulación y auditoría.
+
+### Fase F5 — Remediación post-revisión
+- **Fecha:** 2026-09-28
+- **Origen:** revisión QA senior del informe final de F5 contra `docs/plans/F5-boleta-pesaje.md` (plan: `docs/plans/F5-remediacion.md`). Cambios dejados preparados en `feat/f5-boleta`, sin commit.
+- **Defectos corregidos:**
+  - **Leyendas excluyentes (alta, antifraude):** `TextosBoleta.Leyendas` encadenaba MUESTRA/ANULADA/SIMULADO/IMPORTADA con `else if`, así que una boleta anulada de peso simulado perdía "PESO SIMULADO — SIN VALOR COMERCIAL". Ahora cada leyenda se evalúa por separado (6.2); solo la marca de agua conserva la prioridad única. El test "todas activas" de 6.5, que se había reemplazado por casos aislados, se agregó.
+  - **Reimpresión de una boleta distinta de la mostrada (media):** en `FrmReimprimirBoleta`, cambiar el número sin volver a buscar dejaba activos F4/F9 sobre la boleta anterior. Ahora `ValueChanged`/`TextChanged` invalidan el resumen, y una búsqueda que termina con el número ya cambiado se descarta con un token de versión (mismo patrón que `_versionSugerencia` de F4).
+  - **Errores del spooler sin traducir (media, R23/R39):** `InvalidPrinterException`/`Win32Exception` al leer papeles o `DefaultPageSettings` salían como "error inesperado". Ahora se traducen a `IMP_ERROR_IMPRESORA` y el documento se desecha.
+  - **Calibración (baja):** el botón pasa a decir "Imprimir página de calibración" (11.1). Las instrucciones ya no se cortan en media carta ni pisan los números de la regla en el ticket.
+  - **Finales de línea (cumplimiento):** los 48 archivos nuevos de F5 estaban en LF, aunque la compuerta E.4 figuraba como aprobada. Se convirtieron a CRLF (`.editorconfig`).
+  - **Documentación:** motivo D2 en la viñeta de capas; README sin la "marca de agua diagonal" (es horizontal y gris, solo en media carta).
+- **Aceptado sin cambios:** en media carta, `DisenoBoleta` agrega textos vacíos (color/raza, dirección u operador vacíos), aunque 6.3 pide omitirlos; `PintorBoleta` ya los ignora, así que no cambia lo impreso.
+- **Informe original:** la tabla por tarea sumaba +150 tests, pero el delta real es +146. Todas las corridas de la bitácora decían "1 m 33 s", cuando una corrida real tarda unos 8 s. Las cifras de esta entrada son las medidas por el revisor.
+- **Pruebas:** 816 tests en verde (0 fallos, 0 omitidos; 810 → 816, +6). Build Release 0 warnings / 0 errores; sin migraciones ni cambios de modelo pendientes.
+

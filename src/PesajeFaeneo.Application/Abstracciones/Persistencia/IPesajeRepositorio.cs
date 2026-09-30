@@ -19,4 +19,14 @@ public interface IPesajeRepositorio
     /// Sin tracking, Include Ganadero y Cliente, orden NumeroBoleta descendente, Take(maximo).
     /// </summary>
     Task<IReadOnlyList<Pesaje>> ListarPorRangoAsync(DateTime desdeUtc, DateTime hastaUtc, int maximo, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sin tracking; Include Ganadero, Cliente y Usuario. null si no existe.
+    /// </summary>
+    Task<Pesaje?> ObtenerParaBoletaPorIdAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sin tracking; Include Ganadero, Cliente y Usuario. null si no existe.
+    /// </summary>
+    Task<Pesaje?> ObtenerParaBoletaPorNumeroAsync(long numeroBoleta, CancellationToken cancellationToken = default);
 }

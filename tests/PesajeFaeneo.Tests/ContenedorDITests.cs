@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PesajeFaeneo.Application;
 using PesajeFaeneo.Application.Abstracciones;
+using PesajeFaeneo.Application.Boletas;
 using PesajeFaeneo.Application.Catalogos;
 using PesajeFaeneo.Application.Parametros;
 using PesajeFaeneo.Infrastructure;
@@ -12,9 +13,11 @@ using PesajeFaeneo.Tests.Utilidades;
 using PesajeFaeneo.WinForms;
 using PesajeFaeneo.WinForms.Formularios;
 using PesajeFaeneo.WinForms.Formularios.Administracion;
+using PesajeFaeneo.WinForms.Formularios.Boletas;
 using PesajeFaeneo.WinForms.Formularios.Catalogos;
 using PesajeFaeneo.WinForms.Formularios.Pesaje;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
+using PesajeFaeneo.WinForms.Impresion;
 using PesajeFaeneo.WinForms.Infraestructura;
 using Xunit;
 
@@ -70,6 +73,13 @@ public class ContenedorDITests
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Balanza.IEnumeradorPuertosSerie>());
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Balanza.IServicioConfiguracionBalanza>());
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Pesajes.IServicioPesajes>());
+
+            // F5: Servicios de boletas e impresión
+            Assert.NotNull(proveedor.GetService<IServicioBoletas>());
+            Assert.NotNull(proveedor.GetService<IServicioConfiguracionImpresion>());
+            Assert.NotNull(proveedor.GetService<IAlmacenConfiguracionImpresion>());
+            Assert.NotNull(proveedor.GetService<IImpresorBoletas>());
+            Assert.NotNull(proveedor.GetService<IServicioImpresionBoletas>());
 
             using (var scope = proveedor.CreateScope())
             {
@@ -128,6 +138,13 @@ public class ContenedorDITests
                 // F4: Formulario de registro de pesaje
                 using var frmPesaje = formFactory.Crear<FrmPesaje>();
                 Assert.NotNull(frmPesaje);
+
+                // F5: Formularios de reimpresión y configuración de impresión
+                using var frmReimprimir = formFactory.Crear<FrmReimprimirBoleta>();
+                Assert.NotNull(frmReimprimir);
+
+                using var frmConfigImpresion = formFactory.Crear<FrmConfiguracionImpresion>();
+                Assert.NotNull(frmConfigImpresion);
             });
         }
         finally
