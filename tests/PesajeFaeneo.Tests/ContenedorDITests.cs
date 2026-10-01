@@ -81,6 +81,10 @@ public class ContenedorDITests
             Assert.NotNull(proveedor.GetService<IImpresorBoletas>());
             Assert.NotNull(proveedor.GetService<IServicioImpresionBoletas>());
 
+            // F6: Servicios de gestión de pesajes y auditoría
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Pesajes.IServicioGestionPesajes>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Auditoria.IServicioAuditoria>());
+
             using (var scope = proveedor.CreateScope())
             {
                 Assert.NotNull(scope.ServiceProvider.GetService<IDatabaseInitializer>());
@@ -145,6 +149,19 @@ public class ContenedorDITests
 
                 using var frmConfigImpresion = formFactory.Crear<FrmConfiguracionImpresion>();
                 Assert.NotNull(frmConfigImpresion);
+
+                // F6: Formularios de gestión de boletas y visor de auditoría
+                using var frmBuscarBoletas = formFactory.Crear<FrmBuscarBoletas>();
+                Assert.NotNull(frmBuscarBoletas);
+
+                using var frmEditarBoleta = formFactory.Crear<FrmEditarBoleta>();
+                Assert.NotNull(frmEditarBoleta);
+
+                using var frmAnularBoleta = formFactory.Crear<FrmAnularBoleta>();
+                Assert.NotNull(frmAnularBoleta);
+
+                using var frmVisorAuditoria = formFactory.Crear<FrmVisorAuditoria>();
+                Assert.NotNull(frmVisorAuditoria);
             });
         }
         finally

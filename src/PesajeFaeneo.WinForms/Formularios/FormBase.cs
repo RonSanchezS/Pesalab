@@ -16,6 +16,18 @@ public class FormBase : Form
         StartPosition = FormStartPosition.CenterScreen;
     }
 
+    protected override void OnLoad(EventArgs e)
+    {
+        // Los tamaños y posiciones del código se expresan a 96 DPI; AutoScaleMode.Dpi los escala a la escala
+        // real de Windows (125 %, 150 %…). Sin esto la fuente crece con el escalado y los controles no, y los
+        // textos quedan cortados. Se activa aquí y no en el constructor: WinForms escala en el siguiente
+        // layout, y en el constructor ese layout ocurre con el formulario todavía vacío (los controles los
+        // agrega después el constructor derivado), con lo que no se escalaría nada.
+        AutoScaleDimensions = new SizeF(96F, 96F);
+        AutoScaleMode = AutoScaleMode.Dpi;
+        base.OnLoad(e);
+    }
+
     protected async Task EjecutarAsync(Func<Task> accion, Control? botonDisparador = null)
     {
         if (_ocupado)

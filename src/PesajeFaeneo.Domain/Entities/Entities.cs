@@ -1,4 +1,4 @@
-using PesajeFaeneo.Domain.Enums;
+﻿using PesajeFaeneo.Domain.Enums;
 
 namespace PesajeFaeneo.Domain.Entities;
 
@@ -123,6 +123,10 @@ public class Pesaje
 
     public DateTime CreadoEn { get; set; }
     public DateTime? ModificadoEn { get; set; }
+
+    // Token de concurrencia optimista gestionado por la aplicación (SQLite no tiene rowversion):
+    // PesajeDbContext lo incrementa en cada guardado de un Pesaje modificado.
+    public int Version { get; set; }
 }
 
 public class Auditoria

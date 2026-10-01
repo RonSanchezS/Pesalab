@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Infrastructure.Persistencia.Conversores;
@@ -91,6 +91,9 @@ public class PesajeConfiguration : IEntityTypeConfiguration<Pesaje>
 
         builder.Property(p => p.MotivoAnulacion)
             .HasMaxLength(250);
+
+        builder.Property(p => p.Version)
+            .IsConcurrencyToken();
 
         builder.Property(p => p.CreadoEn)
             .IsRequired();

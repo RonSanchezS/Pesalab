@@ -528,4 +528,146 @@ public class FrmPrincipalTests
             Assert.False(mnuAdminOp.Available);
         });
     }
+
+    [Fact]
+    public void FrmPrincipal_GestionBoletasYAuditoria_DisponiblesYHabilitadosParaSupervisorYAdministrador_NoDisponiblesParaOperador()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var formFactory = new FalsaFormFactory();
+            var tiempo = TimeProvider.System;
+            var paramService = new FalsoServicioParametros();
+            var balanza = new ServicioBalanzaFalso();
+
+            // 1. Administrador: disponibles, habilitados y con atajo F6
+            var sesionAdmin = new SesionActual();
+            sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
+            using (var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza))
+            {
+                var (itemBuscar, itemAnular, itemAuditoria) = ObtenerItemsF6(principal);
+                Assert.NotNull(itemBuscar);
+                Assert.True(itemBuscar.Available);
+                Assert.True(itemBuscar.Enabled);
+                Assert.Equal(Keys.F6, itemBuscar.ShortcutKeys);
+
+                Assert.NotNull(itemAnular);
+                Assert.True(itemAnular.Available);
+                Assert.True(itemAnular.Enabled);
+                Assert.Equal(Keys.None, itemAnular.ShortcutKeys);
+
+                Assert.NotNull(itemAuditoria);
+                Assert.True(itemAuditoria.Available);
+                Assert.True(itemAuditoria.Enabled);
+            }
+
+            // 2. Supervisor: disponibles, habilitados y con atajo F6
+            var sesionSupervisor = new SesionActual();
+            sesionSupervisor.Iniciar(new UsuarioSesion(2, "supervisor", "Supervisor", Rol.Supervisor, false));
+            using (var principal = new FrmPrincipal(sesionSupervisor, formFactory, tiempo, paramService, balanza))
+            {
+                var (itemBuscar, itemAnular, itemAuditoria) = ObtenerItemsF6(principal);
+                Assert.NotNull(itemBuscar);
+                Assert.True(itemBuscar.Available);
+                Assert.True(itemBuscar.Enabled);
+                Assert.Equal(Keys.F6, itemBuscar.ShortcutKeys);
+
+                Assert.NotNull(itemAnular);
+                Assert.True(itemAnular.Available);
+                Assert.True(itemAnular.Enabled);
+
+                Assert.NotNull(itemAuditoria);
+                Assert.True(itemAuditoria.Available);
+                Assert.True(itemAuditoria.Enabled);
+            }
+
+            // 3. Operador: no disponibles
+            var sesionOperador = new SesionActual();
+            sesionOperador.Iniciar(new UsuarioSesion(3, "operador", "Operador", Rol.Operador, false));
+            using (var principal = new FrmPrincipal(sesionOperador, formFactory, tiempo, paramService, balanza))
+            {
+                var (itemBuscar, itemAnular, itemAuditoria) = ObtenerItemsF6(principal);
+                Assert.NotNull(itemBuscar);
+                Assert.False(itemBuscar.Available);
+
+                Assert.NotNull(itemAnular);
+                Assert.False(itemAnular.Available);
+
+                // Auditoría no está disponible (o todo el menú Administración no está disponible)
+                if (itemAuditoria != null)
+                {
+                    Assert.False(itemAuditoria.Available);
+                }
+            }
+        });
+    }
+
+    [Fact]
+    public void FrmPrincipal_ReportesYUtilitarios_PermanecenDeshabilitadosPorFaseFutura()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var formFactory = new FalsaFormFactory();
+            var tiempo = TimeProvider.System;
+            var paramService = new FalsoServicioParametros();
+            var balanza = new ServicioBalanzaFalso();
+
+            var sesionAdmin = new SesionActual();
+            sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
+            using var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza);
+
+            ToolStripMenuItem? mnuReportes = null;
+            ToolStripMenuItem? mnuUtilitarios = null;
+            foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
+            {
+                if (item.Text?.Contains("Reportes") == true) mnuReportes = item;
+                if (item.Text?.Contains("Utilitarios") == true) mnuUtilitarios = item;
+            }
+
+            Assert.NotNull(mnuReportes);
+            Assert.True(mnuReportes.Available);
+            foreach (ToolStripItem sub in mnuReportes.DropDownItems)
+            {
+                Assert.False(sub.Enabled);
+            }
+
+            Assert.NotNull(mnuUtilitarios);
+            Assert.True(mnuUtilitarios.Available);
+            foreach (ToolStripItem sub in mnuUtilitarios.DropDownItems)
+            {
+                Assert.False(sub.Enabled);
+            }
+        });
+    }
+
+    private static (ToolStripMenuItem? BuscarEditar, ToolStripMenuItem? Anular, ToolStripMenuItem? Auditoria)
+        ObtenerItemsF6(FrmPrincipal principal)
+    {
+        ToolStripMenuItem? itemBuscar = null;
+        ToolStripMenuItem? itemAnular = null;
+        ToolStripMenuItem? itemAuditoria = null;
+
+        foreach (ToolStripMenuItem top in principal.MenuPrincipal.Items)
+        {
+            if (top.Text?.Contains("Boletas") == true)
+            {
+                foreach (ToolStripItem sub in top.DropDownItems)
+                {
+                    if (sub.Text?.Contains("Buscar / editar", StringComparison.OrdinalIgnoreCase) == true)
+                        itemBuscar = sub as ToolStripMenuItem;
+                    if (sub.Text?.Contains("Anular", StringComparison.OrdinalIgnoreCase) == true)
+                        itemAnular = sub as ToolStripMenuItem;
+                }
+            }
+            if (top.Text?.Contains("Administración") == true)
+            {
+                foreach (ToolStripItem sub in top.DropDownItems)
+                {
+                    if (sub.Text?.Contains("auditoría", StringComparison.OrdinalIgnoreCase) == true)
+                        itemAuditoria = sub as ToolStripMenuItem;
+                }
+            }
+        }
+
+        return (itemBuscar, itemAnular, itemAuditoria);
+    }
 }

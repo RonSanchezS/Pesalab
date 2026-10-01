@@ -151,3 +151,35 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
 - **Auditoría completa:**
   - Cada impresión física genera un registro en la tabla `Auditorias` con la acción `Imprimir` (primera emisión) o `Reimprimir`, fecha/hora UTC, ID del pesaje y usuario responsable.
 
+## Búsqueda, Edición, Anulación y Auditoría de Boletas
+
+- **Acceso rápido y permisos:**
+  - Menú **Boletas › Buscar / editar boleta** o atajo global `F6` desde la pantalla principal (requiere rol Supervisor o Administrador / permiso `EditarBoleta` o `AnularBoleta`).
+  - Menú **Boletas › Anular boleta** abre directamente el buscador posicionando la intención de anulación.
+  - Para los operadores, estas opciones permanecen ocultas en el menú para resguardar la integridad del pesaje.
+- **Buscador de boletas (`FrmBuscarBoletas`):**
+  - Búsqueda multicriterio con combinación lógica AND: rango de fechas (desde/hasta), número de boleta exacto (anula las fechas por prioridad), ganadero, cliente y estado (Vigente o Anulado).
+  - Límite de seguridad de 200 filas con aviso en color naranja cuando los resultados son truncados.
+  - Visualización diferenciada en grilla con formato contable: las boletas anuladas se destacan en color gris tenue.
+  - Atajos en la grilla: `Enter` sobre una fila vigente abre el diálogo de edición (no ejecuta nueva búsqueda); tecla `F4` abre el editor; tecla `F8` abre el diálogo de anulación; `Escape` cierra la ventana.
+  - Tras editar o anular, la grilla se recarga conservando el último filtro ejecutado (`_ultimoFiltro`) y manteniendo seleccionada la boleta modificada.
+- **Edición de boletas (`FrmEditarBoleta`):**
+  - **Qué se puede editar:** únicamente atributos descriptivos del animal y del despacho (ganadero, secuencia, cliente, dirección, color/raza, sexo y observación).
+  - **Qué NO se puede editar:** los pesos (izquierdo, derecho y total) y el tipo de desposte (Res Completa / Media Res) son estrictamente de solo lectura. Para corregir un pesaje erróneo, la política operativa exige **anular la boleta y registrar un nuevo pesaje**.
+  - **Conservación de datos históricos:** cambiar de cliente en el diálogo de edición no altera ni sobrescribe la dirección física ya registrada en la boleta.
+  - **Detección inteligente de cambios:** si el usuario presiona "Guardar" (`F12`) sin haber realizado modificaciones, el sistema advierte que no hubo cambios y evita generar escrituras en base de datos o registros de auditoría vacíos.
+  - **Manejo de concurrencia optimista:** control mediante el token `Version` en la tabla `Pesajes`. Si otro usuario modificó o anuló la boleta concurrentemente, se informa al usuario mediante una advertencia clara y se recargan los datos frescos.
+- **Anulación de boletas (`FrmAnularBoleta`):**
+  - **Carácter irreversible:** la anulación de una boleta es definitiva; una boleta anulada no puede volver a estado vigente ni modificarse.
+  - **Motivo obligatorio:** exige ingresar una justificación detallada de entre 5 y 100 caracteres antes de permitir la confirmación.
+  - **Trazabilidad y numeración:** el número de boleta anulada no se elimina ni se reutiliza; la correlatividad del sistema permanece intacta.
+  - **Efecto en la impresión:** reimprimir una boleta anulada estampa en letras destacadas la leyenda `ANULADA` junto con el motivo y una marca de agua de advertencia.
+- **Visor de auditoría (`FrmVisorAuditoria`):**
+  - Accesible desde el menú **Administración › Visor de auditoría** (requiere permiso `VerAuditoria` / roles Supervisor o Administrador).
+  - Interfaz de **solo lectura**: sin botones de borrado, modificación ni exportación que comprometan la seguridad de los registros.
+  - Filtros avanzados por rango de fechas locales, tipo de entidad (`Pesaje`, `Usuario`, `Ganadero`, `Cliente`, etc.), acción (`Crear`, `Modificar`, `Anular`, `Login`, `LoginFallido`, etc.), usuario responsable y número de boleta.
+  - **Pestaña "Cambios":** comparador visual de diferencias que resalta en amarillo suave los campos modificados, muestra "—" para valores nulos y traduce nombres técnicos a etiquetas de negocio comprensibles ("Dirección", "Ganadero", "Fecha y hora").
+  - **Pestaña "JSON":** visualización técnica completa del estado anterior y posterior en texto monoespaciado.
+  - **Seguridad y privacidad:** los intentos de inicio de sesión fallidos sin usuario reconocido se enmascaran automáticamente (`EntidadId = "***"`).
+
+

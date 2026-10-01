@@ -1,4 +1,4 @@
-using AuditoriaEntidad = PesajeFaeneo.Domain.Entities.Auditoria;
+﻿using AuditoriaEntidad = PesajeFaeneo.Domain.Entities.Auditoria;
 
 namespace PesajeFaeneo.Application.Abstracciones.Persistencia;
 
@@ -10,4 +10,9 @@ public interface IAuditoriaRepositorio
     /// Cantidad de auditorías Imprimir o Reimprimir del pesaje (Entidad = "Pesaje", EntidadId = id invariante).
     /// </summary>
     Task<int> ContarImpresionesPesajeAsync(int pesajeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sin tracking; Include Usuario (puede ser null); orden FechaHora desc, Id desc; Take(maximo).
+    /// </summary>
+    Task<IReadOnlyList<AuditoriaEntidad>> ConsultarAsync(CriteriosAuditoria criterios, int maximo, CancellationToken cancellationToken = default);
 }

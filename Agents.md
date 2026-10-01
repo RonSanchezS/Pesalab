@@ -34,8 +34,8 @@ flowchart TD
 | **F3** | **Integración con balanza** | ✅ Completado | 7 | 7 | 2026-09-25 |
 | **F4** | **Registro de pesaje** | ✅ Completado | 7 | 7 | 2026-09-27 |
 | **F5** | **Boleta de pesaje** | ✅ Completado | 6 | 6 | 2026-09-28 |
-| **F6** | **Edición, anulación y auditoría** | ⏳ Siguiente en turno | 0 | 5 | — |
-| **F7** | **Reportes** | ⏳ Pendiente | 0 | 6 | — |
+| **F6** | **Edición, anulación y auditoría** | ✅ Completado | 5 | 5 | 2026-09-30 |
+| **F7** | **Reportes** | ⏳ Siguiente en turno | 0 | 6 | — |
 | **F8** | **Utilitarios** | ⏳ Pendiente | 0 | 6 | — |
 | **F9** | **Empaquetado, instalador y puesta en marcha** | ⏳ Pendiente | 0 | 6 | — |
 
@@ -94,12 +94,12 @@ flowchart TD
 - [x] **HU-F5-05:** Reimpresión por número y acceso rápido
 - [x] **HU-F5-06:** Selección de impresora, papel y calibración
 
-### [ ] Fase F6 — Edición, anulación y auditoría
-- [ ] **HU-F6-01:** Buscador de boletas
-- [ ] **HU-F6-02:** Editar boleta sin modificar pesos
-- [ ] **HU-F6-03:** Anular boleta con motivo obligatorio
-- [ ] **HU-F6-04:** Auditoría con diff antes/después en JSON
-- [ ] **HU-F6-05:** Visor de auditoría
+### [x] Fase F6 — Edición, anulación y auditoría (COMPLETADA)
+- [x] **HU-F6-01:** Buscador de boletas
+- [x] **HU-F6-02:** Editar boleta sin modificar pesos
+- [x] **HU-F6-03:** Anular boleta con motivo obligatorio
+- [x] **HU-F6-04:** Auditoría con diff antes/después en JSON
+- [x] **HU-F6-05:** Visor de auditoría
 
 ### [ ] Fase F7 — Reportes
 - [ ] **HU-F7-01:** Servicio común de reportes y regla de totales (Media res = 0.5)
@@ -144,6 +144,7 @@ flowchart TD
 - **Auditoría segura:** los snapshots de usuario en auditoría (`UsuarioAuditoria`) serializan únicamente metadatos (`Id`, `NombreUsuario`, `NombreCompleto`, `Rol`, `Activo`, `DebeCambiarPassword`); jamás se registran contraseñas en texto claro, hashes ni salts en logs, auditorías ni excepciones.
 - **Formularios:** `IFormFactory.Crear<T>()` crea un `IServiceScope` propio por formulario (con `ActivatorUtilities.CreateInstance`) y lo libera cuando el formulario se cierra (`form.Disposed`). Los formularios **no** se registran en el contenedor raíz de DI (para no poder resolverlos ni fugarlos desde ahí).
 - **`FormBase`:** `EjecutarAsync`/`Ejecutar` usan `UseWaitCursor` (no `Cursor.Current`, que se pierde en el primer `await`) y un campo `_ocupado` que descarta invocaciones reentrantes (protección contra doble clic/doble Enter, crítico para F4 "Grabar pesaje").
+- **Escalado por DPI y layout de formularios:** `FormBase.OnLoad` activa `AutoScaleDimensions = 96×96` + `AutoScaleMode.Dpi` (en `OnLoad` y no en el constructor: WinForms escala en el siguiente layout y en el constructor el formulario todavía está vacío). Todos los tamaños del código se escriben a 96 DPI. Etiquetas y botones con `AutoSize` en lugar de anchos fijos; toda columna de `TableLayoutPanel` que contenga controles `Dock = Fill` lleva `ColumnStyle` (sin estilo se dimensiona por el contenido y, al escalar, queda más ancha que el panel); nada de `Anchor = Right` con `Location` fija (el anclaje se calcula contra el ancho inicial). Los filtros usan `DisenoFiltros` (fechas `dd/MM/yyyy` fijas, independientes de la región). `VerificadorLayout` (tests) detecta controles que se salen de su contenedor y textos cortados, a 96 DPI y con `Scale(1,25)`.
 - **Seguridad:** Autorización basada en `Permiso` verificado en UI y servicios. Auditoría atómica de cambios. El usuario `admin/admin` se siembra con `DebeCambiarPassword = true`.
 - **Tiempo:** Siempre `TimeProvider` inyectado (obligatorio, no opcional; `FakeTimeProvider` en tests).
 - **Errores:** `ClasificadorErrores` distingue `Validacion`, `Negocio` (incluye `ConcurrenciaException`, `ConflictoException`, `EntidadNoEncontradaException`, `ReglaNegocioException` y cualquier otra `DomainException`), `NoAutorizado`, `Cancelado` (`OperationCanceledException`: sin log ni MessageBox) e `Inesperado`. Un `AggregateException` solo se desenvuelve si tiene una única excepción interna.
@@ -156,8 +157,9 @@ flowchart TD
 - **Balanza e integración de pesaje:** servicio singleton (`IServicioBalanza`) con un único lector activo creado por fábrica (`IFabricaLectorBalanza`). Ciclo de vida explícito en `Program.Main` tras migrar la base de datos (sin `IHostedService`, porque el Host arrancaría antes de migrar y sembrar). El servicio implementa tanto `IAsyncDisposable` como `IDisposable` síncrono para evitar excepciones de MS.DI al cerrar el host. `ConfigureAwait(false)` estricto en todas las operaciones asíncronas de balanza para prevenir interbloqueos con el contexto de sincronización de WinForms al salir. Puerto serie sobre kernel32 directo (`PuertoSerieWin32`, **no** `System.IO.Ports.SerialPort`): se lee el DCB actual del driver y solo se modifican baudios/bits/paridad/parada si difieren; si el driver rechaza `SetCommState`, se relee y se acepta cuando el formato ya coincide. DTR/RTS y control de flujo quedan como los deja el driver. Motivo: `SerialPort.Open()` siempre reescribe el DCB completo y el driver CH340 rechaza cualquier `SetCommState` con error 31 ("el dispositivo no funciona"), incluso sin cambios (verificado en sitio con el indicador RX8 Accurex). Lectura en hilo dedicado (`Thread` con `IsBackground = true`, `AboveNormal`) con `ReadFile` no bloqueante sondeado hasta 250 ms; el cierre usa `SafeFileHandle` (seguro ante un `ReadFile` concurrente). Tramas separadas por fin de línea (CR/LF/ETX) o, si se configura, también por espacio; el peso de la trama puede venir en kilogramos o en gramos (se convierte antes de redondear a 0,1 kg). Entrega segura a la UI por sondeo desacoplado (`MonitorBalanzaUi` con `System.Windows.Forms.Timer` cada 100 ms) sobre una instantánea inmutable (`InstantaneaBalanza`) sin cruzar eventos entre hilos ni fugar referencias a formularios cerrados. Parser de tramas basado en regex con grupos obligatorios `(?<peso>...)` y opcionales `(?<estable>...)`, reemplazo de coma por punto decimal y límite de ejecución de 100 ms contra expresiones catastróficas. Detector de estabilidad con ventana deslizante de lecturas y dispersión menor o igual a la tolerancia configurable. Vigilancia continua para estados `SinDatos` (tras 3 timeouts) y `TramasNoReconocidas` (tras 3 tramas consecutivas sin parsear). Pausa obligatoria de 500 ms tras cerrar un puerto COM para permitir su liberación por el sistema operativo antes de reabrir. Método `EsCapturable` para consumo de F4 (conectada, estable, peso no nulo y lectura reciente dentro del timeout). Diagnóstico interactivo (`ProbarAsync`) que suspende temporalmente el bucle de producción (estado `EnDiagnostico`) y lo reanuda de forma garantizada en `finally`.
 - **Registro de pesaje y captura (F4):** reglas puras en `Domain/Reglas/ReglasPesaje` con redondeo decimal AwayFromZero a 1 decimal (0,1 kg), tolerancia total de +/- 0,1 kg, límites estrictos por lado (10,0 a 600,0 kg) y totales según tipo de desposte (`ResCompleta` 10,0 a 1200,0 kg; `MediaRes` 10,0 a 600,0 kg). Numeración atómica garantizada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING SiguienteNumeroBoleta - 1` mediante `SqlQuery<long>(...).ToListAsync()` como primera sentencia dentro de una transacción explícita (`ITransaccion`), precedida por validación de ganadero y cliente en BD. Grabado atómico de `Pesaje` y `Auditoria` en la misma transacción (`PesajeAuditoria` con snapshot sanitizado). Captura desacoplada en `ControlCapturas`: únicamente cuando la balanza es capturable (`EsCapturable(ahora)` dentro de `TimeoutMs`), peso dentro de rango y exigencia obligatoria de retorno a cero (peso <= 2 kg) entre el primer y segundo lado en res completa para evitar pesajes accidentales del mismo lado. Política de simulador estricta: solo usuarios con permiso `ConfigurarBalanza` (Administrador) pueden capturar o grabar pesos simulados; para Operadores se deshabilitan las capturas y se oculta el panel de control del simulador. `RangoDiaLocal` calcula los límites del día local y los proyecta a UTC para la sugerencia de secuencias y consultas del día. Sugerencia de secuencia asíncrona fuera de `EjecutarAsync` con token de versión (`_versionSugerencia`) para descartar respuestas tardías. Teclado y navegación en `FrmPesaje` gobernados por `ProcessCmdKey` estricto (F5, F6, F8, F12, Escape, Enter con descenso en `ContainerControl` mediante `ControlEnfocado()`) y botones con `TabStop = false`. Hook `OnPesajeGrabado(PesajeRegistrado r)` preparado como punto de extensión para la impresión automática de boletas en F5-04.
 - **Boleta e impresión (F5):** modelo y diseño puros en `Application/Boletas` (coordenadas en mm, cultura fija `es-BO`, sin dependencia de `System.Drawing`); pintor GDI+ con `Graphics.DrawString` sobre `DocumentoBoleta` (`StandardPrintController`, `OriginAtMargins = false`, compensación de `HardMargin` solo al imprimir, copias como páginas físicas independientes para soporte de térmicas/matriciales y leyenda ORIGINAL/COPIA, contador de copias reiniciado en `OnBeginPrint`); configuración por equipo en `config\impresion.json` (atómica, validada, atada a `MachineName`); auditoría `Imprimir`/`Reimprimir` tras `Print()`; detección de reimpresión por conteo en auditoría con leyenda obligatoria "REIMPRESIÓN n — {fecha}"; impresión automática en bloque secuencial tras el grabado; acceso F9 en `FrmPesaje` y F3 en shell principal.
+- **Gestión de boletas y auditoría (F6):** token de concurrencia `Pesaje.Version` (entero mapeado con `IsConcurrencyToken`) gestionado automáticamente en `PesajeDbContext.SaveChangesAsync` (incremento `OriginalValue + 1` en cada modificación); migración `F6_VersionPesaje` vía `AddColumn` simple con valor por defecto 1 sin reconstrucción de tabla; servicios desacoplados `IServicioGestionPesajes` e `IServicioAuditoria` bajo permisos de autorización por rol (`EditarBoleta`, `AnularBoleta`, `VerAuditoria`); edición de boletas limitada estrictamente a atributos descriptivos (ganadero, secuencia, cliente, dirección, color/raza, sexo, observación) manteniendo inalterables los pesos y el tipo de desposte por integridad física; anulación irreversible con motivo obligatorio de 5 a 100 caracteres; persistencia atómica en una única llamada a `GuardarCambiosAsync` por operación incluyendo entidad y auditoría; edición sin modificaciones descartada sin auditar; snapshot de `Pesaje` enriquecido con datos desnormalizados (`PesajeAuditoria`) para trazabilidad histórica íntegra; motor de diferencias en memoria `DiferenciasAuditoria.Calcular` que proyecta marcas de tiempo a hora local y resalta modificaciones; enmascaramiento de `LoginFallido` sin usuario registrado (`EntidadId = "***"`); leyenda de anulación recortada a 30 caracteres con tamaño de fuente adaptativo en media carta; buscador de boletas `FrmBuscarBoletas` con combinación AND de filtros, tope de 200 filas, selección persistente, atajos F4/F8 y Enter contextual en grilla; visor de auditoría `FrmVisorAuditoria` de solo lectura con tope de 500 registros y tabs de cambios visuales y JSON.
 
-### Notas hacia fases futuras (registradas en las revisiones post-F0, post-F2, post-F3, post-F4 y post-F5)
+### Notas hacia fases futuras (registradas en las revisiones post-F0, post-F2, post-F3, post-F4, post-F5 y post-F6)
 - **F4-02 / F6 (R6) — resuelto en F4:** numeración atómica implementada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` en `SqlQuery<long>`.
 - **F4-05 (R13) — resuelto en F4:** captura condicionada a `Instantanea.EsCapturable(ahora)` y retorno a cero estricto entre lados.
 - **F4-07 (R9) — resuelto en F4:** altas rápidas desde la pantalla de pesaje implementadas con `CrearRapidoAsync` en catálogos bajo permiso `AltaRapidaCatalogos` (Operador).
@@ -165,13 +167,22 @@ flowchart TD
 - **F5-04 (R15) — resuelto en F5:** impresión automática de la boleta de pesaje enganchada en `FrmPesaje` en bloque secuencial propio tras el grabado atómico.
 - **F5 / F8 (R10) — parcialmente resuelto en F5:** la impresión en F5 tolera la ausencia o ilegibilidad del logo sin fallar (cargador de logo seguro con copia a Bitmap). En F8, incluir el directorio de logos en los respaldos y restauraciones.
 - **F5 / F8 (R14):** respaldo de configuración de impresión: si se restaura en otra PC con diferente `NombreEquipo`, el archivo se ignora y se usan valores por defecto; F8 debe evaluar si excluir la carpeta `config` de los respaldos.
-- **F5-Futuro (R29):** formato real de la boleta de faeneo (posible formulario preimpreso o papel continuo matricial); requerir boleta escaneada al cliente para ajustar coordenadas si es necesario.
+- **F5-Futuro (R29) — parcialmente resuelto en la remediación post-prueba de F6:** la media carta ya replica el bloque inferior de la guía legada (firma Jefe de Despacho | fleteros F1..F4 con casilla y "Otros" | firma Médico Veterinario). Pendiente confirmar con el cliente el título ("BOLETA DE PESAJE" vs. "GUÍA DE REMISIÓN CARNE BOVINA") y si hay formulario preimpreso.
+- **F5-Futuro (R29, original):** formato real de la boleta de faeneo (posible formulario preimpreso o papel continuo matricial); requerir boleta escaneada al cliente para ajustar coordenadas si es necesario.
 - **F5-Futuro (R30):** reimpresiones usan maestros actuales (empresa, logo, fleteros); evaluar si en F6 se almacena snapshot JSON de la boleta en auditoría `Imprimir`.
 - **F5 / F9-06 (R31):** si en sitio las matriciales con drivers GDI genéricos son lentas o dentadas, considerar implementar `IImpresorBoletas` en modo texto crudo (ESC/P); documentar en manual.
 - **F5 / F9 (R32):** el instalador Inno Setup debe dar permisos de escritura a `Users` sobre `%ProgramData%\PesajeFaeneo\config` (igual que para la BD).
-- **F6 (R-F6-1, remediación F5):** en media carta las leyendas van en una sola línea de 200 mm (`NoWrap` + "…"). Al implementar la anulación, un motivo largo puede cortar las leyendas siguientes ("PESO SIMULADO…", "REIMPRESIÓN n"): limitar el motivo impreso en la leyenda o pasar esa fila a dos líneas.
+- **F6 (R-F6-1) — resuelto en F6:** leyenda de anulación en media carta recortada a 30 caracteres ("ANULADA — {motivo}") con tamaño de letra adaptable según presencia de otras leyendas para no desbordar.
 - **F5-Futuro (R40):** `Print()` se ejecuta en el hilo de UI de forma síncrona; si un spooler de red causa bloqueos prolongados, evaluar mover solo `Print()` a hilo STA dedicado con el documento instanciado en él.
-- **F6 (R12):** agregar token de concurrencia (`Version` entero con `IsConcurrencyToken`, incrementado en `SaveChanges`) a `Pesaje` y `ParametrosSistema`, y mapear `DbUpdateConcurrencyException` → `ConcurrenciaException`. Si en el futuro se permite acceso multi-terminal concurrente, extender `Version` también a los catálogos.
+- **F6 (R12) — resuelto para Pesaje en F6:** token de concurrencia `Pesaje.Version` agregado con `IsConcurrencyToken` e incrementado en `SaveChanges`. R12 permanece abierta para `ParametrosSistema` (F8/F9).
+- **F6 / F5 (R5):** la reimpresión de una boleta anulada estampa la leyenda indeleble y marca de agua "ANULADA" junto a su motivo, registrándose normalmente la auditoría de Reimprimir.
+- **F6 / F4 (R6):** la anulación de boletas se gestiona exclusivamente desde el buscador de boletas (F6) por usuarios autorizados (Supervisor o Administrador); se descartó un botón de anulación en la pantalla de pesaje para evitar errores operativos del operador.
+- **F6 / F8 (R10):** el respaldo y restauración en F8 debe conservar la columna `Version` del pesaje; una base de datos restaurada conserva su integridad de concurrencia optimista.
+- **F6 (R13):** la anulación de una boleta no libera ni reutiliza su número correlativo; la secuencia permanece monótona y sin reutilizaciones para trazabilidad fiscal.
+- **F6 / F7 (R16):** las búsquedas multicriterio se benefician de los índices compuestos creados en F4 y optimizados en D23 para SQLite / EF Core.
+- **F6 / F8 (R17):** el visor de auditoría es estrictamente de solo lectura sin exportación en F6; cualquier exportación masiva se evaluará en las herramientas de utilitarios (F8).
+- **F7 (Nota de reportes):** los reportes de faeneo deben excluir boletas con `Estado = Anulado` de los totales de peso y cabezas; el reporte específico de anuladas consultará `MotivoAnulacion`, `AnuladoPorId` y `AnuladoEn`.
+- **F8 (Nota de backup):** el motor de backup (`SqliteBackupService`) preserva el token de concurrencia `Version` sin alteración.
 - **F7:** QuestPDF 2024.x exige `QuestPDF.Settings.License = LicenseType.Community` al iniciar.
 - **F9-04 (R11):** `ConfiguracionInicialCompleta` permanece en `false` tras guardar parámetros en F2. El asistente de primer arranque en F9-04 debe decidir si marcarla o si detecta el nombre de empresa distinto del valor por defecto.
 - **F9-06 (R21):** la guía de balanza debe documentar cómo fijar el número de puerto COM estático en el Administrador de dispositivos de Windows para adaptadores USB-serie.
@@ -360,4 +371,53 @@ flowchart TD
 - **Aceptado sin cambios:** en media carta, `DisenoBoleta` agrega textos vacíos (color/raza, dirección u operador vacíos), aunque 6.3 pide omitirlos; `PintorBoleta` ya los ignora, así que no cambia lo impreso.
 - **Informe original:** la tabla por tarea sumaba +150 tests, pero el delta real es +146. Todas las corridas de la bitácora decían "1 m 33 s", cuando una corrida real tarda unos 8 s. Las cifras de esta entrada son las medidas por el revisor.
 - **Pruebas:** 816 tests en verde (0 fallos, 0 omitidos; 810 → 816, +6). Build Release 0 warnings / 0 errores; sin migraciones ni cambios de modelo pendientes.
+
+### Fase F6 — Edición, anulación y auditoría
+- **Fecha:** 2026-09-30
+- **Estado:** ✅ Completado con éxito (5/5 HUs).
+- **Compilación:** `dotnet build src/PesajeFaeneo.sln -c Release` con 0 warnings y 0 errores (`TreatWarningsAsErrors=true`).
+- **Pruebas:** 983 tests unitarios y de integración ejecutados y en verde (0 fallos, 0 omitidos; incremento de 816 a 983 tests, +167 tests nuevos).
+- **Base de datos:** Migración `F6_VersionPesaje` agregando `Version INTEGER NOT NULL DEFAULT 1` a la tabla `Pesajes` como token de concurrencia optimista sin reconstrucción de tabla (`has-pending-model-changes` limpio).
+- **Decisiones de diseño aplicadas (D1–D24):**
+  - D1: Exclusión estricta de modificación de pesos en la edición de boletas.
+  - D2: Bloqueo de cambio de `TipoDesposte` en edición (requiere anular y volver a pesar).
+  - D3: Campos editables limitados a ganadero, secuencia, cliente, dirección, color/raza, sexo y observación.
+  - D4: Permisos de acceso: `EditarBoleta` y `AnularBoleta` para Supervisor y Administrador; Operador sin acceso.
+  - D5: Detección de cambios: si ningún campo fue modificado, no se guarda ni se audita.
+  - D6: Motivo de anulación obligatorio (5 a 100 caracteres) con confirmación previa.
+  - D7: Operaciones atómicas: un solo `GuardarCambiosAsync` por operación (pesaje + auditoría).
+  - D8: Transición irreversible a estado `Anulado`; las boletas anuladas no pueden reactivarse ni editarse.
+  - D9: Leyenda de anulación en media carta con motivo acotado a 30 caracteres y tamaño de fuente adaptable.
+  - D10: Snapshot de pesaje enriquecido (`PesajeAuditoria`) para trazabilidad histórica desnormalizada.
+  - D11: Cálculo de diferencias en memoria `DiferenciasAuditoria.Calcular` con proyección a zona horaria local.
+  - D12: Token de concurrencia optimista `Pesaje.Version` con incremento automático en `SaveChanges`.
+  - D13: Buscador de boletas con combinación AND de filtros, tope de 200 filas y selección persistente.
+  - D14: Visualización diferenciada: filas anuladas en color gris tenue en las grillas de resultados.
+  - D15: Dirección preservada: cambiar de cliente en edición no sobrescribe la dirección histórica de la boleta.
+  - D16: Prioridad de número de boleta: al especificar número de boleta en el buscador se anulan los filtros de fecha.
+  - D17: Manejo de estado desfasado: advertencia no bloqueante y recarga automática ante concurrencia.
+  - D18: Visor de auditoría estrictamente de solo lectura sin funciones de edición, borrado ni exportación.
+  - D19: Enmascaramiento de intentos fallidos de login sin usuario identificado (`EntidadId = "***"`).
+  - D20: Descarte de respuestas asíncronas tardías en búsquedas de UI mediante token de versión.
+  - D21: Ergonomía de teclado: atajo global `F6` en shell; `F4` (editar), `F8` (anular) y `Enter` contextual en buscador; `F12` en edición.
+  - D22: Resumen informativo en pantallas de búsqueda con alerta visual en color naranja ante truncado.
+  - D23: Soporte de consultas multicriterio sobre índices compuestos existentes de SQLite.
+  - D24: Integración en contenedor DI con ciclo de vida por ámbito por formulario y verificación en `ContenedorDITests`.
+- **Siguiente paso:** Fase F7 — Reportes.
+
+### Fase F6 — Remediación post-prueba manual (UI y boleta)
+- **Fecha:** 2026-09-30
+- **Origen:** prueba manual de punta a punta (login → alta rápida → pesaje con simulador → vista previa → edición → anulación → auditoría) en una PC con Windows al 125 % y comparación de la boleta con el formato legado de la cotización del cliente. Plan: `docs/plans/F6-remediacion-prueba-manual.md`. Cambios sin commit.
+- **Defectos corregidos:**
+  - **Textos cortados en toda la app con escalado de Windows (D1):** ningún formulario (salvo `FrmConfiguracionBalanza`) escalaba por DPI; la fuente crecía y los controles no. `FormBase` activa `AutoScaleMode.Dpi` en `OnLoad` (en el constructor no tiene efecto: el layout que aplica el escalado corre con el formulario vacío). Se quitó la copia local de `FrmConfiguracionBalanza`. `ControlBusquedaCatalogo` fija su alto al del cuadro de texto para no duplicar el escalado.
+  - **Filtros de Buscar boletas y Visor de auditoría (D1, D2):** reescritos con `DisenoFiltros` (etiquetas y botones `AutoSize`, filas `FlowLayoutPanel`, grupo cuyo alto sigue al panel) y fechas `dd/MM/yyyy` fijas. En el visor, "Cerrar" pasó de `Anchor` + `Location` a `Dock = Right`: tras el escalado quedaba fuera de la pantalla.
+  - **Reimprimir boleta (D3, D4):** datos en una tabla etiqueta | valor con "Impresiones" en su propia fila y diálogo `AutoSize`; los valores largos pasan a varias líneas. El número "en blanco" tras buscar era el mismo recorte por DPI.
+  - **Pantalla de pesaje sin peso en vivo (D5):** al display le quedaban ~30 px para 48 pt y el `Label` no dibujaba nada (también a 100 %). Ahora es una tabla de dos columnas (próxima boleta y estado | peso y ESTABLE) de 150 px a 96 DPI.
+  - **Botones de captura invisibles (D6):** el `GroupBox` "Pesos Capturados" no tenía `AutoSize` y recortaba la tabla. Además, la columna del panel derecho no tenía `ColumnStyle`: al escalar, la grilla del día quedaba más ancha que el panel y se perdían Origen y Estado.
+  - **Boleta (D7, R29):** media carta con el bloque del formato legado (firma Jefe de Despacho | fleteros con casilla y "Otros" | firma Médico Veterinario, reclamos debajo); ticket 80 mm con casillas `[   ]`, línea "Otros" y las dos firmas. Se retiró "Recibí conforme".
+- **Pruebas:** 993 tests en verde (983 → 993, +10): `LayoutFormulariosTests` (buscador, visor, reimpresión con textos largos, formato de fecha), layout de `FrmPesaje` (alto del peso en vivo, botones de captura dentro del grupo, sin recortes con escalado 1,25) y 5 de `DisenoBoletaTests` (firmas, casillas, "Otros", sin fleteros, ticket). Las 5 pruebas de layout fallan contra el código anterior y pasan con la corrección.
+- **Compilación:** `dotnet build src/PesajeFaeneo.sln -c Release` con 0 warnings y 0 errores; sin migraciones.
+- **Verificación manual al 125 %:** capturas de pesaje, buscador, visor, reimpresión, vista previa, catálogos, usuarios, parámetros, balanza, impresión, cambio de contraseña, alta rápida y login, sin textos cortados.
+- **Fuera de alcance (anotado):** anchos fijos de columnas en las grillas del buscador y de usuarios (el texto largo se abrevia con "…"); pesos con punto decimal en la pantalla de pesaje (`109.0`) frente a la coma de la boleta (`109,0`).
+
 

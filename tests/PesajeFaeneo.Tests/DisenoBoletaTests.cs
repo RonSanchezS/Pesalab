@@ -1,4 +1,4 @@
-using PesajeFaeneo.Application.Boletas.Diseno;
+﻿using PesajeFaeneo.Application.Boletas.Diseno;
 using PesajeFaeneo.Application.Boletas.Dtos;
 using PesajeFaeneo.Domain.Enums;
 using Xunit;
@@ -143,6 +143,66 @@ public class DisenoBoletaTests
     [Theory]
     [InlineData(FormatoBoleta.MediaCarta)]
     [InlineData(FormatoBoleta.Ticket80mm)]
+    public void FormatoLegado_FirmasJefeDeDespachoYMedicoVeterinario(FormatoBoleta formato)
+    {
+        var pagina = DisenoBoleta.Crear(CrearDatosPrueba(), formato, 1, 1);
+        var texto = TextosDe(pagina);
+
+        Assert.Contains(TextosBoleta.FirmaJefeDespacho, texto);
+        Assert.Contains(TextosBoleta.FirmaMedicoVeterinario, texto);
+        Assert.DoesNotContain("Recibí conforme", texto);
+    }
+
+    [Fact]
+    public void MediaCarta_CuatroFleteros_CadaUnoConSuCasillaYLineaOtros()
+    {
+        var cuatro = new[]
+        {
+            new FleteroBoleta(1, "FL1", "701"),
+            new FleteroBoleta(2, "FL2", "702"),
+            new FleteroBoleta(3, "FL3", "703"),
+            new FleteroBoleta(4, "FL4", "704")
+        };
+        var pagina = DisenoBoleta.Crear(CrearDatosPrueba(fleteros: cuatro), FormatoBoleta.MediaCarta, 1, 1);
+
+        var textosFleteros = pagina.Elementos.OfType<TextoBoleta>().Where(t => t.Texto.StartsWith("F", StringComparison.Ordinal) && t.Texto.Contains(": FL", StringComparison.Ordinal)).ToList();
+        var casillas = pagina.Elementos.OfType<RectanguloBoleta>().Where(r => r.Ancho == 3f && r.Alto == 3f).ToList();
+
+        Assert.Equal(4, textosFleteros.Count);
+        Assert.Equal(4, casillas.Count);
+        // Cada casilla en la fila de su fletero y a la derecha del texto.
+        for (int i = 0; i < 4; i++)
+        {
+            Assert.InRange(casillas[i].Y, textosFleteros[i].Y, textosFleteros[i].Y + textosFleteros[i].Alto);
+            Assert.True(casillas[i].X >= textosFleteros[i].X + textosFleteros[i].Ancho, "La casilla no debe pisar el texto del fletero");
+        }
+
+        Assert.Contains(TextosBoleta.OtrosFleteros, TextosDe(pagina));
+    }
+
+    [Fact]
+    public void MediaCarta_SinFleteros_MuestraLineaParaEscribirElFletero()
+    {
+        var pagina = DisenoBoleta.Crear(CrearDatosPrueba(fleteros: Array.Empty<FleteroBoleta>()), FormatoBoleta.MediaCarta, 1, 1);
+
+        Assert.Contains(TextosBoleta.SinFletero, TextosDe(pagina));
+        Assert.DoesNotContain(pagina.Elementos.OfType<RectanguloBoleta>(), r => r.Ancho == 3f && r.Alto == 3f);
+    }
+
+    [Fact]
+    public void Ticket80mm_FleterosConCasillaYLineaOtros()
+    {
+        var dos = new[] { new FleteroBoleta(1, "FL1", "701"), new FleteroBoleta(2, "FL2", string.Empty) };
+        var texto = TextosDe(DisenoBoleta.Crear(CrearDatosPrueba(fleteros: dos), FormatoBoleta.Ticket80mm, 1, 1));
+
+        Assert.Contains("[   ]  F1: FL1 - 701", texto);
+        Assert.Contains("[   ]  F2: FL2", texto);
+        Assert.Contains(TextosBoleta.OtrosFleteros, texto);
+    }
+
+    [Theory]
+    [InlineData(FormatoBoleta.MediaCarta)]
+    [InlineData(FormatoBoleta.Ticket80mm)]
     public void Limites_ConTextosMaximos_TodosLosElementosDentroDeLaPagina_PruebaR18(FormatoBoleta formato)
     {
         var cuatro = new[]
@@ -230,5 +290,116 @@ public class DisenoBoletaTests
     {
         var datos = CrearDatosPrueba();
         Assert.Throws<ArgumentException>(() => DisenoBoleta.Crear(datos, FormatoBoleta.MediaCarta, copia, total));
+    }
+
+    [Fact]
+    public void MediaCarta_Leyendas_TamanoAdaptativoSegunLongitud()
+    {
+        // 1. Solo simulado (35 caracteres <= 85): TamanoPt == 9
+        var datosSimulado = CrearDatosPrueba(origen: OrigenPeso.Simulador);
+        var pagSimulado = DisenoBoleta.Crear(datosSimulado, FormatoBoleta.MediaCarta, 1, 1);
+        var txtSimulado = pagSimulado.Elementos.OfType<TextoBoleta>().Single(t => t.Y == 31f);
+        Assert.Equal(9f, txtSimulado.TamanoPt);
+
+        // 2. Rango medio (86..110 caracteres): anulada con motivo 30 + simulado + original (total ~92 chars): TamanoPt == 7
+        var datosMedio = new DatosBoleta(
+            PesajeId: 1,
+            NumeroBoleta: 32779,
+            FechaHoraLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
+            Empresa: new EmpresaBoleta("FRIGORÍFICO CENTRAL", "CALLE 1", "SANTA CRUZ", "70000000", "REG-1", "80000000", null),
+            MarcaGanadero: "AH",
+            NombreGanadero: "GANADERO",
+            Secuencia: 1,
+            CodigoCliente: 110,
+            NombreCliente: "CLIENTE",
+            Direccion: "DIR",
+            ColorRaza: "BLANCO",
+            Sexo: 'M',
+            TipoDesposte: TipoDesposte.MediaRes,
+            PesoIzquierdo: 100m,
+            PesoDerecho: 0m,
+            PesoTotal: 100m,
+            Observacion: "OBS",
+            Origen: OrigenPeso.Simulador,
+            Estado: EstadoPesaje.Anulado,
+            MotivoAnulacion: new string('A', 30),
+            NombreOperador: "OP",
+            Fleteros: Array.Empty<FleteroBoleta>(),
+            ImpresionesPrevias: 0,
+            GeneradoEnLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
+            EsMuestra: false);
+        var pagMedio = DisenoBoleta.Crear(datosMedio, FormatoBoleta.MediaCarta, 1, 2);
+        var txtMedio = pagMedio.Elementos.OfType<TextoBoleta>().Single(t => t.Y == 31f);
+        Assert.Equal(7f, txtMedio.TamanoPt);
+
+        // 3. Más de 110 caracteres (las 5 leyendas activas): TamanoPt == 6
+        var datosCinco = new DatosBoleta(
+            PesajeId: 0,
+            NumeroBoleta: 0,
+            FechaHoraLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
+            Empresa: new EmpresaBoleta("FRIGORÍFICO CENTRAL", "CALLE 1", "SANTA CRUZ", "70000000", "REG-1", "80000000", null),
+            MarcaGanadero: "AH",
+            NombreGanadero: "GANADERO",
+            Secuencia: 1,
+            CodigoCliente: 110,
+            NombreCliente: "CLIENTE",
+            Direccion: "DIR",
+            ColorRaza: "BLANCO",
+            Sexo: 'M',
+            TipoDesposte: TipoDesposte.MediaRes,
+            PesoIzquierdo: 100m,
+            PesoDerecho: 0m,
+            PesoTotal: 100m,
+            Observacion: "OBS",
+            Origen: OrigenPeso.Simulador,
+            Estado: EstadoPesaje.Anulado,
+            MotivoAnulacion: new string('A', 30),
+            NombreOperador: "OP",
+            Fleteros: Array.Empty<FleteroBoleta>(),
+            ImpresionesPrevias: 1,
+            GeneradoEnLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
+            EsMuestra: true);
+        var pagCinco = DisenoBoleta.Crear(datosCinco, FormatoBoleta.MediaCarta, 2, 2);
+        var txtCinco = pagCinco.Elementos.OfType<TextoBoleta>().Single(t => t.Y == 31f);
+        Assert.Equal(6f, txtCinco.TamanoPt);
+    }
+
+    [Fact]
+    public void Ticket80mm_MultiplesLeyendas_SigueConUnaFilaPorLeyenda()
+    {
+        var datos = new DatosBoleta(
+            PesajeId: 1,
+            NumeroBoleta: 1234,
+            FechaHoraLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
+            Empresa: new EmpresaBoleta("EMPRESA", "DIR", "CIUDAD", "TEL", "REG", "REC", null),
+            MarcaGanadero: "AH",
+            NombreGanadero: "GANADERO",
+            Secuencia: 1,
+            CodigoCliente: 1,
+            NombreCliente: "CLIENTE",
+            Direccion: "DIR",
+            ColorRaza: "B",
+            Sexo: 'M',
+            TipoDesposte: TipoDesposte.MediaRes,
+            PesoIzquierdo: 100m,
+            PesoDerecho: 0m,
+            PesoTotal: 100m,
+            Observacion: "OBS",
+            Origen: OrigenPeso.Simulador,
+            Estado: EstadoPesaje.Anulado,
+            MotivoAnulacion: "MOTIVO CORTO",
+            NombreOperador: "OP",
+            Fleteros: Array.Empty<FleteroBoleta>(),
+            ImpresionesPrevias: 0,
+            GeneradoEnLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
+            EsMuestra: false);
+
+        var pag = DisenoBoleta.Crear(datos, FormatoBoleta.Ticket80mm, 1, 1);
+        var leyendas = pag.Elementos.OfType<TextoBoleta>()
+            .Where(t => t.Texto.StartsWith("ANULADA:") || t.Texto.StartsWith("PESO SIMULADO"))
+            .ToList();
+
+        Assert.Equal(2, leyendas.Count);
+        Assert.NotEqual(leyendas[0].Y, leyendas[1].Y);
     }
 }

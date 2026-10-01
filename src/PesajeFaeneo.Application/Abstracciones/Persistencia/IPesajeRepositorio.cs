@@ -1,4 +1,4 @@
-using PesajeFaeneo.Domain.Entities;
+﻿using PesajeFaeneo.Domain.Entities;
 
 namespace PesajeFaeneo.Application.Abstracciones.Persistencia;
 
@@ -29,4 +29,14 @@ public interface IPesajeRepositorio
     /// Sin tracking; Include Ganadero, Cliente y Usuario. null si no existe.
     /// </summary>
     Task<Pesaje?> ObtenerParaBoletaPorNumeroAsync(long numeroBoleta, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// CON tracking (los cambios se guardan con GuardarCambiosAsync); Include Ganadero y Cliente; null si no existe.
+    /// </summary>
+    Task<Pesaje?> ObtenerParaEdicionAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sin tracking; Include Ganadero y Cliente; orden NumeroBoleta descendente; Take(maximo).
+    /// </summary>
+    Task<IReadOnlyList<Pesaje>> BuscarAsync(CriteriosBusquedaPesaje criterios, int maximo, CancellationToken cancellationToken = default);
 }

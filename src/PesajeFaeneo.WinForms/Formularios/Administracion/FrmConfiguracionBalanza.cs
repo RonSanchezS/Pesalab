@@ -119,11 +119,8 @@ public class FrmConfiguracionBalanza : FormBase
     {
         SuspendLayout();
 
-        // Tamaños expresados a 96 DPI; AutoScaleMode.Dpi los escala a la escala real de Windows (125%, 150%…).
-        // El resto del layout se dimensiona solo a partir de las fuentes (TableLayoutPanel + AutoSize).
-        AutoScaleDimensions = new SizeF(96F, 96F);
-        AutoScaleMode = AutoScaleMode.Dpi;
-
+        // Tamaños expresados a 96 DPI (FormBase activa AutoScaleMode.Dpi); el resto del layout se dimensiona
+        // solo a partir de las fuentes (TableLayoutPanel + AutoSize).
         Text = "Configuración y Diagnóstico de Balanza";
         FormBorderStyle = FormBorderStyle.Sizable;
         MaximizeBox = true;

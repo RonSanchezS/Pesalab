@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using PesajeFaeneo.Application.Boletas.Diseno;
 using PesajeFaeneo.Application.Boletas.Dtos;
 using PesajeFaeneo.Domain.Enums;
@@ -195,5 +195,47 @@ public class TextosBoletaTests
         Assert.Equal("SIMULADO", TextosBoleta.MarcaDeAgua(CrearDatos(origen: OrigenPeso.Simulador)));
         Assert.Null(TextosBoleta.MarcaDeAgua(CrearDatos(origen: OrigenPeso.Importado)));
         Assert.Null(TextosBoleta.MarcaDeAgua(CrearDatos(origen: OrigenPeso.Balanza)));
+    }
+
+    [Fact]
+    public void MotivoCorto_CasosLimite_NuloCortoExactoYRecortado()
+    {
+        Assert.Equal(string.Empty, TextosBoleta.MotivoCorto(null));
+        Assert.Equal(string.Empty, TextosBoleta.MotivoCorto("   "));
+
+        // Corto
+        Assert.Equal("ERROR", TextosBoleta.MotivoCorto("ERROR"));
+
+        // Exactamente 30 caracteres
+        var exacto30 = new string('A', 30);
+        Assert.Equal(exacto30, TextosBoleta.MotivoCorto(exacto30));
+        Assert.Equal(30, TextosBoleta.MotivoCorto(exacto30).Length);
+
+        // 31 caracteres: debe recortarse a 30 caracteres terminando en '…'
+        var largo31 = new string('B', 31);
+        var res31 = TextosBoleta.MotivoCorto(largo31);
+        Assert.Equal(30, res31.Length);
+        Assert.EndsWith("…", res31);
+        Assert.Equal(new string('B', 29) + "…", res31);
+
+        // Espacios múltiples colapsados antes de recortar
+        var conEspacios = "   ERROR    DE    TIPEO    MUY    LARGO    PARA    BOLETA   ";
+        var resEspacios = TextosBoleta.MotivoCorto(conEspacios);
+        Assert.True(resEspacios.Length <= 30);
+        Assert.DoesNotContain("  ", resEspacios);
+    }
+
+    [Fact]
+    public void Leyendas_BoletaAnuladaConMotivoLargo_RecortaMotivoA30Caracteres()
+    {
+        var motivo100 = new string('M', 100);
+        var datos = CrearDatos(estado: EstadoPesaje.Anulado, motivoAnulacion: motivo100);
+        var leyendas = TextosBoleta.Leyendas(datos, 1, 1);
+
+        var leyenda = Assert.Single(leyendas);
+        Assert.StartsWith("ANULADA: ", leyenda);
+        // "ANULADA: " tiene 9 caracteres + motivo corto de 30 caracteres = 39 caracteres
+        Assert.Equal(9 + 30, leyenda.Length);
+        Assert.EndsWith("…", leyenda);
     }
 }

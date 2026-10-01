@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using PesajeFaeneo.Application.Boletas.Dtos;
 using AuditoriaEntidad = PesajeFaeneo.Domain.Entities.Auditoria;
@@ -17,6 +17,12 @@ public static class EntidadesAuditoria
     public const string ConfiguracionBalanza = "ConfiguracionBalanza";
     public const string Pesaje = "Pesaje";
     public const string ConfiguracionImpresion = "ConfiguracionImpresion";
+
+    public static readonly IReadOnlyList<string> Todas = new[]
+    {
+        Usuario, Ganadero, Cliente, Fletero, ParametrosSistema,
+        ConfiguracionBalanza, Pesaje, ConfiguracionImpresion
+    };
 }
 
 public sealed record UsuarioAuditoria(
@@ -74,7 +80,14 @@ public sealed record PesajeAuditoria(
     string Observacion,
     EstadoPesaje Estado,
     OrigenPeso OrigenPeso,
-    int UsuarioId);
+    int UsuarioId,
+    string? MotivoAnulacion = null,
+    int? AnuladoPorId = null,
+    DateTime? AnuladoEn = null,
+    string? MarcaGanadero = null,
+    string? NombreGanadero = null,
+    int? CodigoCliente = null,
+    string? NombreCliente = null);
 
 public sealed record ConfiguracionImpresionAuditoria(
     string NombreEquipo,
@@ -217,7 +230,7 @@ public static class FabricaAuditoria
             config.UnidadPeso);
     }
 
-    public static PesajeAuditoria CrearSnapshot(Pesaje pesaje)
+    public static PesajeAuditoria CrearSnapshot(Pesaje pesaje, Ganadero? ganadero, Cliente? cliente)
     {
         ArgumentNullException.ThrowIfNull(pesaje);
         return new PesajeAuditoria(
@@ -237,7 +250,20 @@ public static class FabricaAuditoria
             pesaje.Observacion,
             pesaje.Estado,
             pesaje.OrigenPeso,
-            pesaje.UsuarioId);
+            pesaje.UsuarioId,
+            pesaje.MotivoAnulacion,
+            pesaje.AnuladoPorId,
+            pesaje.AnuladoEn,
+            ganadero?.Marca,
+            ganadero?.Nombre,
+            cliente?.Codigo,
+            cliente?.Nombre);
+    }
+
+    public static PesajeAuditoria CrearSnapshot(Pesaje pesaje)
+    {
+        ArgumentNullException.ThrowIfNull(pesaje);
+        return CrearSnapshot(pesaje, pesaje.Ganadero, pesaje.Cliente);
     }
 
     public static ConfiguracionImpresionAuditoria CrearSnapshot(ConfiguracionImpresion c, string nombreEquipo)

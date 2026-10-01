@@ -1,4 +1,4 @@
-using PesajeFaeneo.Application.Auditoria;
+﻿using PesajeFaeneo.Application.Auditoria;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Domain.Enums;
 using Xunit;
@@ -187,6 +187,96 @@ public class FabricaAuditoriaTests
         Assert.Contains("\"Formato\":\"Ticket80mm\"", auditoria.DatosDespuesJson);
         Assert.Contains("\"NombreEquipo\":\"PC-01\"", auditoria.DatosDespuesJson);
         Assert.Contains("\"ImprimirAlGrabar\":true", auditoria.DatosDespuesJson);
+    }
+
+    [Fact]
+    public void CrearSnapshot_PesajeConGanaderoYCliente_IncluyeDatosEnriquecidosYCamposAnulacion()
+    {
+        var ganadero = new Ganadero { Id = 10, Marca = "XY", Nombre = "GANADERO XY" };
+        var cliente = new Cliente { Id = 20, Codigo = 555, Nombre = "CLIENTE 555" };
+        var fechaAnulado = new DateTime(2026, 9, 28, 14, 0, 0, DateTimeKind.Utc);
+        var pesaje = new Pesaje
+        {
+            Id = 50,
+            NumeroBoleta = 999,
+            GanaderoId = 10,
+            ClienteId = 20,
+            Estado = EstadoPesaje.Anulado,
+            MotivoAnulacion = "ERROR PESO",
+            AnuladoPorId = 2,
+            AnuladoEn = fechaAnulado
+        };
+
+        var snapshot = FabricaAuditoria.CrearSnapshot(pesaje, ganadero, cliente);
+
+        Assert.Equal("XY", snapshot.MarcaGanadero);
+        Assert.Equal("GANADERO XY", snapshot.NombreGanadero);
+        Assert.Equal(555, snapshot.CodigoCliente);
+        Assert.Equal("CLIENTE 555", snapshot.NombreCliente);
+        Assert.Equal("ERROR PESO", snapshot.MotivoAnulacion);
+        Assert.Equal(2, snapshot.AnuladoPorId);
+        Assert.Equal(fechaAnulado, snapshot.AnuladoEn);
+    }
+
+    [Fact]
+    public void CrearSnapshot_PesajeConNavegacionesNulas_NoLanzaYPropiedadesEnriquecidasSonNulas()
+    {
+        var pesaje = new Pesaje
+        {
+            Id = 51,
+            NumeroBoleta = 1000,
+            GanaderoId = 10,
+            ClienteId = 20
+        };
+
+        var snapshot = FabricaAuditoria.CrearSnapshot(pesaje);
+
+        Assert.Null(snapshot.MarcaGanadero);
+        Assert.Null(snapshot.NombreGanadero);
+        Assert.Null(snapshot.CodigoCliente);
+        Assert.Null(snapshot.NombreCliente);
+        Assert.Null(snapshot.MotivoAnulacion);
+    }
+
+    [Fact]
+    public void Crear_PesajeAnulado_JsonContieneEstadoAnuladoYMotivo()
+    {
+        var pesaje = new Pesaje
+        {
+            Id = 52,
+            NumeroBoleta = 1002,
+            Estado = EstadoPesaje.Anulado,
+            MotivoAnulacion = "BOLETA DUPLICADA",
+            AnuladoPorId = 1,
+            AnuladoEn = DateTime.UtcNow
+        };
+
+        var auditoria = FabricaAuditoria.Crear(
+            TimeProvider.System,
+            usuarioId: 1,
+            AccionAuditoria.Anular,
+            EntidadesAuditoria.Pesaje,
+            pesaje.Id.ToString(),
+            despues: pesaje,
+            motivo: "Anulación de prueba");
+
+        Assert.NotNull(auditoria.DatosDespuesJson);
+        Assert.Contains("\"Estado\":\"Anulado\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"MotivoAnulacion\":\"BOLETA DUPLICADA\"", auditoria.DatosDespuesJson);
+    }
+
+    [Fact]
+    public void EntidadesAuditoria_Todas_ContieneLasOchoEntidadesYPesaje()
+    {
+        Assert.Equal(8, EntidadesAuditoria.Todas.Count);
+        Assert.Contains(EntidadesAuditoria.Pesaje, EntidadesAuditoria.Todas);
+        Assert.Contains(EntidadesAuditoria.Usuario, EntidadesAuditoria.Todas);
+        Assert.Contains(EntidadesAuditoria.Ganadero, EntidadesAuditoria.Todas);
+        Assert.Contains(EntidadesAuditoria.Cliente, EntidadesAuditoria.Todas);
+        Assert.Contains(EntidadesAuditoria.Fletero, EntidadesAuditoria.Todas);
+        Assert.Contains(EntidadesAuditoria.ParametrosSistema, EntidadesAuditoria.Todas);
+        Assert.Contains(EntidadesAuditoria.ConfiguracionBalanza, EntidadesAuditoria.Todas);
+        Assert.Contains(EntidadesAuditoria.ConfiguracionImpresion, EntidadesAuditoria.Todas);
     }
 }
 

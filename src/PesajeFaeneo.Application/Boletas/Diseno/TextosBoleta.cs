@@ -1,6 +1,8 @@
-using System.Globalization;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 using PesajeFaeneo.Application.Boletas.Dtos;
 using PesajeFaeneo.Domain.Enums;
+using PesajeFaeneo.Domain.Reglas;
 
 namespace PesajeFaeneo.Application.Boletas.Diseno;
 
@@ -38,6 +40,14 @@ public static class TextosBoleta
     public static string Cliente(DatosBoleta d) =>
         UnirNoVacios(" - ", d.CodigoCliente.ToString(Cultura), d.NombreCliente);
 
+    // Bloque de firmas y fleteros del formato legado del cliente (guía de remisión).
+    public const string FirmaJefeDespacho = "Jefe de Despacho";
+    public const string FirmaMedicoVeterinario = "Médico Veterinario";
+    public const string OtrosFleteros = "Otros: ....................................";
+    public const string SinFletero = "Fletero: ....................................";
+
+    public static string FleteroConCasilla(FleteroBoleta f) => "[   ]  " + Fletero(f);
+
     public static string Fletero(FleteroBoleta f) =>
         string.IsNullOrWhiteSpace(f.Celular)
             ? "F" + f.Orden.ToString(Cultura) + ": " + f.Nombre
@@ -46,6 +56,20 @@ public static class TextosBoleta
     public static string UnirNoVacios(string separador, params string?[] partes)
     {
         return string.Join(separador, partes.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p!.Trim()));
+    }
+
+    public static string MotivoCorto(string? motivo, int maximo = ReglasGestionPesajes.MotivoLeyendaMaximo)
+    {
+        if (string.IsNullOrWhiteSpace(motivo))
+            return string.Empty;
+
+        var s = Regex.Replace(motivo.Trim(), @"\s+", " ");
+        if (s.Length > maximo)
+        {
+            return s[..(maximo - 1)].TrimEnd() + "…";
+        }
+
+        return s;
     }
 
     public static IReadOnlyList<string> Leyendas(DatosBoleta d, int numeroCopia, int totalCopias)
@@ -61,7 +85,7 @@ public static class TextosBoleta
 
         if (d.Estado == EstadoPesaje.Anulado)
         {
-            lista.Add("ANULADA: " + (d.MotivoAnulacion ?? string.Empty));
+            lista.Add("ANULADA: " + MotivoCorto(d.MotivoAnulacion));
         }
 
         if (d.Origen == OrigenPeso.Simulador)

@@ -447,6 +447,10 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.Property<int>("UsuarioId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AnuladoPorId");

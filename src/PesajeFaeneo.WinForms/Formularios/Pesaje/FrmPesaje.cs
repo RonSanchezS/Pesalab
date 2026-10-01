@@ -204,7 +204,7 @@ public class FrmPesaje : FormBase
         };
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55));
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45));
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 130)); // Display
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, AltoDisplay)); // Display
         mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));  // Guía
         mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // Contenido principal
 
@@ -238,6 +238,11 @@ public class FrmPesaje : FormBase
         ResumeLayout(false);
     }
 
+    // Alto del display a 96 DPI (se escala con el formulario). Debe alojar la franja del simulador y, debajo,
+    // una línea completa del peso en vivo (48 pt ≈ 85 px) más "ESTABLE": un Label que no puede mostrar la
+    // línea entera no dibuja nada.
+    private const int AltoDisplay = 150;
+
     private Panel ConstruirPanelDisplay()
     {
         var pnl = new Panel
@@ -259,9 +264,9 @@ public class FrmPesaje : FormBase
         {
             Text = string.Empty,
             Font = new Font("Segoe UI", 14F, FontStyle.Bold),
-            TextAlign = ContentAlignment.TopRight,
+            TextAlign = ContentAlignment.MiddleRight,
             Dock = DockStyle.Bottom,
-            Height = 25
+            Height = 28
         };
 
         lblEstadoBalanza = new Label
@@ -269,8 +274,8 @@ public class FrmPesaje : FormBase
             Text = "Balanza: detenida",
             Font = new Font("Segoe UI", 10F, FontStyle.Regular),
             TextAlign = ContentAlignment.BottomLeft,
-            Dock = DockStyle.Bottom,
-            Height = 25
+            Dock = DockStyle.Fill,
+            Padding = new Padding(4, 0, 0, 4)
         };
 
         lblSimulador = new Label
@@ -291,14 +296,35 @@ public class FrmPesaje : FormBase
             Font = new Font("Segoe UI", 11F, FontStyle.Bold),
             TextAlign = ContentAlignment.TopLeft,
             Dock = DockStyle.Top,
-            Height = 24
+            Height = 28,
+            Padding = new Padding(4, 4, 0, 0)
         };
 
-        pnl.Controls.Add(lblPesoVivo);
-        pnl.Controls.Add(lblEstable);
-        pnl.Controls.Add(lblEstadoBalanza);
+        // Izquierda: próxima boleta arriba y estado de la balanza abajo. Derecha: peso en vivo y "ESTABLE".
+        // Van en columnas para que las franjas de texto no le quiten alto al peso.
+        var pnlInfo = new Panel { Dock = DockStyle.Fill };
+        pnlInfo.Controls.Add(lblEstadoBalanza);
+        pnlInfo.Controls.Add(lblProximaBoleta);
+
+        var pnlPeso = new Panel { Dock = DockStyle.Fill };
+        pnlPeso.Controls.Add(lblPesoVivo);
+        pnlPeso.Controls.Add(lblEstable);
+
+        var columnas = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 1,
+            Margin = Padding.Empty
+        };
+        columnas.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45));
+        columnas.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55));
+        columnas.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        columnas.Controls.Add(pnlInfo, 0, 0);
+        columnas.Controls.Add(pnlPeso, 1, 0);
+
+        pnl.Controls.Add(columnas);
         pnl.Controls.Add(lblSimulador);
-        pnl.Controls.Add(lblProximaBoleta);
 
         return pnl;
     }
@@ -431,16 +457,21 @@ public class FrmPesaje : FormBase
         {
             Text = "Pesos Capturados",
             Dock = DockStyle.Fill,
+            // Sin AutoSize el GroupBox conserva su alto por defecto (100 px) dentro de la fila AutoSize y
+            // recorta los pesos y los botones de captura.
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
             Font = new Font("Segoe UI", 10F, FontStyle.Bold),
             Padding = new Padding(10)
         };
 
         var layout = new TableLayoutPanel
         {
-            Dock = DockStyle.Fill,
+            Dock = DockStyle.Top,
             ColumnCount = 3,
             RowCount = 3,
-            AutoSize = true
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink
         };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33));
@@ -579,6 +610,9 @@ public class FrmPesaje : FormBase
             ColumnCount = 1,
             RowCount = 2
         };
+        // Sin estilo la columna se dimensiona por su contenido (el ancho actual de la grilla): al escalar por
+        // DPI la grilla crece, la columna la sigue y queda más ancha que el panel, recortando columnas.
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // Grilla
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 70));  // Simulador
 

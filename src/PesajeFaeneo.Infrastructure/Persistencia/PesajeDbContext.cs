@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Infrastructure.Persistencia.Conversores;
@@ -24,6 +24,30 @@ public class PesajeDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PesajeDbContext).Assembly);
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        IncrementarVersionPesajes();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        IncrementarVersionPesajes();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    // Token gestionado por la aplicación (H2): cada Pesaje modificado avanza su Version a partir del
+    // valor ORIGINAL leído de BD (H3), de modo que reintentar SaveChanges no la incrementa dos veces.
+    private void IncrementarVersionPesajes()
+    {
+        ChangeTracker.DetectChanges();
+        foreach (var entrada in ChangeTracker.Entries<Pesaje>().Where(e => e.State == EntityState.Modified).ToList())
+        {
+            var version = entrada.Property(p => p.Version);
+            version.CurrentValue = version.OriginalValue + 1;
+        }
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

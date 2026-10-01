@@ -18,6 +18,8 @@ public static class DependencyInjection
         services.AddTransient<Pesajes.IServicioPesajes, Pesajes.ServicioPesajes>();
         services.AddTransient<Boletas.IServicioBoletas, Boletas.ServicioBoletas>();
         services.AddTransient<Boletas.IServicioConfiguracionImpresion, Boletas.ServicioConfiguracionImpresion>();
+        services.AddTransient<Pesajes.IServicioGestionPesajes, Pesajes.ServicioGestionPesajes>();
+        services.AddTransient<Auditoria.IServicioAuditoria, Auditoria.ServicioAuditoria>();
         return services;
     }
 }

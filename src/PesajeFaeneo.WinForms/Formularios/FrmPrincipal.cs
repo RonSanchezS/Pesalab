@@ -121,12 +121,16 @@ public partial class FrmPrincipal : FormBase
         itemReimprimir.Click += (_, _) => AbrirReimpresion();
         var itemBuscarEditar = new ToolStripMenuItem("&Buscar / editar boleta")
         {
-            Tag = new OpcionMenu(Permiso.EditarBoleta, "F6")
+            ShortcutKeys = Keys.F6,
+            Tag = new OpcionMenu(Permiso.EditarBoleta, null)
         };
+        itemBuscarEditar.Click += (_, _) => AbrirGestionBoletas(Permiso.EditarBoleta);
+
         var itemAnular = new ToolStripMenuItem("&Anular boleta")
         {
-            Tag = new OpcionMenu(Permiso.AnularBoleta, "F6")
+            Tag = new OpcionMenu(Permiso.AnularBoleta, null)
         };
+        itemAnular.Click += (_, _) => AbrirGestionBoletas(Permiso.AnularBoleta);
         mnuBoletas.DropDownItems.AddRange(new ToolStripItem[] { itemReimprimir, itemBuscarEditar, itemAnular });
 
         // 3. Catálogos
@@ -191,8 +195,9 @@ public partial class FrmPrincipal : FormBase
 
         var itemAuditoria = new ToolStripMenuItem("Visor de &auditoría")
         {
-            Tag = new OpcionMenu(Permiso.VerAuditoria, "F6")
+            Tag = new OpcionMenu(Permiso.VerAuditoria, null)
         };
+        itemAuditoria.Click += (_, _) => AbrirVisorAuditoria();
         mnuAdministracion.DropDownItems.AddRange(new ToolStripItem[] { itemUsuarios, itemParametros, itemBalanza, itemImpresion, itemAuditoria });
 
         // 6. Utilitarios
@@ -349,6 +354,26 @@ public partial class FrmPrincipal : FormBase
         {
             _sesion.ExigirPermiso(Permiso.ReimprimirBoleta);
             using var frm = _formFactory.Crear<FrmReimprimirBoleta>();
+            frm.ShowDialog(this);
+        });
+    }
+
+    private void AbrirGestionBoletas(Permiso permiso)
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(permiso);
+            using var frm = _formFactory.Crear<FrmBuscarBoletas>();
+            frm.ShowDialog(this);
+        });
+    }
+
+    private void AbrirVisorAuditoria()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.VerAuditoria);
+            using var frm = _formFactory.Crear<FrmVisorAuditoria>();
             frm.ShowDialog(this);
         });
     }

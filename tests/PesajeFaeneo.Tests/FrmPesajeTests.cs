@@ -72,6 +72,36 @@ public class FrmPesajeTests
     }
 
     [Fact]
+    public void Layout_PesoEnVivoYBotonesDeCapturaVisibles_SinRecortes_NiConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+            System.Windows.Forms.Application.DoEvents();
+
+            // Defecto de la prueba manual: el display dejaba ~30 px para una fuente de 48 pt y el Label no
+            // dibujaba nada; y el GroupBox de pesos ocultaba los botones de captura.
+            var alturaLinea = System.Windows.Forms.TextRenderer.MeasureText("8.888,8 kg", form.lblPesoVivo.Font).Height;
+            Assert.True(form.lblPesoVivo.ClientSize.Height >= alturaLinea,
+                $"El peso en vivo necesita {alturaLinea} px de alto y tiene {form.lblPesoVivo.ClientSize.Height}");
+
+            foreach (var boton in new[] { form.btnCapturarIzquierdo, form.btnCapturarDerecho })
+            {
+                var grupo = boton.Parent!.Parent!;
+                var enGrupo = grupo.RectangleToClient(boton.RectangleToScreen(boton.ClientRectangle));
+                Assert.True(grupo.ClientRectangle.Contains(enGrupo), $"'{boton.Text}' {enGrupo} queda fuera de 'Pesos Capturados' {grupo.ClientRectangle}");
+            }
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
+
+    [Fact]
     public void CargarAsync_LlenaGanaderosClientesObservacionYProximaBoleta()
     {
         HiloSta.Ejecutar(() =>

@@ -53,6 +53,13 @@ public partial class ControlBusquedaCatalogo : UserControl
         _lstResultados.MouseClick += LstResultados_MouseClick;
     }
 
+    // El alto lo manda el cuadro de texto: el escalado por DPI del formulario (o un Dock) no debe dejar una
+    // franja vacía debajo, porque la fuente del TextBox ya viene escalada.
+    protected override void SetBoundsCore(int x, int y, int width, int height, BoundsSpecified specified)
+    {
+        base.SetBoundsCore(x, y, width, _txtTexto?.PreferredHeight ?? height, specified);
+    }
+
     public void EstablecerElementos(IReadOnlyList<ElementoBusqueda> elementos)
     {
         _elementos = elementos ?? Array.Empty<ElementoBusqueda>();

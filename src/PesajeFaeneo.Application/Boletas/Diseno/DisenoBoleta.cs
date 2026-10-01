@@ -1,4 +1,4 @@
-using PesajeFaeneo.Application.Boletas.Dtos;
+﻿using PesajeFaeneo.Application.Boletas.Dtos;
 
 namespace PesajeFaeneo.Application.Boletas.Diseno;
 
@@ -129,13 +129,15 @@ public static class DisenoBoleta
         var leyendas = TextosBoleta.Leyendas(datos, numeroCopia, totalCopias);
         if (leyendas.Count > 0)
         {
+            var textoLeyendas = string.Join("  ·  ", leyendas);
+            var tamanoLeyendas = textoLeyendas.Length <= 85 ? 9f : textoLeyendas.Length <= 110 ? 7f : 6f;
             elementos.Add(new TextoBoleta(
                 X: 8f,
                 Y: 31f,
                 Ancho: 200f,
                 Alto: 5f,
-                Texto: string.Join("  ·  ", leyendas),
-                TamanoPt: 9f,
+                Texto: textoLeyendas,
+                TamanoPt: tamanoLeyendas,
                 Negrita: true,
                 Alineacion: AlineacionTexto.Centro));
         }
@@ -192,45 +194,56 @@ public static class DisenoBoleta
             elementos.Add(new TextoBoleta(34f, 96f, 174f, 10f, datos.Observacion.Trim(), 9f, VariasLineas: true));
         }
 
-        // 14. Línea divisoria
-        elementos.Add(new LineaBoleta(8f, 107f, 208f, 107f));
+        // 14. Bloque inferior del formato legado: firma del Jefe de Despacho | fleteros con casilla para
+        //     marcar quién lleva la carne | firma del Médico Veterinario.
+        const float yBloque = 107f;
+        const float altoBloque = 23f;
+        elementos.Add(new RectanguloBoleta(8f, yBloque, 60f, altoBloque));
+        elementos.Add(new RectanguloBoleta(68f, yBloque, 80f, altoBloque));
+        elementos.Add(new RectanguloBoleta(148f, yBloque, 60f, altoBloque));
 
-        // 15. Fleteros
+        AgregarFirma(elementos, 8f, yBloque, altoBloque, TextosBoleta.FirmaJefeDespacho);
+        AgregarFirma(elementos, 148f, yBloque, altoBloque, TextosBoleta.FirmaMedicoVeterinario);
+
+        // 15. Fleteros (F1..F4) y "Otros"
         if (datos.Fleteros.Count > 0)
         {
-            elementos.Add(new TextoBoleta(8f, 109f, 26f, 5f, "Fleteros:", 9f, Negrita: true));
+            elementos.Add(new TextoBoleta(70f, 107.5f, 76f, 3.5f, "Fleteros:", 7.5f, Negrita: true));
 
             var fleteros = datos.Fleteros.Take(4).ToList();
-            var posiciones = new (float X, float Y)[]
-            {
-                (34f, 109f),
-                (121f, 109f),
-                (34f, 114f),
-                (121f, 114f)
-            };
-
             for (int i = 0; i < fleteros.Count; i++)
             {
-                var pos = posiciones[i];
-                elementos.Add(new TextoBoleta(pos.X, pos.Y, 87f, 5f, TextosBoleta.Fletero(fleteros[i]), 8f));
+                var y = 111f + i * 3.5f;
+                elementos.Add(new TextoBoleta(70f, y, 68f, 3.5f, TextosBoleta.Fletero(fleteros[i]), 8f));
+                elementos.Add(new RectanguloBoleta(141f, y + 0.25f, 3f, 3f));
             }
+
+            elementos.Add(new TextoBoleta(70f, 125.5f, 76f, 3.5f, TextosBoleta.OtrosFleteros, 8f));
+        }
+        else
+        {
+            elementos.Add(new TextoBoleta(70f, 111f, 76f, 3.5f, TextosBoleta.SinFletero, 8f));
         }
 
         // 16. Reclamos
         if (!string.IsNullOrWhiteSpace(datos.Empresa.TelefonosReclamos))
         {
-            elementos.Add(new TextoBoleta(8f, 121f, 120f, 5f, "Reclamos: " + datos.Empresa.TelefonosReclamos.Trim(), 8f));
+            elementos.Add(new TextoBoleta(8f, 131f, 200f, 4f, "Reclamos: " + datos.Empresa.TelefonosReclamos.Trim(), 8f, Alineacion: AlineacionTexto.Centro));
         }
 
-        // 17. Firma
-        elementos.Add(new LineaBoleta(140f, 128f, 205f, 128f));
-        elementos.Add(new TextoBoleta(140f, 129f, 65f, 4f, "Recibí conforme", 8f, Alineacion: AlineacionTexto.Centro));
-
-        // 18. Pie
-        elementos.Add(new TextoBoleta(8f, 133f, 100f, 4f, TextosBoleta.PieImpreso(datos), 7f, Alineacion: AlineacionTexto.Izquierda));
-        elementos.Add(new TextoBoleta(108f, 133f, 100f, 4f, "Sistema de Pesaje para Faeneo", 7f, Alineacion: AlineacionTexto.Derecha));
+        // 17. Pie
+        elementos.Add(new TextoBoleta(8f, 135.5f, 100f, 4f, TextosBoleta.PieImpreso(datos), 7f, Alineacion: AlineacionTexto.Izquierda));
+        elementos.Add(new TextoBoleta(108f, 135.5f, 100f, 4f, "Sistema de Pesaje para Faeneo", 7f, Alineacion: AlineacionTexto.Derecha));
 
         return new PaginaBoleta(AnchoMediaCartaMm, AltoMediaCartaMm, elementos);
+    }
+
+    // Línea de firma y nombre del cargo al pie de un recuadro del bloque inferior.
+    private static void AgregarFirma(List<ElementoBoleta> elementos, float x, float y, float alto, string cargo)
+    {
+        var yLinea = y + alto - 6f;
+        elementos.Add(new LineaBoleta(x + 6f, yLinea, x + 54f, yLinea));
+        elementos.Add(new TextoBoleta(x, yLinea + 1f, 60f, 4.5f, cargo, 9f, Negrita: true, Alineacion: AlineacionTexto.Centro));
     }
 
     private static PaginaBoleta CrearTicket80mm(DatosBoleta datos, int numeroCopia, int totalCopias)
@@ -350,9 +363,12 @@ public static class DisenoBoleta
             y += 4.5f;
             foreach (var f in datos.Fleteros)
             {
-                elementos.Add(new TextoBoleta(4f, y, 72f, 4f, TextosBoleta.Fletero(f), 8f));
+                elementos.Add(new TextoBoleta(4f, y, 72f, 4f, TextosBoleta.FleteroConCasilla(f), 8f));
                 y += 4.5f;
             }
+
+            elementos.Add(new TextoBoleta(4f, y, 72f, 4f, TextosBoleta.OtrosFleteros, 8f));
+            y += 4.5f;
         }
 
         // 14. Reclamos y pie
@@ -365,10 +381,21 @@ public static class DisenoBoleta
         elementos.Add(new TextoBoleta(4f, y, 72f, 4f, "Operador: " + (datos.NombreOperador ?? string.Empty), 8f));
         y += 4.5f;
 
+        // 15. Firmas (espacio para firmar sobre cada línea)
+        foreach (var cargo in new[] { TextosBoleta.FirmaJefeDespacho, TextosBoleta.FirmaMedicoVeterinario })
+        {
+            y += 12f;
+            elementos.Add(new LineaBoleta(12f, y, 68f, y));
+            y += 0.5f;
+            elementos.Add(new TextoBoleta(4f, y, 72f, 4f, cargo, 8f, Negrita: true, Alineacion: AlineacionTexto.Centro));
+            y += 4.5f;
+        }
+
+
         elementos.Add(new TextoBoleta(4f, y, 72f, 3.5f, TextosBoleta.PieImpreso(datos), 7f));
         y += 4.0f;
 
-        // 15. Margen de corte
+        // 16. Margen de corte
         float altoMm = y + 10f;
 
         return new PaginaBoleta(AnchoTicketMm, altoMm, elementos);

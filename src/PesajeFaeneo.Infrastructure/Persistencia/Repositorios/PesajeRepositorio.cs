@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PesajeFaeneo.Application.Abstracciones.Persistencia;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Domain.Enums;
@@ -99,5 +99,59 @@ public class PesajeRepositorio : IPesajeRepositorio
             .Include(p => p.Cliente)
             .Include(p => p.Usuario)
             .FirstOrDefaultAsync(p => p.NumeroBoleta == numeroBoleta, cancellationToken);
+    }
+
+    public async Task<Pesaje?> ObtenerParaEdicionAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Pesajes
+            .Include(p => p.Ganadero)
+            .Include(p => p.Cliente)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Pesaje>> BuscarAsync(CriteriosBusquedaPesaje criterios, int maximo, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(criterios);
+
+        IQueryable<Pesaje> q = _context.Pesajes
+            .AsNoTracking()
+            .Include(p => p.Ganadero)
+            .Include(p => p.Cliente);
+
+        if (criterios.DesdeUtc is { } d)
+        {
+            var dUtc = DateTime.SpecifyKind(d, DateTimeKind.Utc);
+            q = q.Where(p => p.FechaHora >= dUtc);
+        }
+
+        if (criterios.HastaUtc is { } h)
+        {
+            var hUtc = DateTime.SpecifyKind(h, DateTimeKind.Utc);
+            q = q.Where(p => p.FechaHora < hUtc);
+        }
+
+        if (criterios.NumeroBoleta is { } num)
+        {
+            q = q.Where(p => p.NumeroBoleta == num);
+        }
+
+        if (criterios.GanaderoId is { } gid)
+        {
+            q = q.Where(p => p.GanaderoId == gid);
+        }
+
+        if (criterios.ClienteId is { } cid)
+        {
+            q = q.Where(p => p.ClienteId == cid);
+        }
+
+        if (criterios.Estado is { } est)
+        {
+            q = q.Where(p => p.Estado == est);
+        }
+
+        return await q.OrderByDescending(p => p.NumeroBoleta)
+            .Take(maximo)
+            .ToListAsync(cancellationToken);
     }
 }
