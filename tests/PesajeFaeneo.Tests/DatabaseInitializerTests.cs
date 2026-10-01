@@ -62,6 +62,24 @@ public class DatabaseInitializerTests : IClassFixture<SqliteArchivoFixture>
         Assert.Equal(1, await context.ConfiguracionesBalanza.CountAsync());
     }
 
+    [Fact]
+    public async Task InicializarAsync_CreaTablaSqliteStat1YPermiteEjecucionRepetida()
+    {
+        var initializer = new DatabaseInitializer(_fixture.ContextFactory);
+        await initializer.InicializarAsync();
+        await initializer.InicializarAsync();
+
+        await using var context = await _fixture.ContextFactory.CreateDbContextAsync();
+        var conexion = (SqliteConnection)context.Database.GetDbConnection();
+        await conexion.OpenAsync();
+
+        await using var comando = conexion.CreateCommand();
+        comando.CommandText = "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_stat1';";
+        var count = Convert.ToInt64(await comando.ExecuteScalarAsync());
+        Assert.Equal(1L, count);
+    }
+
+
     private static async Task<string> LeerPragmaAsync(SqliteConnection conexion, string pragma)
     {
         await using var comando = conexion.CreateCommand();

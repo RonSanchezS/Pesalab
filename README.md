@@ -182,4 +182,39 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
   - **Pestaña "JSON":** visualización técnica completa del estado anterior y posterior en texto monoespaciado.
   - **Seguridad y privacidad:** los intentos de inicio de sesión fallidos sin usuario reconocido se enmascaran automáticamente (`EntidadId = "***"`).
 
+## Reportes
 
+- **Acceso y permisos:**
+  - Menú **Reportes › Reportes de pesaje** (abre por defecto "Pesajes del día") y **Reportes › Boletas anuladas**.
+  - Requiere permiso `VerReportes` (disponible para Supervisor y Administrador; el menú permanece oculto para Operadores).
+- **Tipos de reporte:**
+  1. **Pesajes del día:** pesajes vigentes del día seleccionado (fecha desde y hasta sincronizadas).
+  2. **Pesajes entre fechas:** pesajes vigentes dentro de un rango de fechas arbitrario.
+  3. **Pesajes por ganadero:** pesajes vigentes filtrados por un ganadero específico dentro de un rango de fechas.
+  4. **Pesajes por cliente:** pesajes vigentes filtrados por un cliente específico dentro de un rango de fechas.
+  5. **Boletas anuladas:** boletas anuladas emitidas dentro del rango de fechas, con fecha/hora de anulación, usuario responsable y motivo completo de anulación.
+- **Logotipo de la empresa:**
+  - Utiliza el mismo logo configurado en **Administración › Parámetros del sistema**.
+  - Si no hay logo configurado o el archivo de imagen no está disponible, el reporte se genera normalmente omitiendo el recuadro del logo, y la pantalla informa al usuario que el reporte saldrá sin logo.
+- **Boletas incluidas y regla de cómputo de reses:**
+  - Los 4 reportes de pesaje procesan exclusivamente boletas en estado **Vigente**; las boletas anuladas se excluyen estrictamente de los totales y del listado.
+  - El reporte de **Boletas anuladas** procesa únicamente boletas en estado **Anulado**.
+  - **Regla de reses:** cada res completa computa como `1,0` y cada media res computa como `0,5` reses.
+  - **Pesos decimales:** formateados con 1 decimal y coma (`#,##0.0`) bajo cultura boliviana (`es-BO`).
+- **Boletas con peso simulado:**
+  - Si se emitieron boletas bajo modo simulador (por un Administrador), se incluyen en el reporte identificadas con un asterisco `*` en el número de boleta y una nota de advertencia al pie: `(*) n boleta(s) con peso SIMULADO — sin valor comercial.`
+- **Límites de protección operativa:**
+  - **Máximo de consulta:** hasta 20.000 boletas por reporte. Si se supera el límite, el sistema rechaza la consulta solicitando acotar el rango de fechas.
+  - **Grilla en pantalla:** presenta las primeras 1.000 boletas para preservar la fluidez de la interfaz; los totales de la cabecera y pie reflejan la totalidad de las boletas.
+  - **Impresión directa:** limitada a reportes de hasta 2.000 boletas. Para volúmenes mayores, se recomienda exportar a PDF e imprimir desde el lector externo.
+- **Exportación a PDF y Excel:**
+  - Botones "Exportar PDF..." y "Exportar Excel..." con cuadro de diálogo estándar para seleccionar la ruta y nombre de guardado.
+  - Tras guardar exitosamente, el sistema consulta al usuario si desea abrir inmediatamente el archivo generado con la aplicación predeterminada del sistema.
+  - El PDF replica el diseño y proporciones del formato original en orientación vertical mediante QuestPDF.
+  - El Excel genera celdas numéricas y fechas reales con formato nativo mediante ClosedXML, sin fórmulas y listo para análisis o autosuma.
+  - El archivo exportado corresponde exactamente a la instantánea del reporte que se visualiza en la pantalla.
+- **Vista previa e impresión física:**
+  - Botón "Vista previa" con visor integrado de páginas del reporte a escala proporcional.
+  - Botón "Imprimir..." que abre el diálogo de selección de impresora de Windows e imprime las páginas en orientación vertical.
+- **Invalidación reactiva:**
+  - Cualquier modificación en los filtros (tipo de reporte, fechas, ganadero o cliente) invalida y limpia inmediatamente el reporte previo y deshabilita los botones de exportación e impresión, exigiendo presionar "Generar" para actualizar la información.

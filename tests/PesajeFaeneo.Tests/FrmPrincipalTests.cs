@@ -602,7 +602,7 @@ public class FrmPrincipalTests
     }
 
     [Fact]
-    public void FrmPrincipal_ReportesYUtilitarios_PermanecenDeshabilitadosPorFaseFutura()
+    public void FrmPrincipal_Utilitarios_PermanecenDeshabilitadosPorFaseFutura()
     {
         HiloSta.Ejecutar(() =>
         {
@@ -615,19 +615,10 @@ public class FrmPrincipalTests
             sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
             using var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza);
 
-            ToolStripMenuItem? mnuReportes = null;
             ToolStripMenuItem? mnuUtilitarios = null;
             foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
             {
-                if (item.Text?.Contains("Reportes") == true) mnuReportes = item;
                 if (item.Text?.Contains("Utilitarios") == true) mnuUtilitarios = item;
-            }
-
-            Assert.NotNull(mnuReportes);
-            Assert.True(mnuReportes.Available);
-            foreach (ToolStripItem sub in mnuReportes.DropDownItems)
-            {
-                Assert.False(sub.Enabled);
             }
 
             Assert.NotNull(mnuUtilitarios);
@@ -635,6 +626,86 @@ public class FrmPrincipalTests
             foreach (ToolStripItem sub in mnuUtilitarios.DropDownItems)
             {
                 Assert.False(sub.Enabled);
+            }
+        });
+    }
+
+    [Fact]
+    public void FrmPrincipal_Reportes_DisponiblesYHabilitadosParaSupervisorYAdministrador_NoDisponiblesParaOperador()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var formFactory = new FalsaFormFactory();
+            var tiempo = TimeProvider.System;
+            var paramService = new FalsoServicioParametros();
+            var balanza = new ServicioBalanzaFalso();
+
+            (ToolStripMenuItem? Pesajes, ToolStripMenuItem? Anuladas, ToolStripMenuItem? Menu) ObtenerItemsReportes(FrmPrincipal p)
+            {
+                ToolStripMenuItem? mnuRep = null;
+                ToolStripMenuItem? itmPes = null;
+                ToolStripMenuItem? itmAnu = null;
+                foreach (ToolStripMenuItem item in p.MenuPrincipal.Items)
+                {
+                    if (item.Text?.Contains("Reportes") == true)
+                    {
+                        mnuRep = item;
+                        foreach (ToolStripItem sub in item.DropDownItems)
+                        {
+                            if (sub.Text?.Contains("Reportes de pesaje") == true) itmPes = (ToolStripMenuItem)sub;
+                            if (sub.Text?.Contains("anuladas") == true) itmAnu = (ToolStripMenuItem)sub;
+                        }
+                    }
+                }
+                return (itmPes, itmAnu, mnuRep);
+            }
+
+            // 1. Administrador: disponibles, habilitados y sin tooltip de fase futura
+            var sesionAdmin = new SesionActual();
+            sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
+            using (var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza))
+            {
+                var (itemPesajes, itemAnuladas, mnuReportes) = ObtenerItemsReportes(principal);
+                Assert.NotNull(mnuReportes);
+                Assert.True(mnuReportes.Available);
+
+                Assert.NotNull(itemPesajes);
+                Assert.True(itemPesajes.Available);
+                Assert.True(itemPesajes.Enabled);
+                Assert.Empty(itemPesajes.ToolTipText ?? "");
+
+                Assert.NotNull(itemAnuladas);
+                Assert.True(itemAnuladas.Available);
+                Assert.True(itemAnuladas.Enabled);
+                Assert.Empty(itemAnuladas.ToolTipText ?? "");
+            }
+
+            // 2. Supervisor: disponibles y habilitados
+            var sesionSup = new SesionActual();
+            sesionSup.Iniciar(new UsuarioSesion(2, "sup", "Supervisor", Rol.Supervisor, false));
+            using (var principal = new FrmPrincipal(sesionSup, formFactory, tiempo, paramService, balanza))
+            {
+                var (itemPesajes, itemAnuladas, mnuReportes) = ObtenerItemsReportes(principal);
+                Assert.NotNull(mnuReportes);
+                Assert.True(mnuReportes.Available);
+
+                Assert.NotNull(itemPesajes);
+                Assert.True(itemPesajes.Available);
+                Assert.True(itemPesajes.Enabled);
+
+                Assert.NotNull(itemAnuladas);
+                Assert.True(itemAnuladas.Available);
+                Assert.True(itemAnuladas.Enabled);
+            }
+
+            // 3. Operador: menú Reportes no disponible
+            var sesionOp = new SesionActual();
+            sesionOp.Iniciar(new UsuarioSesion(3, "op", "Operador", Rol.Operador, false));
+            using (var principal = new FrmPrincipal(sesionOp, formFactory, tiempo, paramService, balanza))
+            {
+                var (_, _, mnuReportes) = ObtenerItemsReportes(principal);
+                Assert.NotNull(mnuReportes);
+                Assert.False(mnuReportes.Available);
             }
         });
     }

@@ -39,4 +39,9 @@ public interface IPesajeRepositorio
     /// Sin tracking; Include Ganadero y Cliente; orden NumeroBoleta descendente; Take(maximo).
     /// </summary>
     Task<IReadOnlyList<Pesaje>> BuscarAsync(CriteriosBusquedaPesaje criterios, int maximo, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sin tracking; Include Ganadero, Cliente y AnuladoPor; orden FechaHora y NumeroBoleta ascendentes; Take(maximo).
+    /// </summary>
+    Task<IReadOnlyList<Pesaje>> ListarParaReporteAsync(CriteriosReporte criterios, int maximo, CancellationToken cancellationToken = default);
 }

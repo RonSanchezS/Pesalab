@@ -111,4 +111,42 @@ public class LayoutFormulariosTests
             Assert.Equal("dd/MM/yyyy", DisenoFiltros.FormatoFecha);
         });
     }
+
+    private static PesajeFaeneo.WinForms.Formularios.Reportes.FrmReportes CrearReportes(PesajeFaeneo.Tests.Utilidades.Reportes.ServicioReportesFalso? servicio = null)
+    {
+        var s = servicio ?? new PesajeFaeneo.Tests.Utilidades.Reportes.ServicioReportesFalso();
+        var p = new PesajeFaeneo.Tests.Utilidades.Reportes.GeneradorPdfReportesFalso();
+        var e = new PesajeFaeneo.Tests.Utilidades.Reportes.GeneradorExcelReportesFalso();
+        return new PesajeFaeneo.WinForms.Formularios.Reportes.FrmReportes(s, p, e, Reloj());
+    }
+
+    [Fact]
+    public void Reportes_AntesDeGenerar_SinTextosCortados_NiConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            using var form = CrearReportes();
+            form.Show();
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
+
+    [Fact]
+    public void Reportes_DespuesDeGenerar_SinTextosCortados_NiConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new PesajeFaeneo.Tests.Utilidades.Reportes.ServicioReportesFalso
+            {
+                Resultado = PesajeFaeneo.Tests.Utilidades.Reportes.DatosReporteDePrueba.Crear(PesajeFaeneo.Application.Reportes.Dtos.TipoReporte.PesajesEntreFechas, 5)
+            };
+            using var form = CrearReportes(servicio);
+            form.Show();
+            form.GenerarParaTestAsync().GetAwaiter().GetResult();
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
 }

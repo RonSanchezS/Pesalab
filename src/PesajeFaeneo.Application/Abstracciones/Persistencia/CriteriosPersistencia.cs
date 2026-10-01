@@ -17,3 +17,10 @@ public sealed record CriteriosAuditoria(
     AccionAuditoria? Accion,
     int? UsuarioId,
     string? EntidadId);
+
+public sealed record CriteriosReporte(
+    DateTime DesdeUtc,                // inclusivo
+    DateTime HastaUtc,                // EXCLUSIVO
+    EstadoPesaje Estado,
+    int? GanaderoId,
+    int? ClienteId);

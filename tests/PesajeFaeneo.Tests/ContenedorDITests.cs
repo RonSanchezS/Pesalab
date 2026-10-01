@@ -85,6 +85,11 @@ public class ContenedorDITests
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Pesajes.IServicioGestionPesajes>());
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Auditoria.IServicioAuditoria>());
 
+            // F7: Servicios de reportes
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Reportes.IServicioReportes>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Reportes.IGeneradorPdfReportes>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Reportes.IGeneradorExcelReportes>());
+
             using (var scope = proveedor.CreateScope())
             {
                 Assert.NotNull(scope.ServiceProvider.GetService<IDatabaseInitializer>());
@@ -162,6 +167,10 @@ public class ContenedorDITests
 
                 using var frmVisorAuditoria = formFactory.Crear<FrmVisorAuditoria>();
                 Assert.NotNull(frmVisorAuditoria);
+
+                // F7: Formulario de reportes
+                using var frmReportes = formFactory.Crear<PesajeFaeneo.WinForms.Formularios.Reportes.FrmReportes>();
+                Assert.NotNull(frmReportes);
             });
         }
         finally

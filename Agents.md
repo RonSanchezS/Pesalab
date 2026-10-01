@@ -35,8 +35,8 @@ flowchart TD
 | **F4** | **Registro de pesaje** | ✅ Completado | 7 | 7 | 2026-09-27 |
 | **F5** | **Boleta de pesaje** | ✅ Completado | 6 | 6 | 2026-09-28 |
 | **F6** | **Edición, anulación y auditoría** | ✅ Completado | 5 | 5 | 2026-09-30 |
-| **F7** | **Reportes** | ⏳ Siguiente en turno | 0 | 6 | — |
-| **F8** | **Utilitarios** | ⏳ Pendiente | 0 | 6 | — |
+| **F7** | **Reportes** | ✅ Completado | 6 | 6 | 2026-10-01 |
+| **F8** | **Utilitarios** | ⏳ Siguiente en turno | 0 | 6 | — |
 | **F9** | **Empaquetado, instalador y puesta en marcha** | ⏳ Pendiente | 0 | 6 | — |
 
 ---
@@ -101,13 +101,13 @@ flowchart TD
 - [x] **HU-F6-04:** Auditoría con diff antes/después en JSON
 - [x] **HU-F6-05:** Visor de auditoría
 
-### [ ] Fase F7 — Reportes
-- [ ] **HU-F7-01:** Servicio común de reportes y regla de totales (Media res = 0.5)
-- [ ] **HU-F7-02:** Índices y rendimiento de consultas
-- [ ] **HU-F7-03:** Pantalla de filtros común y vista previa
-- [ ] **HU-F7-04:** Exportación a PDF con formato original (QuestPDF)
-- [ ] **HU-F7-05:** Exportación a Excel e impresión
-- [ ] **HU-F7-06:** Reporte de boletas anuladas
+### [x] Fase F7 — Reportes (COMPLETADA)
+- [x] **HU-F7-01:** Servicio común de reportes y regla de totales (Media res = 0.5)
+- [x] **HU-F7-02:** Índices y rendimiento de consultas
+- [x] **HU-F7-03:** Pantalla de filtros común y vista previa
+- [x] **HU-F7-04:** Exportación a PDF con formato original (QuestPDF)
+- [x] **HU-F7-05:** Exportación a Excel e impresión
+- [x] **HU-F7-06:** Reporte de boletas anuladas
 
 ### [ ] Fase F8 — Utilitarios
 - [ ] **HU-F8-01:** Backup manual consistente (SqliteBackupService)
@@ -158,6 +158,7 @@ flowchart TD
 - **Registro de pesaje y captura (F4):** reglas puras en `Domain/Reglas/ReglasPesaje` con redondeo decimal AwayFromZero a 1 decimal (0,1 kg), tolerancia total de +/- 0,1 kg, límites estrictos por lado (10,0 a 600,0 kg) y totales según tipo de desposte (`ResCompleta` 10,0 a 1200,0 kg; `MediaRes` 10,0 a 600,0 kg). Numeración atómica garantizada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING SiguienteNumeroBoleta - 1` mediante `SqlQuery<long>(...).ToListAsync()` como primera sentencia dentro de una transacción explícita (`ITransaccion`), precedida por validación de ganadero y cliente en BD. Grabado atómico de `Pesaje` y `Auditoria` en la misma transacción (`PesajeAuditoria` con snapshot sanitizado). Captura desacoplada en `ControlCapturas`: únicamente cuando la balanza es capturable (`EsCapturable(ahora)` dentro de `TimeoutMs`), peso dentro de rango y exigencia obligatoria de retorno a cero (peso <= 2 kg) entre el primer y segundo lado en res completa para evitar pesajes accidentales del mismo lado. Política de simulador estricta: solo usuarios con permiso `ConfigurarBalanza` (Administrador) pueden capturar o grabar pesos simulados; para Operadores se deshabilitan las capturas y se oculta el panel de control del simulador. `RangoDiaLocal` calcula los límites del día local y los proyecta a UTC para la sugerencia de secuencias y consultas del día. Sugerencia de secuencia asíncrona fuera de `EjecutarAsync` con token de versión (`_versionSugerencia`) para descartar respuestas tardías. Teclado y navegación en `FrmPesaje` gobernados por `ProcessCmdKey` estricto (F5, F6, F8, F12, Escape, Enter con descenso en `ContainerControl` mediante `ControlEnfocado()`) y botones con `TabStop = false`. Hook `OnPesajeGrabado(PesajeRegistrado r)` preparado como punto de extensión para la impresión automática de boletas en F5-04.
 - **Boleta e impresión (F5):** modelo y diseño puros en `Application/Boletas` (coordenadas en mm, cultura fija `es-BO`, sin dependencia de `System.Drawing`); pintor GDI+ con `Graphics.DrawString` sobre `DocumentoBoleta` (`StandardPrintController`, `OriginAtMargins = false`, compensación de `HardMargin` solo al imprimir, copias como páginas físicas independientes para soporte de térmicas/matriciales y leyenda ORIGINAL/COPIA, contador de copias reiniciado en `OnBeginPrint`); configuración por equipo en `config\impresion.json` (atómica, validada, atada a `MachineName`); auditoría `Imprimir`/`Reimprimir` tras `Print()`; detección de reimpresión por conteo en auditoría con leyenda obligatoria "REIMPRESIÓN n — {fecha}"; impresión automática en bloque secuencial tras el grabado; acceso F9 en `FrmPesaje` y F3 en shell principal.
 - **Gestión de boletas y auditoría (F6):** token de concurrencia `Pesaje.Version` (entero mapeado con `IsConcurrencyToken`) gestionado automáticamente en `PesajeDbContext.SaveChangesAsync` (incremento `OriginalValue + 1` en cada modificación); migración `F6_VersionPesaje` vía `AddColumn` simple con valor por defecto 1 sin reconstrucción de tabla; servicios desacoplados `IServicioGestionPesajes` e `IServicioAuditoria` bajo permisos de autorización por rol (`EditarBoleta`, `AnularBoleta`, `VerAuditoria`); edición de boletas limitada estrictamente a atributos descriptivos (ganadero, secuencia, cliente, dirección, color/raza, sexo, observación) manteniendo inalterables los pesos y el tipo de desposte por integridad física; anulación irreversible con motivo obligatorio de 5 a 100 caracteres; persistencia atómica en una única llamada a `GuardarCambiosAsync` por operación incluyendo entidad y auditoría; edición sin modificaciones descartada sin auditar; snapshot de `Pesaje` enriquecido con datos desnormalizados (`PesajeAuditoria`) para trazabilidad histórica íntegra; motor de diferencias en memoria `DiferenciasAuditoria.Calcular` que proyecta marcas de tiempo a hora local y resalta modificaciones; enmascaramiento de `LoginFallido` sin usuario registrado (`EntidadId = "***"`); leyenda de anulación recortada a 30 caracteres con tamaño de fuente adaptativo en media carta; buscador de boletas `FrmBuscarBoletas` con combinación AND de filtros, tope de 200 filas, selección persistente, atajos F4/F8 y Enter contextual en grilla; visor de auditoría `FrmVisorAuditoria` de solo lectura con tope de 500 registros y tabs de cambios visuales y JSON.
+- **Reportes (F7):** servicio desacoplado `IServicioReportes` bajo permiso `VerReportes` (autorizado para Supervisor y Administrador, solo lectura); 5 tipos de reporte (pesajes del día, entre fechas, por ganadero, por cliente, boletas anuladas; D1); separación estricta entre boletas vigentes y anuladas (D2); regla pura de cómputo de reses en `ReglasReportes.Reses` (res completa = 1, media res = 0,5) con cálculo de totales en memoria sobre variables `decimal` exactas a 0,1 kg sin funciones de agregación SQL (D3); inclusión de boletas con peso simulado marcadas con asterisco y nota de advertencia al pie (D4); límites de procesamiento y presentación: máximo de 20 000 boletas consultables (con mensaje de reducción de rango si se supera), 1 000 filas visibles en grilla UI y 2 000 boletas máximas para renderizado e impresión directa en memoria (D7); definición declarativa de columnas en `ColumnasReporte` (D6); exportación a PDF fiel al legado mediante QuestPDF con licencia comunitaria en constructores estáticos de `DisenoPdfReporte` y `CargadorLogoReporte`, y logo del sistema precargado y validado una sola vez (tolerancia a ausencia o archivo dañado con aviso en log/pantalla sin interrumpir el reporte; D10); formato de pesos decimales con coma (`#,##0.0`, D11); exportación a Excel mediante ClosedXML con valores numéricos y fechas reales sin fórmulas (D13); impresión física y vista previa basadas en rasterizado de páginas PDF a PNG en memoria proyectadas sobre `DocumentoPaginasReporte` con `FrmVistaPrevia` y escalado proporcional centrado (D14); instantánea inmutable desacoplada e invalidación inmediata de vista y acciones al cambiar filtros en UI (D15); optimización del planificador SQLite con `ANALYZE` en `DatabaseInitializer` sin migraciones de esquema ni índices nuevos (D16); aislamiento de dependencias de QuestPDF y ClosedXML exclusivamente en `PesajeFaeneo.Infrastructure.Reportes` verificado por `ArquitecturaTests` (regla 0.5).
 
 ### Notas hacia fases futuras (registradas en las revisiones post-F0, post-F2, post-F3, post-F4, post-F5 y post-F6)
 - **F4-02 / F6 (R6) — resuelto en F4:** numeración atómica implementada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` en `SqlQuery<long>`.
@@ -165,7 +166,7 @@ flowchart TD
 - **F4-07 (R9) — resuelto en F4:** altas rápidas desde la pantalla de pesaje implementadas con `CrearRapidoAsync` en catálogos bajo permiso `AltaRapidaCatalogos` (Operador).
 - **F4 / F5 (R14) — resuelto en F5:** política de simulador en producción: bloqueada la captura y grabado para operadores/supervisores (permitida solo a administradores), grilla y auditoría marcan origen "SIMULADO". En F5, leyenda "PESO SIMULADO — SIN VALOR COMERCIAL" y marca de agua impresa en la boleta si `Origen == Simulador`.
 - **F5-04 (R15) — resuelto en F5:** impresión automática de la boleta de pesaje enganchada en `FrmPesaje` en bloque secuencial propio tras el grabado atómico.
-- **F5 / F8 (R10) — parcialmente resuelto en F5:** la impresión en F5 tolera la ausencia o ilegibilidad del logo sin fallar (cargador de logo seguro con copia a Bitmap). En F8, incluir el directorio de logos en los respaldos y restauraciones.
+- **F5 / F8 (R10) — actualizado en F7:** la tolerancia a logo ausente o dañado se extiende a los reportes (PDF y Excel). En F8, incluir el directorio de logos (`AppPaths.LogoDir`) en los respaldos y restauraciones.
 - **F5 / F8 (R14):** respaldo de configuración de impresión: si se restaura en otra PC con diferente `NombreEquipo`, el archivo se ignora y se usan valores por defecto; F8 debe evaluar si excluir la carpeta `config` de los respaldos.
 - **F5-Futuro (R29) — parcialmente resuelto en la remediación post-prueba de F6:** la media carta ya replica el bloque inferior de la guía legada (firma Jefe de Despacho | fleteros F1..F4 con casilla y "Otros" | firma Médico Veterinario). Pendiente confirmar con el cliente el título ("BOLETA DE PESAJE" vs. "GUÍA DE REMISIÓN CARNE BOVINA") y si hay formulario preimpreso.
 - **F5-Futuro (R29, original):** formato real de la boleta de faeneo (posible formulario preimpreso o papel continuo matricial); requerir boleta escaneada al cliente para ajustar coordenadas si es necesario.
@@ -178,12 +179,20 @@ flowchart TD
 - **F6 / F5 (R5):** la reimpresión de una boleta anulada estampa la leyenda indeleble y marca de agua "ANULADA" junto a su motivo, registrándose normalmente la auditoría de Reimprimir.
 - **F6 / F4 (R6):** la anulación de boletas se gestiona exclusivamente desde el buscador de boletas (F6) por usuarios autorizados (Supervisor o Administrador); se descartó un botón de anulación en la pantalla de pesaje para evitar errores operativos del operador.
 - **F6 / F8 (R10):** el respaldo y restauración en F8 debe conservar la columna `Version` del pesaje; una base de datos restaurada conserva su integridad de concurrencia optimista.
-- **F6 (R13):** la anulación de una boleta no libera ni reutiliza su número correlativo; la secuencia permanece monótona y sin reutilizaciones para trazabilidad fiscal.
+- **F6 (R13) — verificado en F7:** la anulación de una boleta no libera ni reutiliza su número correlativo; la secuencia permanece monótona y sin reutilizaciones para trazabilidad fiscal. La búsqueda sin filtros utiliza el índice único de número de boleta con LIMIT de forma óptima.
 - **F6 / F7 (R16):** las búsquedas multicriterio se benefician de los índices compuestos creados en F4 y optimizados en D23 para SQLite / EF Core.
 - **F6 / F8 (R17):** el visor de auditoría es estrictamente de solo lectura sin exportación en F6; cualquier exportación masiva se evaluará en las herramientas de utilitarios (F8).
-- **F7 (Nota de reportes):** los reportes de faeneo deben excluir boletas con `Estado = Anulado` de los totales de peso y cabezas; el reporte específico de anuladas consultará `MotivoAnulacion`, `AnuladoPorId` y `AnuladoEn`.
+- **F7 (R3) — resuelto en F7:** los reportes de pesaje excluyen boletas anuladas de los totales de peso y cabezas; el reporte específico de anuladas (`TipoReporte.Anuladas`) consolida `MotivoAnulacion`, `AnuladoPor` y `AnuladoEnLocal`.
+- **F7 / QuestPDF (R15) — resuelto en F7:** QuestPDF 2024.x tiene configurada la licencia comunitaria `LicenseType.Community` en los constructores estáticos de `DisenoPdfReporte` y `CargadorLogoReporte`.
+- **F7 / F8 (R4, R5):** un respaldo de base de datos en F8 incluye la tabla `sqlite_stat1`; tras restaurar, el siguiente arranque recalcula estadísticas si se ejecuta `ANALYZE`.
+- **F7 / F9 (R40):** la publicación self-contained debe incluir la librería nativa de QuestPDF (`runtimes/win-x64/native`); verificar que el instalador Inno Setup la copie en el directorio de salida.
+- **F7-Abierto (P1):** cantidad de reses suma media res como 0,5 (según HU-F7-01); confirmar con el cliente si el sistema legado mostraba enteros por truncamiento o regla distinta.
+- **F7-Abierto (P2):** boletas de peso simulado incluidas con marca `*` y nota informativa al pie en reportes comerciales; evaluar exclusión estricta si el cliente lo requiere.
+- **F7-Abierto (P3):** filtro de boletas anuladas por fecha de emisión de la boleta; evaluar si se requiere filtro por fecha de anulación efectiva (`AnuladoEn`).
+- **F7-Abierto (P4):** exportación e impresión registradas en log `Information` (sin rastro en tabla `Auditorias`); evaluar creación de acción de auditoría si se exige trazabilidad formal.
+- **F7-Abierto (P6):** fidelidad estética: diseño reproduce cabecera, columnas, recuadro y totales del legado; evaluar ajuste fino de bordes verticales o reportes adicionales de resumen diario.
+- **F7-Abierto (P7):** HU-F7-02 satisfecha con optimización estadística `ANALYZE` y tests de plan de consulta `PlanConsultasReportesTests`; no se crearon índices nuevos al constatarse que los existentes cubren los planes de acceso de forma óptima.
 - **F8 (Nota de backup):** el motor de backup (`SqliteBackupService`) preserva el token de concurrencia `Version` sin alteración.
-- **F7:** QuestPDF 2024.x exige `QuestPDF.Settings.License = LicenseType.Community` al iniciar.
 - **F9-04 (R11):** `ConfiguracionInicialCompleta` permanece en `false` tras guardar parámetros en F2. El asistente de primer arranque en F9-04 debe decidir si marcarla o si detecta el nombre de empresa distinto del valor por defecto.
 - **F9-06 (R21):** la guía de balanza debe documentar cómo fijar el número de puerto COM estático en el Administrador de dispositivos de Windows para adaptadores USB-serie.
 - **F9:** el instalador debe dar permisos de Modificar a `Users` sobre `%ProgramData%\PesajeFaeneo` (por defecto, archivos creados por un admin son de solo lectura para usuarios estándar → la app no podría escribir la BD). Revisar si el mutex `Global\` (bloquea a un segundo usuario de Windows en otra sesión) es el comportamiento deseado.
@@ -420,4 +429,54 @@ flowchart TD
 - **Verificación manual al 125 %:** capturas de pesaje, buscador, visor, reimpresión, vista previa, catálogos, usuarios, parámetros, balanza, impresión, cambio de contraseña, alta rápida y login, sin textos cortados.
 - **Fuera de alcance (anotado):** anchos fijos de columnas en las grillas del buscador y de usuarios (el texto largo se abrevia con "…"); pesos con punto decimal en la pantalla de pesaje (`109.0`) frente a la coma de la boleta (`109,0`).
 
+### Fase F7 — Reportes
+- **Fecha:** 2026-10-01
+- **Estado:** ✅ Completado con éxito (6/6 HUs).
+- **Compilación:** `dotnet build src/PesajeFaeneo.sln -c Release` con 0 warnings y 0 errores (`TreatWarningsAsErrors=true`).
+- **Pruebas:** 1159 tests unitarios y de integración ejecutados y en verde (0 fallos, 0 omitidos; incremento de 993 a 1159 tests, +166 tests nuevos). El informe original decía 1161 / +168: esos 2 tests eran de una medición de rendimiento temporal que no se conservó en el árbol. Ver "Fase F7 — Remediación post-revisión" para la cifra final.
+- **Base de datos:** Sin migraciones de esquema (`has-pending-model-changes` limpio, carpeta `Migraciones/` intacta). Optimización del optimizador SQLite mediante `ANALYZE` y `sqlite_stat1` en `DatabaseInitializer`.
+- **Decisiones de diseño aplicadas (D1–D21):**
+  - D1: 5 tipos de reportes consolidados en un único servicio y pantalla unificada (`TipoReporte`).
+  - D2: Separación rigurosa de boletas vigentes (reportes de pesaje) y anuladas (reporte exclusivo de anuladas).
+  - D3: Regla de cómputo de reses pura (`ResCompleta` = 1, `MediaRes` = 0,5) y sumatoria en memoria con `decimal`.
+  - D4: Inclusión de boletas con peso simulado con marca `*` y advertencia al pie de página.
+  - D5: Ordenamiento determinista por `FechaHora` ascendente y desempate por `NumeroBoleta`.
+  - D6: Especificación declarativa de columnas (`ColumnasReporte`) compartida entre PDF, Excel y grilla UI.
+  - D7: Límites estrictos de protección: 20 000 boletas consultables, 1 000 visibles en grilla, 2 000 para impresión directa.
+  - D8: Fechas Desde/Hasta obligatorias (sin casilla), días locales y `Desde > Hasta` inválido; en "Pesajes del día" solo cuenta `Desde` (Hasta se deshabilita y sigue a Desde).
+  - D9: Trazabilidad de exportaciones e impresiones mediante logging estructurado en Serilog.
+  - D10: Carga y validación robusta de logotipo corporativo una sola vez por documento; tolerancia a imagen ausente o corrupta.
+  - D11: Formateo de pesos a 1 decimal con coma (`#,##0.0`) y cultura fija `es-BO`.
+  - D12: Exportación a PDF fiel al diseño del sistema legado utilizando QuestPDF con licencia comunitaria.
+  - D13: Exportación a Excel mediante ClosedXML con formato nativo de celdas, sin fórmulas ejecutables y con hoja nombrada.
+  - D14: Impresión y vista previa integradas mediante renderizado PDF a PNG en memoria sobre `DocumentoPaginasReporte` y `FrmVistaPrevia`.
+  - D15: Modelo de invalidación reactiva: cambio en cualquier filtro invalida instantáneamente el reporte cargado en pantalla.
+  - D16: Rendimiento de consultas validado con planes de acceso `EXPLAIN QUERY PLAN` y estadísticas `ANALYZE`.
+  - D17: Las listas de ganaderos y clientes del filtro salen del servicio de reportes e incluyen inactivos (historial).
+  - D18: Apertura predeterminada en "Pesajes del día" desde el menú principal.
+  - D19: El PDF/Excel se genera en memoria y luego se escribe al archivo elegido en un `SaveFileDialog`; los errores de E/S son advertencias, no errores inesperados, y tras guardar se ofrece abrir el archivo (cada diálogo y `Process.Start` tras un envoltorio con gancho `...ParaTest`).
+  - D20: Aislamiento de exportaciones pesadas en hilos secundarios vía `Task.Run` protegiendo la capacidad de respuesta de la UI.
+  - D21: Fuera de alcance: exportar el visor de auditoría, resúmenes agrupados, gráficos, CSV, correo, reportes programados, auditoría de exportaciones (P4) y un logo distinto del de la boleta. (La regla de capas —QuestPDF/ClosedXML solo en `Infrastructure/Reportes`— es la regla 0.5, verificada por `ArquitecturaTests`.)
+- **Mediciones (11.3, equipo de desarrollo):** totales de 20 000 filas 1 ms; PDF de 20 000 filas 5,89 s (4,2 MB); Excel de 20 000 filas 2,58 s (1,3 MB); páginas de 2 000 filas a 200 ppp 9,78 s (71 páginas).
+- **Desviaciones:** el informe original declaraba "Ninguna", pero había un `Thread.Sleep` prohibido por la compuerta E.4, BOM UTF-8 en 44 archivos contra `.editorconfig` (`charset = utf-8`) y cifras de tests/duración inexactas. Todo corregido en la remediación siguiente.
+- **Siguiente paso:** Fase F8 — Utilitarios.
 
+### Fase F7 — Remediación post-revisión
+- **Fecha:** 2026-10-01
+- **Origen:** revisión QA senior del informe final de F7 contra `docs/plans/F7-reportes.md`, con tres revisiones de capa independientes (Application/Persistencia, Infrastructure, WinForms) y verificación de cada hallazgo leyendo el código. Cambios sin commit, preparados en `feat/f7-reportes`.
+- **Defectos de código corregidos:**
+  - **Logo truncado pasaba la validación (alta, R62):** `QuestPDF.Image.FromBinaryData` decodifica de forma diferida y ClosedXML solo mira la cabecera, así que un logo cortado después de ella (a la mitad, o sin sus últimos bytes) entraba al PDF/Excel como imagen rota; el test original solo cubría un corte de 40 bytes. `CargadorLogoReporte.EstaCompleto` verifica ahora la integridad estructural: PNG (recorre todos los bloques con su CRC hasta `IEND`), JPEG (marcador EOI al final, tolerando ceros de relleno) y BMP (tamaño declarado ≤ tamaño del archivo). El logo real de Pesalab sigue aceptándose. Además, `FileInfo.Length` quedó dentro del `try` (el archivo podía desaparecer entre `File.Exists` y la lectura y abortar el reporte).
+  - **Botones de exportar/imprimir re-habilitados sin reporte (media, R54):** `FormBase.EjecutarAsync` restaura el `Enabled` previo del botón al terminar; si un filtro cambiaba durante la generación, `btnPdf`/`btnVistaPrevia`/`btnImprimir` volvían a quedar habilitados con `ReporteActual == null`. `FrmReportes` llama a `ActualizarAcciones()` tras cada `EjecutarAsync` de esas acciones.
+  - **Aviso "Los filtros cambiaron…" perdido (baja):** al cambiar el tipo a "Pesajes del día" con Hasta ≠ Desde, la sincronización interna de `dtpHasta` invalidaba primero y el cambio de tipo invalidaba otra vez con el reporte ya nulo, borrando el aviso. La sincronización interna ya no cuenta como cambio de filtro.
+  - **Exportación concurrente silenciosa (media, regla 0.10):** con un PDF en curso, pulsar "Exportar Excel" abría el `SaveFileDialog` y luego el `EjecutarAsync` se descartaba en silencio (FormBase ocupado): el usuario creía haber guardado un archivo inexistente. Bandera `_accionEnCurso` en exportar/vista previa/imprimir.
+  - **Error de validación tardío (baja, R28):** la respuesta de una generación ya invalidada pintaba iconos de error y robaba el foco sobre los filtros nuevos; ahora se descarta antes de mostrarla.
+  - **Advertencia de E/S dentro de `EjecutarAsync` (baja, regla 0.10):** el `MessageBox` se muestra ahora fuera; el filtro de excepciones de escritura cubre también `NotSupportedException` y `SecurityException`.
+  - **Compuerta E.4:** `Thread.Sleep(10)` en `CompletarBombeando` → `Thread.Yield()`. 44 archivos con BOM → sin BOM (los 3 que ya lo tenían en HEAD lo conservan). Líneas en blanco sobrantes.
+- **Pruebas reforzadas o añadidas** (el revisor demostró que varios aserciones pasaban igual con el código roto): servicio (filtro por ganadero/cliente con una boleta ajena en el rango, anuladas con vigente/fuera de rango/fecha de anulación distinta/hora local/fallback a `NombreUsuario`, `GeneradoEnLocal` por valor, fallback de `GeneradoPor`), `ColumnasReporte` (título, grupo, ancho y alineación por columna), `TextosReporte` (`Entero` en `en-US`, `NombreArchivo` con y sin rango), calculadora (1 000 sumas de 0,1 exactas), `FrmReportes` (error en el `ErrorProvider`, `MaximoSuperado`, totales de `Totales` con 1 500/2 500 filas, nombre y filtro sugeridos al guardar, rama "no abrir", impresora cancelada, tipo de documento, Hasta sigue a Desde, selección conservada, invalidación por tipo/ganadero/cliente, Enter fuera de la grilla), Excel (20 000 filas, caso legado 8+3, decimales y formato de fecha, 100 caracteres, fórmulas en anuladas, columna Origen, JPEG/BMP/corrupto/truncado, paneles e impresión), PDF (límites del modelo, 100 caracteres, glifos en todos los textos, logo sin advertencias, corrupto/truncado) y cargador de logo (7 cortes). Los 4 tests de regresión de `FrmReportes` se comprobaron contra el código anterior: fallan sin la corrección.
+- **Pruebas:** 1200 tests en verde, tres corridas seguidas (993 → 1200, +207). Build Release 0 warnings / 0 errores; `has-pending-model-changes` limpio; sin migraciones.
+- **Correcciones al informe original:** la cifra final real era 1159 (+166), no 1161 (+168); las corridas de la suite duran ~12–16 s, no "1 m 52 s"; el §5 de F7 describía mal D8, D17, D19 y D21 (corregidas arriba); faltaban en §5 las mediciones de 11.3.
+- **Riesgos abiertos (no se cambian límites por cuenta propia):**
+  - **F7-Abierto (memoria del PDF):** generar un PDF de 20 000 filas (el máximo de D7) alcanzó ~2,9 GB de working set en una prueba aislada (5 000 filas ≈ 0,78 GB; Excel de 20 000 ≈ 178 MB; páginas de 2 000 filas ≈ 768 MB). El tiempo es aceptable pero en una PC de 4–8 GB hay riesgo real de `OutOfMemoryException`; decidir con el cliente un tope de PDF menor, o dividir el documento.
+  - **F7-Abierto (Excel):** `AdjustToContents(6, últimaFila)` incluye los textos de la columna A (etiquetas de totales y nota de simuladas), así que "Item" queda tan ancha como la etiqueta más larga (viene de la especificación 6.3).
+  - Sin test: el clic de los ítems de menú que llaman a `AbrirReportes(tipo)` (abren un diálogo modal), el margen físico de `DocumentoPaginasReporte.OnPrintPage` y el fallo de `ANALYZE` en el arranque.
+- **Siguiente paso:** Fase F8 — Utilitarios.

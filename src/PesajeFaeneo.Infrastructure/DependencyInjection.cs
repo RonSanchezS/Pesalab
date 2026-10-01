@@ -43,6 +43,9 @@ public static class DependencyInjection
         services.AddSingleton<Application.Balanza.IFabricaLectorBalanza, Balanza.FabricaLectorBalanza>();
         services.AddSingleton<Application.Balanza.IEnumeradorPuertosSerie, Balanza.EnumeradorPuertosSerie>();
 
+        services.AddSingleton<Application.Reportes.IGeneradorPdfReportes, Reportes.GeneradorPdfReportes>();
+        services.AddSingleton<Application.Reportes.IGeneradorExcelReportes, Reportes.GeneradorExcelReportes>();
+
         services.AddSingleton(TimeProvider.System);
 
         return services;

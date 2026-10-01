@@ -60,6 +60,26 @@ public class ArquitecturaTests
             "PesajeFaeneo.WinForms");
     }
 
+    [Fact]
+    public void Application_NoReferenciaQuestPdfNiClosedXml()
+    {
+        VerificarSinReferenciasProhibidas(
+            typeof(IDatabaseInitializer).Assembly,
+            "Application",
+            "QuestPDF",
+            "ClosedXML");
+    }
+
+    [Fact]
+    public void WinForms_NoReferenciaQuestPdfNiClosedXml()
+    {
+        VerificarSinReferenciasProhibidas(
+            typeof(PesajeFaeneo.WinForms.Formularios.FrmPrincipal).Assembly,
+            "WinForms",
+            "QuestPDF",
+            "ClosedXML");
+    }
+
     private static void VerificarSinReferenciasProhibidas(
         System.Reflection.Assembly ensamblado,
         string nombreCapa,

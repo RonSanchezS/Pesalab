@@ -2,10 +2,12 @@ using System.Reflection;
 using PesajeFaeneo.Application.Parametros;
 using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Domain.Enums;
+using PesajeFaeneo.Application.Reportes.Dtos;
 using PesajeFaeneo.WinForms.Formularios.Administracion;
 using PesajeFaeneo.WinForms.Formularios.Boletas;
 using PesajeFaeneo.WinForms.Formularios.Catalogos;
 using PesajeFaeneo.WinForms.Formularios.Pesaje;
+using PesajeFaeneo.WinForms.Formularios.Reportes;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
 using PesajeFaeneo.WinForms.Infraestructura;
 using Serilog;
@@ -159,12 +161,16 @@ public partial class FrmPrincipal : FormBase
         var mnuReportes = new ToolStripMenuItem("&Reportes");
         var itemReportesPesaje = new ToolStripMenuItem("&Reportes de pesaje")
         {
-            Tag = new OpcionMenu(Permiso.VerReportes, "F7")
+            Tag = new OpcionMenu(Permiso.VerReportes, null)
         };
+        itemReportesPesaje.Click += (_, _) => AbrirReportes(TipoReporte.PesajesDelDia);
+
         var itemReportesAnuladas = new ToolStripMenuItem("Boletas &anuladas")
         {
-            Tag = new OpcionMenu(Permiso.VerReportes, "F7")
+            Tag = new OpcionMenu(Permiso.VerReportes, null)
         };
+        itemReportesAnuladas.Click += (_, _) => AbrirReportes(TipoReporte.Anuladas);
+
         mnuReportes.DropDownItems.AddRange(new ToolStripItem[] { itemReportesPesaje, itemReportesAnuladas });
 
         // 5. Administración
@@ -364,6 +370,17 @@ public partial class FrmPrincipal : FormBase
         {
             _sesion.ExigirPermiso(permiso);
             using var frm = _formFactory.Crear<FrmBuscarBoletas>();
+            frm.ShowDialog(this);
+        });
+    }
+
+    private void AbrirReportes(TipoReporte tipo)
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.VerReportes);
+            using var frm = _formFactory.Crear<FrmReportes>();
+            frm.Configurar(tipo);
             frm.ShowDialog(this);
         });
     }

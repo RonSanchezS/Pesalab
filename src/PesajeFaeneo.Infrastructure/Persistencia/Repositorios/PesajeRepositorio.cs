@@ -154,4 +154,47 @@ public class PesajeRepositorio : IPesajeRepositorio
             .Take(maximo)
             .ToListAsync(cancellationToken);
     }
+
+    // Expuesto (internal) para las pruebas del plan de consulta (HU-F7-02): deben verificar el SQL EXACTO que ejecuta
+    // ListarParaReporteAsync, no una copia escrita a mano.
+    internal IQueryable<Pesaje> ConsultaReporte(CriteriosReporte criterios, int maximo)
+    {
+        ArgumentNullException.ThrowIfNull(criterios);
+
+        var dUtc = DateTime.SpecifyKind(criterios.DesdeUtc, DateTimeKind.Utc);
+        var hUtc = DateTime.SpecifyKind(criterios.HastaUtc, DateTimeKind.Utc);
+        var estado = criterios.Estado;
+
+        IQueryable<Pesaje> q = _context.Pesajes
+            .AsNoTracking()
+            .Where(p => p.Estado == estado && p.FechaHora >= dUtc && p.FechaHora < hUtc);
+
+        if (criterios.GanaderoId is { } gid)
+        {
+            q = q.Where(p => p.GanaderoId == gid);
+        }
+
+        if (criterios.ClienteId is { } cid)
+        {
+            q = q.Where(p => p.ClienteId == cid);
+        }
+
+        return q
+            .Include(p => p.Ganadero)
+            .Include(p => p.Cliente)
+            .Include(p => p.AnuladoPor)
+            .OrderBy(p => p.FechaHora)
+            .ThenBy(p => p.NumeroBoleta)
+            .Take(maximo);
+    }
+
+    public async Task<IReadOnlyList<Pesaje>> ListarParaReporteAsync(CriteriosReporte criterios, int maximo, CancellationToken cancellationToken = default)
+    {
+        if (maximo <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximo));
+        }
+
+        return await ConsultaReporte(criterios, maximo).ToListAsync(cancellationToken);
+    }
 }
