@@ -9,6 +9,7 @@ using PesajeFaeneo.WinForms.Formularios.Catalogos;
 using PesajeFaeneo.WinForms.Formularios.Pesaje;
 using PesajeFaeneo.WinForms.Formularios.Reportes;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
+using PesajeFaeneo.WinForms.Formularios.Utilitarios;
 using PesajeFaeneo.WinForms.Infraestructura;
 using Serilog;
 
@@ -17,7 +18,8 @@ namespace PesajeFaeneo.WinForms.Formularios;
 public enum SolicitudCierreShell
 {
     SalirAplicacion,
-    CerrarSesion
+    CerrarSesion,
+    ReiniciarAplicacion
 }
 
 public partial class FrmPrincipal : FormBase
@@ -210,16 +212,22 @@ public partial class FrmPrincipal : FormBase
         var mnuUtilitarios = new ToolStripMenuItem("&Utilitarios");
         var itemBackup = new ToolStripMenuItem("&Backup / Restaurar")
         {
-            Tag = new OpcionMenu(Permiso.BackupRestore, "F8")
+            Tag = new OpcionMenu(Permiso.BackupRestore, null)
         };
+        itemBackup.Click += (_, _) => AbrirBackupRestaurar();
+
         var itemImportar = new ToolStripMenuItem("&Importar datos legados")
         {
-            Tag = new OpcionMenu(Permiso.ImportarLegado, "F8")
+            Tag = new OpcionMenu(Permiso.ImportarLegado, null)
         };
+        itemImportar.Click += (_, _) => AbrirImportarLegado();
+
         var itemLogs = new ToolStripMenuItem("Visor de &logs")
         {
-            Tag = new OpcionMenu(Permiso.GestionarParametros, "F8")
+            Tag = new OpcionMenu(Permiso.GestionarParametros, null)
         };
+        itemLogs.Click += (_, _) => AbrirVisorLogs();
+
         mnuUtilitarios.DropDownItems.AddRange(new ToolStripItem[] { itemBackup, itemImportar, itemLogs });
 
         // 7. Sesión
@@ -391,6 +399,44 @@ public partial class FrmPrincipal : FormBase
         {
             _sesion.ExigirPermiso(Permiso.VerAuditoria);
             using var frm = _formFactory.Crear<FrmVisorAuditoria>();
+            frm.ShowDialog(this);
+        });
+    }
+
+    private void AbrirBackupRestaurar()
+    {
+        var reiniciar = false;
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.BackupRestore);
+            using var frm = _formFactory.Crear<FrmBackupRestaurar>();
+            frm.ShowDialog(this);
+            reiniciar = frm.ReinicioSolicitado;
+        });
+
+        if (reiniciar)
+        {
+            Solicitud = SolicitudCierreShell.ReiniciarAplicacion;
+            Close();
+        }
+    }
+
+    private void AbrirImportarLegado()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.ImportarLegado);
+            using var frm = _formFactory.Crear<FrmImportarLegado>();
+            frm.ShowDialog(this);
+        });
+    }
+
+    private void AbrirVisorLogs()
+    {
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.GestionarParametros);
+            using var frm = _formFactory.Crear<FrmVisorLogs>();
             frm.ShowDialog(this);
         });
     }

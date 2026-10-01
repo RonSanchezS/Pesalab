@@ -218,3 +218,70 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
   - Botón "Imprimir..." que abre el diálogo de selección de impresora de Windows e imprime las páginas en orientación vertical.
 - **Invalidación reactiva:**
   - Cualquier modificación en los filtros (tipo de reporte, fechas, ganadero o cliente) invalida y limpia inmediatamente el reporte previo y deshabilita los botones de exportación e impresión, exigiendo presionar "Generar" para actualizar la información.
+
+## Utilitarios
+
+Herramientas avanzadas de administración accesibles desde el menú **Administración › Utilitarios** (requiere permisos de Administrador: `HacerBackup`, `RestaurarBackup`, `ImportarDatos`, `GestionarParametros`).
+
+### Copias de Seguridad (Backup) y Restauración
+
+- **Ubicación y formato de los backups:**
+  - Los respaldos se guardan en `%ProgramData%\PesajeFaeneo\backups` organizados en tres subcarpetas según su origen: `manuales`, `automaticos` y `seguridad`.
+  - Cada copia es un archivo `.zip` con nomenclatura estandarizada `PesajeFaeneo_{tipo}_{yyyyMMdd_HHmm}.zip` conteniendo:
+    - `manifest.json`: Metadatos de la copia (versión del sistema, fecha de creación, máquina de origen, conteo de boletas, última boleta, ganaderos, clientes, usuarios activos y suma de verificación SHA-256).
+    - `pesaje.db`: Base de datos SQLite consistente (copiada mediante `BackupDatabase` y convertida a modo journal `DELETE` para portabilidad sin archivos WAL auxiliares).
+    - Carpeta `logo/`: Logotipo empresarial almacenado.
+  - **Exclusiones deliberadas:** Por diseño y seguridad, las copias de seguridad **no** incluyen archivos de registro (`logs/`) ni configuraciones dependientes del hardware local (`config/impresion.json`, `config/backup.json`), garantizando portabilidad limpia entre diferentes equipos.
+- **Backup manual:**
+  - Botón "Crear backup ahora" en `FrmBackupRestaurar` genera inmediatamente una copia consistente en la subcarpeta `manuales` y actualiza la lista.
+- **Backup automático diario y al cerrar:**
+  - Servicio programador en segundo plano (`ProgramadorBackupAutomatico`) que se inicia con la aplicación.
+  - Verifica diariamente la existencia de la copia del día transcurridos 2 minutos desde el arranque, o periódicamente cada hora.
+  - Opción configurable "Crear también al cerrar el sistema" que ejecuta un resguardo automático adicional al salir de la aplicación sin bloquear el hilo de interfaz de usuario.
+  - **Retención configurable:** Período de conservación ajustable entre 7 y 365 días (por defecto 30 días). El sistema depura automáticamente copias antiguas de la carpeta `automaticos`, protegiendo en todo momento un mínimo estricto de las 3 copias más recientes.
+  - **Carpeta secundaria:** Permite configurar una ruta de destino adicional (p. ej. unidad flash USB o recurso de red). Al generar cualquier copia automática o manual, se replica en dicha carpeta; si la unidad no está disponible, el sistema completa el respaldo local y notifica una advertencia sin interrumpir la operación.
+- **Exportación de copias:**
+  - Permite exportar cualquier copia seleccionada a una ubicación externa mediante cuadro de diálogo estándar.
+  - **Advertencia de seguridad:** Se recuerda al usuario que el archivo de respaldo contiene todos los datos comerciales, históricos y hashes de usuarios del sistema, por lo que debe custodiarse bajo estrictas medidas de seguridad física o cifrado.
+- **Restauración de copias de seguridad:**
+  - Flujo de restauración seguro en 4 etapas:
+    1. **Validación:** El sistema extrae temporalmente la copia, comprueba la firma SHA-256 del manifiesto, valida la integridad física con `PRAGMA quick_check`, comprueba la compatibilidad de versión y verifica la existencia de al menos un usuario administrador activo.
+    2. **Ensayo de migraciones:** Si la base de datos de la copia pertenece a una versión previa, se ejecuta un ensayo de migración EF Core en memoria para confirmar que el esquema actual puede actualizarla sin errores.
+    3. **Confirmación estricta:** Pantalla informativa de resumen que detalla fecha, boletas, usuarios y advertencias. Exige escribir explícitamente la palabra `RESTAURAR` para habilitar la confirmación.
+    4. **Aplicación al arranque y reinicio:** La aplicación crea un resguardo de seguridad automático de la base de datos actual (`PreRestauracion`), programa la tarea mediante un marcador atómico en `%ProgramData%\PesajeFaeneo\restore`, y se reinicia automáticamente.
+  - Durante el arranque (`Program.Main`), la base de datos anterior se traslada a `restore\reemplazada-{fecha}` (junto con sus archivos `-wal` y `-shm`), se posiciona la nueva base de datos y se registra la auditoría atómica atribuida a la entidad `Sistema`. Si ocurriera un fallo catastrófico al abrir la base restaurada, el sistema revierte automáticamente a la base anterior.
+
+### Importador de Datos Legados
+
+- **Acceso:** Menú **Administración › Utilitarios › Importar datos legados** (`FrmImportarLegado`).
+- **Formatos compatibles:**
+  - **Archivos de texto delimitados:** `.csv` y `.txt` con delimitadores comunes (coma, punto y coma, tabulador) y detección automática de codificación (UTF-8 con/sin BOM, Windows-1252, DOS 850, DOS 437) con selector manual para ajustes finos.
+  - **Tablas dBase / FoxPro:** Archivos `.dbf` leídos de forma nativa sin controladores externos, ignorando registros marcados como eliminados.
+  - **Bases de datos Access:** Archivos `.mdb` y `.accdb` mediante proveedor OleDb de 64 bits con selector de tabla interna. Si el equipo no cuenta con el motor de base de datos Access (ACE de 64 bits), el sistema ofrece un mensaje explicativo recomendando instalar el componente o exportar las tablas a formato CSV.
+- **Flujo operativo en 3 pasos:**
+  1. **Archivo:** Selección del tipo de datos a importar (1. Ganaderos, 2. Clientes, 3. Pesajes) y lectura del archivo de origen.
+  2. **Columnas:** Asignación visual interactiva entre los campos del sistema y las columnas del archivo de origen, con sugerencia inteligente por coincidencia de nombres y vista previa de las primeras 20 filas.
+  3. **Simulacro e importación:**
+     - **Simulacro obligatorio:** Ejecuta la lógica completa de validación e inserción dentro de una transacción en base de datos con posterior reversión (`ROLLBACK`), generando estadísticas exactas de filas válidas, omitidas y con errores.
+     - **Huella de seguridad:** El simulacro genera una huella SHA-256 única del archivo y mapeo. Si el usuario modifica el archivo o la correspondencia de columnas, el simulacro se invalida y no se permite importar hasta volver a simular.
+     - **Copia de seguridad previa obligatoria:** Antes de escribir datos reales, el sistema crea automáticamente un respaldo completo `PreImportacion`.
+- **Reglas de importación y migración:**
+  - **Orden de importación recomendado:** 1) Ganaderos, 2) Clientes, 3) Pesajes.
+  - **Idempotencia y omisión de duplicados:** Ganaderos con marca existente o clientes con código repetido se omiten sin generar error.
+  - **Trazabilidad y numeración de boletas:** Boletas legadas con número ya existente en el sistema son rechazadas para preservar la inviolabilidad fiscal de las boletas ya emitidas. Al importar boletas con numeración superior a la actual, el correlativo del sistema se actualiza automáticamente al siguiente número disponible (`max(actual, mayor + 1)`).
+  - **Tolerancia a discrepancias históricas:** Pesajes con desviaciones fuera de las reglas actuales (p. ej. animales de pesos históricos excepcionales) se registran con advertencia en el informe pero se importan correctamente.
+  - **Deducción de desposte y secuencia:** Si el archivo legado no contiene tipo de desposte, se deduce automáticamente según los pesos presentes (Res Completa si ambos lados están informados, Media Res si solo hay uno); si no contiene número de res del día, se calcula la secuencia diaria por ganadero.
+- **Informe de resultados:**
+  - Botón "Guardar informe..." genera un archivo CSV con codificación UTF-8 con BOM y protección contra inyección de fórmulas, detallando conteos globales y lista exhaustiva de advertencias, omisiones y errores por fila y campo.
+
+### Visor de Registros (Logs)
+
+- **Acceso:** Menú **Administración › Utilitarios › Visor de logs** (`FrmVisorLogs`).
+- **Características:**
+  - Lectura segura en caliente de los archivos diarios de Serilog (`pesaje-*.log`) mediante modo compartido `FileShare.ReadWrite | FileShare.Delete` sin interferir con el logger activo de la aplicación.
+  - Filtro jerárquico por nivel de severidad: "Todos", "Información o superior", "Advertencias y errores", "Solo errores".
+  - Búsqueda por subcadena de texto en tiempo real sobre el mensaje y detalle técnico.
+  - Grilla interactiva con código de color visual (filas de advertencia en amarillo suave, errores y fallos fatales en rojo suave).
+  - Panel inferior monoespaciado para inspección cómoda de trazas de excepción (`StackTrace`) y propiedades estructuradas.
+  - Botón "Abrir carpeta" para explorar directamente el directorio de logs del sistema operativo (`%ProgramData%\PesajeFaeneo\logs`).
+  - Límite de seguridad de rendimiento: lectura de los últimos 4 MB de archivo y visualización de hasta 10 000 entradas para garantizar respuesta instantánea.

@@ -12,6 +12,8 @@ public sealed class ContextoAplicacion : ApplicationContext
     private readonly ISesionActual _sesionActual;
     private readonly ILogger<ContextoAplicacion> _logger;
 
+    public bool ReinicioSolicitado { get; private set; }
+
     public ContextoAplicacion(
         IFormFactory formFactory,
         IServicioAutenticacion autenticacion,
@@ -92,6 +94,7 @@ public sealed class ContextoAplicacion : ApplicationContext
                 }
                 else
                 {
+                    ReinicioSolicitado = shell.Solicitud == SolicitudCierreShell.ReiniciarAplicacion;
                     ExitThread();
                 }
             }

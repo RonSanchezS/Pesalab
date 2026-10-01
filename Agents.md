@@ -36,8 +36,8 @@ flowchart TD
 | **F5** | **Boleta de pesaje** | ✅ Completado | 6 | 6 | 2026-09-28 |
 | **F6** | **Edición, anulación y auditoría** | ✅ Completado | 5 | 5 | 2026-09-30 |
 | **F7** | **Reportes** | ✅ Completado | 6 | 6 | 2026-10-01 |
-| **F8** | **Utilitarios** | ⏳ Siguiente en turno | 0 | 6 | — |
-| **F9** | **Empaquetado, instalador y puesta en marcha** | ⏳ Pendiente | 0 | 6 | — |
+| **F8** | **Utilitarios** | ✅ Completado | 6 | 6 | 2026-10-01 |
+| **F9** | **Empaquetado, instalador y puesta en marcha** | ⏳ Siguiente en turno | 0 | 6 | — |
 
 ---
 
@@ -109,13 +109,13 @@ flowchart TD
 - [x] **HU-F7-05:** Exportación a Excel e impresión
 - [x] **HU-F7-06:** Reporte de boletas anuladas
 
-### [ ] Fase F8 — Utilitarios
-- [ ] **HU-F8-01:** Backup manual consistente (SqliteBackupService)
-- [ ] **HU-F8-02:** Backup automático diario con retención
-- [ ] **HU-F8-03:** Restauración con validación y reinicio
-- [ ] **HU-F8-04:** Importador de datos legado desde CSV (con simulacro)
-- [ ] **HU-F8-05:** Lectores opcionales DBF y MDB
-- [ ] **HU-F8-06:** Visor de logs
+### [x] Fase F8 — Utilitarios (COMPLETADA)
+- [x] **HU-F8-01:** Backup manual consistente (SqliteBackupService)
+- [x] **HU-F8-02:** Backup automático diario con retención
+- [x] **HU-F8-03:** Restauración con validación y reinicio
+- [x] **HU-F8-04:** Importador de datos legado desde CSV (con simulacro)
+- [x] **HU-F8-05:** Lectores opcionales DBF y MDB
+- [x] **HU-F8-06:** Visor de logs
 
 ### [ ] Fase F9 — Empaquetado, instalador y puesta en marcha
 - [ ] **HU-F9-01:** Publicación self-contained y versionado
@@ -159,15 +159,16 @@ flowchart TD
 - **Boleta e impresión (F5):** modelo y diseño puros en `Application/Boletas` (coordenadas en mm, cultura fija `es-BO`, sin dependencia de `System.Drawing`); pintor GDI+ con `Graphics.DrawString` sobre `DocumentoBoleta` (`StandardPrintController`, `OriginAtMargins = false`, compensación de `HardMargin` solo al imprimir, copias como páginas físicas independientes para soporte de térmicas/matriciales y leyenda ORIGINAL/COPIA, contador de copias reiniciado en `OnBeginPrint`); configuración por equipo en `config\impresion.json` (atómica, validada, atada a `MachineName`); auditoría `Imprimir`/`Reimprimir` tras `Print()`; detección de reimpresión por conteo en auditoría con leyenda obligatoria "REIMPRESIÓN n — {fecha}"; impresión automática en bloque secuencial tras el grabado; acceso F9 en `FrmPesaje` y F3 en shell principal.
 - **Gestión de boletas y auditoría (F6):** token de concurrencia `Pesaje.Version` (entero mapeado con `IsConcurrencyToken`) gestionado automáticamente en `PesajeDbContext.SaveChangesAsync` (incremento `OriginalValue + 1` en cada modificación); migración `F6_VersionPesaje` vía `AddColumn` simple con valor por defecto 1 sin reconstrucción de tabla; servicios desacoplados `IServicioGestionPesajes` e `IServicioAuditoria` bajo permisos de autorización por rol (`EditarBoleta`, `AnularBoleta`, `VerAuditoria`); edición de boletas limitada estrictamente a atributos descriptivos (ganadero, secuencia, cliente, dirección, color/raza, sexo, observación) manteniendo inalterables los pesos y el tipo de desposte por integridad física; anulación irreversible con motivo obligatorio de 5 a 100 caracteres; persistencia atómica en una única llamada a `GuardarCambiosAsync` por operación incluyendo entidad y auditoría; edición sin modificaciones descartada sin auditar; snapshot de `Pesaje` enriquecido con datos desnormalizados (`PesajeAuditoria`) para trazabilidad histórica íntegra; motor de diferencias en memoria `DiferenciasAuditoria.Calcular` que proyecta marcas de tiempo a hora local y resalta modificaciones; enmascaramiento de `LoginFallido` sin usuario registrado (`EntidadId = "***"`); leyenda de anulación recortada a 30 caracteres con tamaño de fuente adaptativo en media carta; buscador de boletas `FrmBuscarBoletas` con combinación AND de filtros, tope de 200 filas, selección persistente, atajos F4/F8 y Enter contextual en grilla; visor de auditoría `FrmVisorAuditoria` de solo lectura con tope de 500 registros y tabs de cambios visuales y JSON.
 - **Reportes (F7):** servicio desacoplado `IServicioReportes` bajo permiso `VerReportes` (autorizado para Supervisor y Administrador, solo lectura); 5 tipos de reporte (pesajes del día, entre fechas, por ganadero, por cliente, boletas anuladas; D1); separación estricta entre boletas vigentes y anuladas (D2); regla pura de cómputo de reses en `ReglasReportes.Reses` (res completa = 1, media res = 0,5) con cálculo de totales en memoria sobre variables `decimal` exactas a 0,1 kg sin funciones de agregación SQL (D3); inclusión de boletas con peso simulado marcadas con asterisco y nota de advertencia al pie (D4); límites de procesamiento y presentación: máximo de 20 000 boletas consultables (con mensaje de reducción de rango si se supera), 1 000 filas visibles en grilla UI y 2 000 boletas máximas para renderizado e impresión directa en memoria (D7); definición declarativa de columnas en `ColumnasReporte` (D6); exportación a PDF fiel al legado mediante QuestPDF con licencia comunitaria en constructores estáticos de `DisenoPdfReporte` y `CargadorLogoReporte`, y logo del sistema precargado y validado una sola vez (tolerancia a ausencia o archivo dañado con aviso en log/pantalla sin interrumpir el reporte; D10); formato de pesos decimales con coma (`#,##0.0`, D11); exportación a Excel mediante ClosedXML con valores numéricos y fechas reales sin fórmulas (D13); impresión física y vista previa basadas en rasterizado de páginas PDF a PNG en memoria proyectadas sobre `DocumentoPaginasReporte` con `FrmVistaPrevia` y escalado proporcional centrado (D14); instantánea inmutable desacoplada e invalidación inmediata de vista y acciones al cambiar filtros en UI (D15); optimización del planificador SQLite con `ANALYZE` en `DatabaseInitializer` sin migraciones de esquema ni índices nuevos (D16); aislamiento de dependencias de QuestPDF y ClosedXML exclusivamente en `PesajeFaeneo.Infrastructure.Reportes` verificado por `ArquitecturaTests` (regla 0.5).
+- **Utilitarios (F8):** backup `.zip` (manifiesto `manifest.json` + `pesaje.db` en modo journal DELETE + carpeta de logos `logo/`; sin `config` ni `logs`), copia binaria consistente con `BackupDatabase` desde conexión en solo lectura y validación con `PRAGMA quick_check` previa al empaquetado (D1–D2); nomenclatura estandarizada `PesajeFaeneo_{tipo}_{fecha yyyyMMdd_HHmm}.zip` en subcarpetas `manuales`, `automaticos` y `seguridad` (D3); programador automático diario en segundo plano (`ProgramadorBackupAutomatico`) con `PeriodicTimer` y revisión al arranque (después de 2 minutos de espera) y al cerrar el sistema (`chkAlCerrar`) sin bloquear la UI ni el cierre del host (D4); configuración persistida en `config/backup.json` con guardado atómico (D5); retención configurable de backups automáticos (7 a 365 días, por defecto 30) conservando siempre un mínimo de 3 copias más recientes para evitar borrado accidental (D6); soporte de copia secundaria a pendrive o ruta de red con tolerancia a desconexión y advertencia informativa (D7); validación integral de restauración con extracción temporal, comprobación de integridad SHA-256, verificación de esquema, versión y existencia de administrador activo, y simulación de migraciones EF Core en base de datos de prueba antes de programar (D8); resguardos previos automáticos obligatorios ante restauraciones e importaciones (D9); aplicación de restauraciones exclusivamente durante el arranque del sistema (`Program.Main` vía `IAplicadorRestauracion.AplicarPendiente()`) antes de cualquier conexión activa a la BD, con movimiento atómico del trío de archivos (`pesaje.db`, `-wal`, `-shm`) y capacidad de reversión garantizada en caso de error (D10–D12); sincronización de reinicio automático mediante `InstanciaUnica` con espera de hasta 30 s ante argumento `--reinicio` (D11); registro de auditoría de restauración aplicada asociado a entidad `Sistema` y `UsuarioId = null` para evitar violaciones de clave foránea con usuarios de la base previa (D13); importador de datos legados en 3 pasos con diseño desacoplado (D14): simulacro idéntico a importación sobre la misma transacción con rollback y cálculo de huella SHA-256 (D14, D51); soporte multiformato con lectores dedicados para CSV/TXT delimitados (D15–D18), DBF de dBase III / Visual FoxPro (D19) y Access MDB/ACCDB mediante OleDb de 64 bits con detección de motor ACE (D20); reglas estrictas de importación: orden sugerido ganaderos → clientes → pesajes (D21), numeración atómica `max(actual, mayor + 1)` (D24), tolerancia a discrepancias históricas con advertencias sin rechazar la boleta (D25), deducción de res completa / media res y cálculo de secuencia del día (D26), informe exportable a CSV estructurado con BOM UTF-8 y protección contra inyección de fórmulas (D27); auditoría consolidada de una fila por importación masiva (D28); persistencia optimizada en lotes de 1 000 registros con `AutoDetectChanges = false` y `ChangeTracker.Clear()` (D29); visor de logs Serilog con lectura no bloqueante `FileShare.ReadWrite | FileShare.Delete` sobre el archivo del día, filtros en memoria por nivel jerárquico y búsqueda por texto, detalle monoespaciado y límites de seguridad de 4 MB y 10 000 entradas (D30–D31); conexiones SQLite manuales obligatoriamente con `Pooling = false` en `SqliteConnectionStringBuilder` para prevenir bloqueo de archivos en disco (regla 0.16).
 
-### Notas hacia fases futuras (registradas en las revisiones post-F0, post-F2, post-F3, post-F4, post-F5 y post-F6)
+### Notas hacia fases futuras (registradas en las revisiones post-F0 a post-F8)
 - **F4-02 / F6 (R6) — resuelto en F4:** numeración atómica implementada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` en `SqlQuery<long>`.
 - **F4-05 (R13) — resuelto en F4:** captura condicionada a `Instantanea.EsCapturable(ahora)` y retorno a cero estricto entre lados.
 - **F4-07 (R9) — resuelto en F4:** altas rápidas desde la pantalla de pesaje implementadas con `CrearRapidoAsync` en catálogos bajo permiso `AltaRapidaCatalogos` (Operador).
 - **F4 / F5 (R14) — resuelto en F5:** política de simulador en producción: bloqueada la captura y grabado para operadores/supervisores (permitida solo a administradores), grilla y auditoría marcan origen "SIMULADO". En F5, leyenda "PESO SIMULADO — SIN VALOR COMERCIAL" y marca de agua impresa en la boleta si `Origen == Simulador`.
 - **F5-04 (R15) — resuelto en F5:** impresión automática de la boleta de pesaje enganchada en `FrmPesaje` en bloque secuencial propio tras el grabado atómico.
-- **F5 / F8 (R10) — actualizado en F7:** la tolerancia a logo ausente o dañado se extiende a los reportes (PDF y Excel). En F8, incluir el directorio de logos (`AppPaths.LogoDir`) en los respaldos y restauraciones.
-- **F5 / F8 (R14):** respaldo de configuración de impresión: si se restaura en otra PC con diferente `NombreEquipo`, el archivo se ignora y se usan valores por defecto; F8 debe evaluar si excluir la carpeta `config` de los respaldos.
+- **F5 / F8 (R10) — resuelto en F8:** los respaldos incluyen la carpeta de logos (`AppPaths.LogoDir`), preservando archivos de imagen en `logo/`.
+- **F5 / F8 (R14) — resuelto en F8:** la carpeta `config` **no** se respalda en el zip por ser configuración de hardware local por equipo (`MachineName`), tal como se determinó en D1.
 - **F5-Futuro (R29) — parcialmente resuelto en la remediación post-prueba de F6:** la media carta ya replica el bloque inferior de la guía legada (firma Jefe de Despacho | fleteros F1..F4 con casilla y "Otros" | firma Médico Veterinario). Pendiente confirmar con el cliente el título ("BOLETA DE PESAJE" vs. "GUÍA DE REMISIÓN CARNE BOVINA") y si hay formulario preimpreso.
 - **F5-Futuro (R29, original):** formato real de la boleta de faeneo (posible formulario preimpreso o papel continuo matricial); requerir boleta escaneada al cliente para ajustar coordenadas si es necesario.
 - **F5-Futuro (R30):** reimpresiones usan maestros actuales (empresa, logo, fleteros); evaluar si en F6 se almacena snapshot JSON de la boleta en auditoría `Imprimir`.
@@ -175,31 +176,37 @@ flowchart TD
 - **F5 / F9 (R32):** el instalador Inno Setup debe dar permisos de escritura a `Users` sobre `%ProgramData%\PesajeFaeneo\config` (igual que para la BD).
 - **F6 (R-F6-1) — resuelto en F6:** leyenda de anulación en media carta recortada a 30 caracteres ("ANULADA — {motivo}") con tamaño de letra adaptable según presencia de otras leyendas para no desbordar.
 - **F5-Futuro (R40):** `Print()` se ejecuta en el hilo de UI de forma síncrona; si un spooler de red causa bloqueos prolongados, evaluar mover solo `Print()` a hilo STA dedicado con el documento instanciado en él.
-- **F6 (R12) — resuelto para Pesaje en F6:** token de concurrencia `Pesaje.Version` agregado con `IsConcurrencyToken` e incrementado en `SaveChanges`. R12 permanece abierta para `ParametrosSistema` (F8/F9).
+- **F6 (R12) — resuelto para Pesaje en F6:** token de concurrencia `Pesaje.Version` agregado con `IsConcurrencyToken` e incrementado en `SaveChanges`. R12 permanece abierta para `ParametrosSistema` (la importación en F8 usa `UPDATE … max(…)` atómico).
 - **F6 / F5 (R5):** la reimpresión de una boleta anulada estampa la leyenda indeleble y marca de agua "ANULADA" junto a su motivo, registrándose normalmente la auditoría de Reimprimir.
 - **F6 / F4 (R6):** la anulación de boletas se gestiona exclusivamente desde el buscador de boletas (F6) por usuarios autorizados (Supervisor o Administrador); se descartó un botón de anulación en la pantalla de pesaje para evitar errores operativos del operador.
-- **F6 / F8 (R10):** el respaldo y restauración en F8 debe conservar la columna `Version` del pesaje; una base de datos restaurada conserva su integridad de concurrencia optimista.
+- **F6 / F8 (R10) — resuelto en F8:** el respaldo y restauración en F8 conserva la columna `Version` del pesaje; la base de datos se respalda a nivel binario mediante `BackupDatabase` preservando la integridad de concurrencia optimista.
 - **F6 (R13) — verificado en F7:** la anulación de una boleta no libera ni reutiliza su número correlativo; la secuencia permanece monótona y sin reutilizaciones para trazabilidad fiscal. La búsqueda sin filtros utiliza el índice único de número de boleta con LIMIT de forma óptima.
 - **F6 / F7 (R16):** las búsquedas multicriterio se benefician de los índices compuestos creados en F4 y optimizados en D23 para SQLite / EF Core.
-- **F6 / F8 (R17):** el visor de auditoría es estrictamente de solo lectura sin exportación en F6; cualquier exportación masiva se evaluará en las herramientas de utilitarios (F8).
+- **F6 / F8 (R17) — resuelto en F8:** el visor de auditoría es estrictamente de solo lectura sin exportación; la importación de datos genera su propio informe estructurado en archivo CSV.
 - **F7 (R3) — resuelto en F7:** los reportes de pesaje excluyen boletas anuladas de los totales de peso y cabezas; el reporte específico de anuladas (`TipoReporte.Anuladas`) consolida `MotivoAnulacion`, `AnuladoPor` y `AnuladoEnLocal`.
 - **F7 / QuestPDF (R15) — resuelto en F7:** QuestPDF 2024.x tiene configurada la licencia comunitaria `LicenseType.Community` en los constructores estáticos de `DisenoPdfReporte` y `CargadorLogoReporte`.
-- **F7 / F8 (R4, R5):** un respaldo de base de datos en F8 incluye la tabla `sqlite_stat1`; tras restaurar, el siguiente arranque recalcula estadísticas si se ejecuta `ANALYZE`.
+- **F7 / F8 (R4, R5) — resuelto en F8:** el respaldo de base de datos incluye la tabla `sqlite_stat1`; tras restaurar, el siguiente arranque recalcula estadísticas al ejecutar `ANALYZE` en `DatabaseInitializer`.
 - **F7 / F9 (R40):** la publicación self-contained debe incluir la librería nativa de QuestPDF (`runtimes/win-x64/native`); verificar que el instalador Inno Setup la copie en el directorio de salida.
-- **F7-Abierto (P1):** cantidad de reses suma media res como 0,5 (según HU-F7-01); confirmar con el cliente si el sistema legado mostraba enteros por truncamiento o regla distinta.
-- **F7-Abierto (P2):** boletas de peso simulado incluidas con marca `*` y nota informativa al pie en reportes comerciales; evaluar exclusión estricta si el cliente lo requiere.
-- **F7-Abierto (P3):** filtro de boletas anuladas por fecha de emisión de la boleta; evaluar si se requiere filtro por fecha de anulación efectiva (`AnuladoEn`).
-- **F7-Abierto (P4):** exportación e impresión registradas en log `Information` (sin rastro en tabla `Auditorias`); evaluar creación de acción de auditoría si se exige trazabilidad formal.
-- **F7-Abierto (P6):** fidelidad estética: diseño reproduce cabecera, columnas, recuadro y totales del legado; evaluar ajuste fino de bordes verticales o reportes adicionales de resumen diario.
-- **F7-Abierto (P7):** HU-F7-02 satisfecha con optimización estadística `ANALYZE` y tests de plan de consulta `PlanConsultasReportesTests`; no se crearon índices nuevos al constatarse que los existentes cubren los planes de acceso de forma óptima.
-- **F8 (Nota de backup):** el motor de backup (`SqliteBackupService`) preserva el token de concurrencia `Version` sin alteración.
+- **F8 / F9 (R76):** el instalador Inno Setup debe dar permisos de Modificar a `Users` también sobre las carpetas `backups` y `restore` en `%ProgramData%\PesajeFaeneo`.
+- **F8 / F9 (R35):** la publicación self-contained debe incluir `System.Data.OleDb` (runtimes `win-x64` y `win-x86`) para dar soporte a lectura de archivos Access legados.
+- **F8 / F9-06 (R34, D20):** el manual de usuario debe documentar la instalación del motor ACE de 64 bits para lectura de `.mdb`/`.accdb` (y uso del modificador `/quiet` si coexiste con Office de 32 bits), o la alternativa de exportar a CSV.
+- **F8 / F9-02:** F9-02 (migraciones automáticas con backup previo) puede reutilizar `IMotorBackup.CrearAsync` con un tipo `TipoBackup.PreMigracion`.
 - **F9-04 (R11):** `ConfiguracionInicialCompleta` permanece en `false` tras guardar parámetros en F2. El asistente de primer arranque en F9-04 debe decidir si marcarla o si detecta el nombre de empresa distinto del valor por defecto.
+- **F9-04 / F1:** recuperación de contraseña de administrador en caso de pérdida total sin otro administrador sigue pendiente.
 - **F9-06 (R21):** la guía de balanza debe documentar cómo fijar el número de puerto COM estático en el Administrador de dispositivos de Windows para adaptadores USB-serie.
 - **F9:** el instalador debe dar permisos de Modificar a `Users` sobre `%ProgramData%\PesajeFaeneo` (por defecto, archivos creados por un admin son de solo lectura para usuarios estándar → la app no podría escribir la BD). Revisar si el mutex `Global\` (bloquea a un segundo usuario de Windows en otra sesión) es el comportamiento deseado.
 - **F3-Futuro (R22):** si el indicador de balanza del cliente no opera en modo continuo sino bajo demanda, incorporar campo `ComandoSolicitud` (p. ej. `P`, `W` o `ENQ`) y sondeo periódico mediante temporizador.
 - **F3 (R23) — resuelto:** el indicador RX8 Accurex del sitio transmite `=NNNNNN ` en **gramos**, separado por espacios y sin CR/LF. Configuración de campo: Serie, COM del adaptador CH340, 9600 8N1, separación de tramas "Inicio con '='" (`DelimitadorTrama.SignoIgual`: en ráfagas el RX8 encadena tramas sin espacio, p. ej. `=650000-=381000-`), unidad "Gramos", patrón sembrado. Pendiente: validar la conversión con un peso patrón conocido; si otro indicador usa libras, agregar `UnidadPesoTrama.Libras`.
 - **F3-Futuro (R34):** si algún indicador de balanza específico requiere forzar DTR/RTS o control de flujo por hardware (CTS/RTS o XON/XOFF), hacerlo con `EscapeCommFunction` o flags explícitos y configurables, nunca reescribiendo el DCB completo (rompe CH340). Hoy se respetan los valores del driver.
 - **F9-06 (R35):** documentar en la guía de balanza que reconectar el adaptador USB-serie puede cambiar el número de COM (COM3 → COM4 observado en sitio) y dejar entradas fantasma en el Administrador de dispositivos.
+- **F8-Abierto (P1–P7):**
+  - **(P1)** Access requiere motor ACE 64 bits; si no está disponible, se informa al usuario la opción de instalarlo o exportar a CSV.
+  - **(P2)** En importación, filas válidas se importan y con error se omiten con informe estructurado (D23).
+  - **(P3)** Boleta legada con número ya existente en el sistema es rechazada para preservar trazabilidad fiscal (D22).
+  - **(P4)** La restauración de backup cierra la aplicación y la relanza automáticamente con `--reinicio` para reemplazo seguro de base de datos (D10, D11).
+  - **(P5)** Backup automático programado diario + al cerrar (`chkAlCerrar`) con retención configurable de 30 días (D4, D6).
+  - **(P6)** Los backups no incluyen la configuración de impresión ni de backup (propias de cada equipo; D1).
+  - **(P7)** Formato real exacto de columnas del sistema legado a validar con muestra real durante UAT en sitio (D27).
 
 ---
 
@@ -480,3 +487,42 @@ flowchart TD
   - **F7-Abierto (Excel):** `AdjustToContents(6, últimaFila)` incluye los textos de la columna A (etiquetas de totales y nota de simuladas), así que "Item" queda tan ancha como la etiqueta más larga (viene de la especificación 6.3).
   - Sin test: el clic de los ítems de menú que llaman a `AbrirReportes(tipo)` (abren un diálogo modal), el margen físico de `DocumentoPaginasReporte.OnPrintPage` y el fallo de `ANALYZE` en el arranque.
 - **Siguiente paso:** Fase F8 — Utilitarios.
+
+### Fase F8 — Utilitarios
+- **Fecha:** 2026-10-01
+- **Estado:** ✅ Completado con éxito (6/6 HUs).
+- **Compilación:** `dotnet build src/PesajeFaeneo.sln -c Release` con 0 warnings y 0 errores (`TreatWarningsAsErrors=true`).
+- **Pruebas:** 1425 tests unitarios y de integración ejecutados y en verde (0 fallos, 0 omitidos; incremento de 1200 a 1425 tests, +225 tests nuevos).
+- **Base de datos:** Sin migraciones de esquema (`has-pending-model-changes` limpio, carpeta `Migraciones/` intacta).
+- **Paquete agregado:** `System.Data.OleDb` 8.0.1 en `PesajeFaeneo.Infrastructure` (soporte de bases de datos Access `.mdb`/`.accdb`).
+- **Decisiones de diseño aplicadas (D1–D32):**
+  - D1: Respaldo en archivo comprimido ZIP conteniendo manifiesto `manifest.json`, base de datos SQLite en modo `DELETE` y carpeta de logos; sin configuraciones por equipo ni logs.
+  - D2: Copia consistente mediante `BackupDatabase` desde conexión en solo lectura con `PRAGMA quick_check` previo.
+  - D3: Nomenclatura determinista `PesajeFaeneo_{tipo}_{fecha yyyyMMdd_HHmm}.zip` organizada en carpetas `manuales`, `automaticos` y `seguridad`.
+  - D4: Programador en segundo plano `ProgramadorBackupAutomatico` con `PeriodicTimer` y ejecución diaria + al cerrar sin bloquear el hilo de interfaz.
+  - D5: Configuración de backups en `config/backup.json` con guardado atómico.
+  - D6: Retención automática configurable (7 a 365 días, por defecto 30) protegiendo siempre al menos 3 copias más recientes.
+  - D7: Copia secundaria opcional hacia pendrive o recurso compartido de red con tolerancia a desconexión y advertencia visual.
+  - D8: Validación completa de copias de restauración con extracción temporal, comprobación SHA-256, verificación de esquema y versión, y ensayo de migraciones en base de prueba antes de programar.
+  - D9: Resguardos previos obligatorios (`PreRestauracion`, `PreImportacion`) creados antes de cualquier modificación destructiva.
+  - D10: Restauración aplicada exclusivamente durante el arranque del sistema (`Program.Main` vía `IAplicadorRestauracion.AplicarPendiente()`) antes de cualquier conexión activa.
+  - D11: Reinicio coordinado mediante `InstanciaUnica` con espera de hasta 30 s ante flag `--reinicio`.
+  - D12: Reemplazo atómico del trío de base de datos (`pesaje.db`, `-wal`, `-shm`) y reversión garantizada en caso de error de inicialización.
+  - D13: Auditoría de restauración aplicada atribuida a entidad `Sistema` y `UsuarioId = null` para prevenir violaciones de integridad referencial.
+  - D14: Importación en 3 pasos desacoplados: archivo, asignación visual de columnas y simulacro idéntico a importación sobre la misma transacción con rollback y comprobación de huella SHA-256.
+  - D15–D18: Lector robusto de CSV/TXT delimitados con autodetección de codificaciones (UTF-8, Windows-1252, DOS 850, DOS 437) y delimitadores (`,`, `;`, `\t`).
+  - D19: Lector binario nativo de tablas DBF (dBase III / Visual FoxPro) con omisión de registros eliminados lógicamente.
+  - D20: Lector de tablas Access MDB/ACCDB vía OleDb de 64 bits con detección de disponibilidad del motor ACE.
+  - D21: Orden de importación sugerido: 1. Ganaderos, 2. Clientes, 3. Pesajes.
+  - D22: Rechazo estricto de boletas con números duplicados respecto a las ya emitidas para garantizar trazabilidad fiscal.
+  - D23: Política de tolerancia a incidencias: las filas válidas se importan y las erróneas u omitidas se registran en informe estructurado.
+  - D24: Ajuste atómico del correlativo `SiguienteNumeroBoleta = max(actual, mayor + 1)`.
+  - D25: Tolerancia a discrepancias históricas con advertencias sin descartar la pesada.
+  - D26: Deducción automática de res completa / media res y cálculo de secuencia del día para boletas importadas.
+  - D27: Informe de importación estructurado exportable a CSV con BOM UTF-8 y prevención de inyección de fórmulas.
+  - D28: Auditoría consolidada de una fila por proceso masivo de importación.
+  - D29: Inserción en lotes de 1 000 entidades con `AutoDetectChanges = false` y `ChangeTracker.Clear()` para alto rendimiento.
+  - D30–D31: Visor de logs Serilog con lectura segura `FileShare.ReadWrite | FileShare.Delete` sobre el log activo, filtros jerárquicos y límites de seguridad de 4 MB y 10 000 entradas.
+  - D32: Desacoplamiento de UI y DI con formularios registrados bajo ciclo de vida por ámbito e integración transparente en Shell.
+- **Desviaciones:** Ninguna.
+- **Siguiente paso:** Fase F9 — Empaquetado, instalador y puesta en marcha.

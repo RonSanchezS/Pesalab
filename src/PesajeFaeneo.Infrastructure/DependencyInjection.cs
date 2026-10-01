@@ -46,6 +46,22 @@ public static class DependencyInjection
         services.AddSingleton<Application.Reportes.IGeneradorPdfReportes, Reportes.GeneradorPdfReportes>();
         services.AddSingleton<Application.Reportes.IGeneradorExcelReportes, Reportes.GeneradorExcelReportes>();
 
+        services.AddSingleton<Application.Utilitarios.Backup.IMotorBackup>(sp =>
+            new Utilitarios.Backup.SqliteBackupService(
+                appPaths,
+                sp.GetRequiredService<IDbContextFactory<PesajeDbContext>>(),
+                sp.GetRequiredService<TimeProvider>(),
+                sp.GetRequiredService<ILogger<Utilitarios.Backup.SqliteBackupService>>(),
+                Environment.MachineName));
+
+        services.AddSingleton<Application.Utilitarios.Backup.IAplicadorRestauracion, Utilitarios.Backup.AplicadorRestauracion>();
+        services.AddSingleton<Application.Utilitarios.Backup.IAlmacenConfiguracionBackup, Utilitarios.Backup.AlmacenConfiguracionBackupJson>();
+
+        services.AddSingleton<Application.Utilitarios.Importacion.ILectorOrigenDatos, Utilitarios.Importacion.LectorOrigenDatos>();
+        services.AddSingleton<Application.Utilitarios.Importacion.IRepositorioImportacion, Utilitarios.Importacion.RepositorioImportacion>();
+
+        services.AddSingleton<Application.Utilitarios.Logs.ILectorArchivosLog, Utilitarios.Logs.LectorArchivosLog>();
+
         services.AddSingleton(TimeProvider.System);
 
         return services;

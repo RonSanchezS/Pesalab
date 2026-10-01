@@ -10,6 +10,10 @@ using PesajeFaeneo.Tests.Utilidades.Gestion;
 using PesajeFaeneo.Tests.Utilidades.Pesaje;
 using PesajeFaeneo.WinForms.Formularios.Administracion;
 using PesajeFaeneo.WinForms.Formularios.Boletas;
+using PesajeFaeneo.WinForms.Formularios.Utilitarios;
+using PesajeFaeneo.Application.Utilitarios.Backup;
+using PesajeFaeneo.Application.Utilitarios.Backup.Dtos;
+using PesajeFaeneo.Tests.Utilidades.Backup;
 using PesajeFaeneo.WinForms.Infraestructura;
 using Xunit;
 
@@ -144,6 +148,147 @@ public class LayoutFormulariosTests
             using var form = CrearReportes(servicio);
             form.Show();
             form.GenerarParaTestAsync().GetAwaiter().GetResult();
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
+
+    [Fact]
+    public void BackupRestaurar_SinTextosCortados_NiConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new ServicioBackupFalso();
+            var b1 = new InfoBackup(
+                @"C:\FakeBackups\manuales\b1.zip",
+                "b1.zip",
+                TipoBackup.Manual,
+                DateTime.UtcNow,
+                1572864,
+                "1.0.0",
+                "EQUIPO-TEST",
+                "migracion_fake",
+                10,
+                10L,
+                Valido: true,
+                Problema: null);
+            servicio.Lista.Add(b1);
+
+            using var form = new FrmBackupRestaurar(servicio, Reloj());
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
+
+    [Fact]
+    public void ConfirmarRestauracion_SinTextosCortados_NiConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var backup = new InfoBackup(
+                @"C:\FakeBackups\manuales\fake.zip",
+                "fake.zip",
+                TipoBackup.Manual,
+                DateTime.UtcNow,
+                1024,
+                "1.0.0",
+                "EQUIPO-TEST",
+                "migracion_fake",
+                10,
+                10L,
+                Valido: true,
+                Problema: null);
+
+            var advertenciasLargas = new[]
+            {
+                new string('A', 150),
+                new string('B', 150),
+                new string('C', 150)
+            };
+
+            var val = new ValidacionRestauracion(
+                "token-test",
+                backup,
+                10,
+                10,
+                2,
+                1,
+                false,
+                advertenciasLargas);
+
+            using var form = new FrmConfirmarRestauracion(val, Reloj().LocalTimeZone);
+            form.Show();
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
+
+    [Fact]
+    public void ImportarLegado_SinTextosCortados_NiConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new PesajeFaeneo.Tests.Utilidades.Importacion.ServicioImportacionFalso();
+            var columnas = new List<string>
+            {
+                "NRO", "FEC", "HOR", "GAN", "CLI", "SEC", "COL", "SEX", "COR", "PIZQ", "PDER", "PTOT", "OBS", "EST", "MOT", "EXTRA"
+            };
+            var advertenciasLargas = new[]
+            {
+                new string('X', 120),
+                new string('Y', 120),
+                new string('Z', 120)
+            };
+            servicio.Vista = new PesajeFaeneo.Application.Utilitarios.Importacion.Dtos.VistaOrigen(
+                columnas,
+                new List<PesajeFaeneo.Application.Utilitarios.Importacion.Dtos.FilaOrigen>(),
+                100,
+                "Windows-1252",
+                advertenciasLargas,
+                new Dictionary<string, int?>());
+
+            using var form = new FrmImportarLegado(servicio, Reloj());
+            form.cmbTipo.SelectedIndex = 2; // Pesajes (boletas)
+            form.ElegirArchivoParaTest = () => @"C:\Datos\pesajes.csv";
+            form.ExaminarParaTestAsync().GetAwaiter().GetResult();
+            form.LeerParaTestAsync().GetAwaiter().GetResult();
+
+            form.Show();
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
+
+    [Fact]
+    public void VisorLogs_SinTextosCortados_NiConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new PesajeFaeneo.Tests.Utilidades.Logs.ServicioLogsFalso
+            {
+                Archivos = new List<PesajeFaeneo.Application.Utilitarios.Logs.Dtos.ArchivoLog>
+                {
+                    new("pesaje-20261001.log", new DateOnly(2026, 10, 1), 2048 * 1024)
+                },
+                Contenido = new PesajeFaeneo.Application.Utilitarios.Logs.Dtos.ContenidoLog(
+                    "pesaje-20261001.log",
+                    new List<PesajeFaeneo.Application.Utilitarios.Logs.Dtos.EntradaLog>
+                    {
+                        new(1, "12:00:00", PesajeFaeneo.Application.Utilitarios.Logs.Dtos.NivelLog.Informacion, "Mensaje de prueba", "Detalle de prueba")
+                    },
+                    false,
+                    2048 * 1024)
+            };
+
+            using var form = new FrmVisorLogs(servicio);
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+            form.Show();
 
             VerificadorLayout.Verificar(form);
             VerificadorLayout.VerificarEscalado(form);

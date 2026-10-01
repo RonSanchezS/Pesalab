@@ -17,6 +17,7 @@ using PesajeFaeneo.WinForms.Formularios.Boletas;
 using PesajeFaeneo.WinForms.Formularios.Catalogos;
 using PesajeFaeneo.WinForms.Formularios.Pesaje;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
+using PesajeFaeneo.WinForms.Formularios.Utilitarios;
 using PesajeFaeneo.WinForms.Impresion;
 using PesajeFaeneo.WinForms.Infraestructura;
 using Xunit;
@@ -89,6 +90,23 @@ public class ContenedorDITests
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Reportes.IServicioReportes>());
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Reportes.IGeneradorPdfReportes>());
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Reportes.IGeneradorExcelReportes>());
+
+            // F8: Servicios de utilitarios (backup, importación, logs)
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Backup.IMotorBackup>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Backup.IAplicadorRestauracion>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Backup.IAlmacenConfiguracionBackup>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Backup.IServicioBackup>());
+            var prog1 = proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Backup.IProgramadorBackupAutomatico>();
+            var prog2 = proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Backup.IProgramadorBackupAutomatico>();
+            Assert.NotNull(prog1);
+            Assert.Same(prog1, prog2);
+
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Importacion.ILectorOrigenDatos>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Importacion.IRepositorioImportacion>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Importacion.IServicioImportacion>());
+
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Logs.ILectorArchivosLog>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Logs.IServicioLogs>());
 
             using (var scope = proveedor.CreateScope())
             {
@@ -171,6 +189,16 @@ public class ContenedorDITests
                 // F7: Formulario de reportes
                 using var frmReportes = formFactory.Crear<PesajeFaeneo.WinForms.Formularios.Reportes.FrmReportes>();
                 Assert.NotNull(frmReportes);
+
+                // F8: Formularios de utilitarios
+                using var frmBackupRestaurar = formFactory.Crear<FrmBackupRestaurar>();
+                Assert.NotNull(frmBackupRestaurar);
+
+                using var frmImportarLegado = formFactory.Crear<FrmImportarLegado>();
+                Assert.NotNull(frmImportarLegado);
+
+                using var frmVisorLogs = formFactory.Crear<FrmVisorLogs>();
+                Assert.NotNull(frmVisorLogs);
             });
         }
         finally

@@ -602,7 +602,7 @@ public class FrmPrincipalTests
     }
 
     [Fact]
-    public void FrmPrincipal_Utilitarios_PermanecenDeshabilitadosPorFaseFutura()
+    public void FrmPrincipal_Utilitarios_HabilitadosParaAdministrador()
     {
         HiloSta.Ejecutar(() =>
         {
@@ -623,10 +623,40 @@ public class FrmPrincipalTests
 
             Assert.NotNull(mnuUtilitarios);
             Assert.True(mnuUtilitarios.Available);
+            Assert.Equal(3, mnuUtilitarios.DropDownItems.Count);
             foreach (ToolStripItem sub in mnuUtilitarios.DropDownItems)
             {
-                Assert.False(sub.Enabled);
+                Assert.True(sub.Available);
+                Assert.True(sub.Enabled);
+                Assert.True(string.IsNullOrEmpty(sub.ToolTipText));
             }
+        });
+    }
+
+    [Theory]
+    [InlineData(Rol.Supervisor)]
+    [InlineData(Rol.Operador)]
+    public void FrmPrincipal_Utilitarios_NoDisponiblesParaSupervisorYOperador(Rol rol)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var formFactory = new FalsaFormFactory();
+            var tiempo = TimeProvider.System;
+            var paramService = new FalsoServicioParametros();
+            var balanza = new ServicioBalanzaFalso();
+
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(2, "usuario", "Usuario", rol, false));
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+
+            ToolStripMenuItem? mnuUtilitarios = null;
+            foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
+            {
+                if (item.Text?.Contains("Utilitarios") == true) mnuUtilitarios = item;
+            }
+
+            Assert.NotNull(mnuUtilitarios);
+            Assert.False(mnuUtilitarios.Available);
         });
     }
 

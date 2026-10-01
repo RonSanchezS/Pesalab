@@ -21,6 +21,10 @@ public static class DependencyInjection
         services.AddTransient<Pesajes.IServicioGestionPesajes, Pesajes.ServicioGestionPesajes>();
         services.AddTransient<Auditoria.IServicioAuditoria, Auditoria.ServicioAuditoria>();
         services.AddTransient<Reportes.IServicioReportes, Reportes.ServicioReportes>();
+        services.AddTransient<Utilitarios.Backup.IServicioBackup, Utilitarios.Backup.ServicioBackup>();
+        services.AddSingleton<Utilitarios.Backup.IProgramadorBackupAutomatico, Utilitarios.Backup.ProgramadorBackupAutomatico>();
+        services.AddTransient<Utilitarios.Importacion.IServicioImportacion, Utilitarios.Importacion.ServicioImportacion>();
+        services.AddTransient<Utilitarios.Logs.IServicioLogs, Utilitarios.Logs.ServicioLogs>();
         return services;
     }
 }

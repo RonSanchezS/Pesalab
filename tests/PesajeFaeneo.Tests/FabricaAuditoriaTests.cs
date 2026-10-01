@@ -1,4 +1,4 @@
-﻿using PesajeFaeneo.Application.Auditoria;
+using PesajeFaeneo.Application.Auditoria;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Domain.Enums;
 using Xunit;
@@ -266,9 +266,9 @@ public class FabricaAuditoriaTests
     }
 
     [Fact]
-    public void EntidadesAuditoria_Todas_ContieneLasOchoEntidadesYPesaje()
+    public void EntidadesAuditoria_Todas_ContieneLasNueveEntidades()
     {
-        Assert.Equal(8, EntidadesAuditoria.Todas.Count);
+        Assert.Equal(9, EntidadesAuditoria.Todas.Count);
         Assert.Contains(EntidadesAuditoria.Pesaje, EntidadesAuditoria.Todas);
         Assert.Contains(EntidadesAuditoria.Usuario, EntidadesAuditoria.Todas);
         Assert.Contains(EntidadesAuditoria.Ganadero, EntidadesAuditoria.Todas);
@@ -277,6 +277,7 @@ public class FabricaAuditoriaTests
         Assert.Contains(EntidadesAuditoria.ParametrosSistema, EntidadesAuditoria.Todas);
         Assert.Contains(EntidadesAuditoria.ConfiguracionBalanza, EntidadesAuditoria.Todas);
         Assert.Contains(EntidadesAuditoria.ConfiguracionImpresion, EntidadesAuditoria.Todas);
+        Assert.Contains(EntidadesAuditoria.Sistema, EntidadesAuditoria.Todas);
     }
 }
 

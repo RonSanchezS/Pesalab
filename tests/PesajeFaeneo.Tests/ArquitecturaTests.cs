@@ -1,4 +1,4 @@
-using PesajeFaeneo.Application.Abstracciones;
+﻿using PesajeFaeneo.Application.Abstracciones;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Infrastructure.Persistencia;
 using Xunit;
@@ -78,6 +78,27 @@ public class ArquitecturaTests
             "WinForms",
             "QuestPDF",
             "ClosedXML");
+    }
+
+    [Fact]
+    public void Application_NoReferenciaCsvHelperNiOleDb()
+    {
+        VerificarSinReferenciasProhibidas(
+            typeof(IDatabaseInitializer).Assembly,
+            "Application",
+            "CsvHelper",
+            "System.Data.OleDb",
+            "Microsoft.Data.Sqlite");
+    }
+
+    [Fact]
+    public void WinForms_NoReferenciaCsvHelperNiOleDb()
+    {
+        VerificarSinReferenciasProhibidas(
+            typeof(PesajeFaeneo.WinForms.Formularios.FrmPrincipal).Assembly,
+            "WinForms",
+            "CsvHelper",
+            "System.Data.OleDb");
     }
 
     private static void VerificarSinReferenciasProhibidas(

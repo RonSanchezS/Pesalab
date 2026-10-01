@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using PesajeFaeneo.Application.Boletas.Dtos;
 using AuditoriaEntidad = PesajeFaeneo.Domain.Entities.Auditoria;
@@ -17,11 +17,12 @@ public static class EntidadesAuditoria
     public const string ConfiguracionBalanza = "ConfiguracionBalanza";
     public const string Pesaje = "Pesaje";
     public const string ConfiguracionImpresion = "ConfiguracionImpresion";
+    public const string Sistema = "Sistema";
 
     public static readonly IReadOnlyList<string> Todas = new[]
     {
         Usuario, Ganadero, Cliente, Fletero, ParametrosSistema,
-        ConfiguracionBalanza, Pesaje, ConfiguracionImpresion
+        ConfiguracionBalanza, Pesaje, ConfiguracionImpresion, Sistema
     };
 }
 
