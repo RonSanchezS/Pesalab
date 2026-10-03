@@ -124,4 +124,30 @@ public class InstanciaUnicaTests
 
         Assert.Null(ex);
     }
+
+    [Fact]
+    public void Test06_Adquirir_UnauthorizedAccessException_DevuelveNullSinExcepcion()
+    {
+        var resSinEsperar = InstanciaUnica.Adquirir("Global\\test", esperar: false, TimeSpan.Zero, _ => throw new UnauthorizedAccessException());
+        Assert.Null(resSinEsperar);
+
+        var resConEsperar = InstanciaUnica.Adquirir("Global\\test", esperar: true, TimeSpan.FromSeconds(5), _ => throw new UnauthorizedAccessException());
+        Assert.Null(resConEsperar);
+    }
+
+    [Fact]
+    public void Test07_Adquirir_MismoHilo_SegundoIntentoDevuelveNull()
+    {
+        var nombre = $@"Local\pesaje_test_{Guid.NewGuid():N}";
+        using var inst1 = InstanciaUnica.Adquirir(nombre, esperar: false, TimeSpan.Zero, n =>
+        {
+            var m = new Mutex(true, n, out var esNueva);
+            return (m, esNueva);
+        });
+
+        Assert.NotNull(inst1);
+
+        using var inst2 = InstanciaUnica.Adquirir(nombre, esperar: false, TimeSpan.Zero);
+        Assert.Null(inst2);
+    }
 }

@@ -44,7 +44,7 @@ public static class Program
         if (instancia is null)
         {
             MessageBox.Show(
-                "El sistema ya está en ejecución.",
+                "El sistema ya está en ejecución en este equipo (puede estar abierto en la sesión de otro usuario de Windows).",
                 "Instancia en ejecución",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);

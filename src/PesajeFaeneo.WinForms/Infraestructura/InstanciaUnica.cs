@@ -15,8 +15,27 @@ public sealed class InstanciaUnica : IDisposable
     private InstanciaUnica(Mutex mutex) => _mutex = mutex;
 
     public static InstanciaUnica? Adquirir(string nombre, bool esperar, TimeSpan espera)
+        => Adquirir(nombre, esperar, espera, n =>
+        {
+            var m = new Mutex(true, n, out var esNueva);
+            return (m, esNueva);
+        });
+
+    internal static InstanciaUnica? Adquirir(
+        string nombre, bool esperar, TimeSpan espera, Func<string, (Mutex Mutex, bool EsNueva)> crear)
     {
-        var mutex = new Mutex(true, nombre, out var esNueva);
+        Mutex mutex;
+        bool esNueva;
+        try
+        {
+            (mutex, esNueva) = crear(nombre);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // El mutex Global\ lo creó otro usuario de Windows en otra sesión (H13): el sistema ya está abierto en este equipo.
+            return null;
+        }
+
         if (esNueva)
         {
             return new InstanciaUnica(mutex);
