@@ -1,4 +1,4 @@
-﻿using PesajeFaeneo.Application.Boletas.Diseno;
+using PesajeFaeneo.Application.Boletas.Diseno;
 using PesajeFaeneo.Application.Catalogos;
 using PesajeFaeneo.Application.Utilitarios.Importacion.Dtos;
 using PesajeFaeneo.Domain.Enums;
@@ -376,7 +376,7 @@ public static class PreparadorImportacion
                         var valCodCli = V(fila, CamposImportacion.CodigoCliente);
                         int clienteId = 0;
                         ClienteExistente? clienteExistente = null;
-                        if (!ConversoresImportacion.TryEntero(valCodCli, out long codCliNum))
+                        if (!ConversoresImportacion.TryEntero(valCodCli, out long codCliNum) || codCliNum < 1 || codCliNum > 999_999)
                         {
                             incsFila.Add(new Incidencia(fila.Numero, CamposImportacion.CodigoCliente, NivelIncidencia.Error, $"Código de cliente no válido: «{valCodCli}»."));
                         }

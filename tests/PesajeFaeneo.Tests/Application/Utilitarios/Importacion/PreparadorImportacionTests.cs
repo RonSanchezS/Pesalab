@@ -387,6 +387,34 @@ public class PreparadorImportacionTests
     }
 
     [Fact]
+    public void Preparar_Pesajes_CodigoDeClienteFueraDeRango_GeneraErrorSinDesbordarAOtroCliente()
+    {
+        var cols = new[] { "Num", "Fecha", "Marca", "Cli", "Izq", "Der" };
+        var filas = new List<FilaOrigen>
+        {
+            // 4294967306 = 2^32 + 10: un cast (int) sin control lo convertiría en el cliente 10, que existe.
+            new(2, new[] { "1", "01/09/2026", "AB", "4294967306", "100", "100" })
+        };
+
+        var tabla = new TablaOrigen(cols, filas, "H", "UTF-8", Array.Empty<string>());
+        var mapeo = new Dictionary<string, int?>
+        {
+            [CamposImportacion.NumeroBoleta] = 0,
+            [CamposImportacion.Fecha] = 1,
+            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoCliente] = 3,
+            [CamposImportacion.PesoIzquierdo] = 4,
+            [CamposImportacion.PesoDerecho] = 5
+        };
+
+        var plan = PreparadorImportacion.Preparar(TipoImportacion.Pesajes, tabla, mapeo, ClavesPrueba, AhoraUtc, ZonaUtcMenos4);
+
+        Assert.Empty(plan.Pesajes);
+        Assert.Equal(1, plan.FilasConError);
+        Assert.Contains(plan.Incidencias, i => i.Campo == CamposImportacion.CodigoCliente && i.Nivel == NivelIncidencia.Error);
+    }
+
+    [Fact]
     public void Preparar_Pesajes_GanaderoOClienteInexistentes_GeneranError()
     {
         var cols = new[] { "Num", "Fecha", "Marca", "Cli", "Izq", "Der" };

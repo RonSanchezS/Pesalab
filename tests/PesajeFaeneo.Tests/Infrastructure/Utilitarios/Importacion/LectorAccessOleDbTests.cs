@@ -1,4 +1,4 @@
-﻿using PesajeFaeneo.Domain.Excepciones;
+using PesajeFaeneo.Domain.Excepciones;
 using PesajeFaeneo.Infrastructure.Utilitarios.Importacion;
 using Xunit;
 

@@ -1,4 +1,4 @@
-﻿using PesajeFaeneo.Infrastructure.Utilitarios.Importacion;
+using PesajeFaeneo.Infrastructure.Utilitarios.Importacion;
 using Xunit;
 
 namespace PesajeFaeneo.Tests.Infrastructure.Utilitarios.Importacion;

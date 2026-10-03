@@ -85,7 +85,9 @@ public static class ParserLog
                 }
                 else
                 {
-                    entradas.Add(new EntradaLog(numeroLinea, string.Empty, NivelLog.Desconocido, linea, string.Empty));
+                    // Líneas iniciales sin marca (p. ej. cola de un stack trace cortada por el límite de bytes):
+                    // una sola entrada Desconocido en lugar de una por línea.
+                    actual = new EntradaLog(numeroLinea, string.Empty, NivelLog.Desconocido, linea, string.Empty);
                 }
             }
         }

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using PesajeFaeneo.Application.Catalogos.Busqueda;
 using PesajeFaeneo.Domain.Enums;

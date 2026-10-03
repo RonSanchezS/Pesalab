@@ -85,8 +85,10 @@ public sealed class ServicioBackup : IServicioBackup
             new SolicitudBackup(TipoBackup.Manual, config.DiasRetencion, config.CarpetaSecundaria),
             cancellationToken).ConfigureAwait(false);
 
-        await using (var uow = await _uowFactory.CrearAsync(cancellationToken).ConfigureAwait(false))
+        // La copia ya existe: si la auditoría falla, informar un error haría creer que no se creó nada.
+        try
         {
+            await using var uow = await _uowFactory.CrearAsync(cancellationToken).ConfigureAwait(false);
             uow.Auditoria.Registrar(FabricaAuditoria.Crear(
                 _tiempo,
                 sesion.Id,
@@ -97,6 +99,10 @@ public sealed class ServicioBackup : IServicioBackup
                 motivo: "Copia de seguridad manual"));
 
             await uow.GuardarCambiosAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "La copia manual {Archivo} se creó, pero no se pudo registrar en la auditoría.", r.Backup.NombreArchivo);
         }
 
         return r;
@@ -114,8 +120,11 @@ public sealed class ServicioBackup : IServicioBackup
 
         var resguardo = await _motor.ProgramarRestauracionAsync(token, sesion.NombreUsuario, cancellationToken).ConfigureAwait(false);
 
-        await using (var uow = await _uowFactory.CrearAsync(cancellationToken).ConfigureAwait(false))
+        // La restauración ya quedó programada: un fallo de auditoría no debe presentarse como si no lo estuviera
+        // (se aplicaría sola al abrir la aplicación sin que el usuario lo sepa). La aplicada se audita al arrancar.
+        try
         {
+            await using var uow = await _uowFactory.CrearAsync(cancellationToken).ConfigureAwait(false);
             uow.Auditoria.Registrar(FabricaAuditoria.Crear(
                 _tiempo,
                 sesion.Id,
@@ -126,6 +135,10 @@ public sealed class ServicioBackup : IServicioBackup
                 motivo: "Restauración programada; se aplicará al reiniciar"));
 
             await uow.GuardarCambiosAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "La restauración quedó programada, pero no se pudo registrar en la auditoría.");
         }
 
         return resguardo;

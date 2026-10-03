@@ -619,9 +619,23 @@ public class FrmImportarLegado : FormBase
         ActualizarAcciones();
     }
 
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        // Cerrar durante una lectura, simulacro o importación dejaría mensajes sobre un formulario desechado y
+        // el usuario sin ver el resultado de una importación ya confirmada en la base de datos.
+        if (Ocupado)
+        {
+            e.Cancel = true;
+            return;
+        }
+
+        base.OnFormClosing(e);
+    }
+
     private async Task SimularInternoAsync()
     {
-        if (_vista == null)
+        // Con otra operación en curso, FormBase descartaría esta en silencio (regla 0.10).
+        if (_vista == null || Ocupado)
         {
             return;
         }
@@ -687,7 +701,8 @@ public class FrmImportarLegado : FormBase
 
     private async Task ImportarInternoAsync()
     {
-        if (_simulacro == null || _simulacro.FilasAImportar <= 0)
+        // Comprobar Ocupado antes del diálogo: si no, se pide confirmar y luego la importación se descarta en silencio.
+        if (_simulacro == null || _simulacro.FilasAImportar <= 0 || Ocupado)
         {
             return;
         }

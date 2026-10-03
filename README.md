@@ -221,13 +221,13 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
 
 ## Utilitarios
 
-Herramientas avanzadas de administración accesibles desde el menú **Administración › Utilitarios** (requiere permisos de Administrador: `HacerBackup`, `RestaurarBackup`, `ImportarDatos`, `GestionarParametros`).
+Herramientas avanzadas de administración accesibles desde el menú **Utilitarios** (requiere permisos de Administrador: `BackupRestore`, `ImportarLegado` y, para el visor de logs, `GestionarParametros`).
 
 ### Copias de Seguridad (Backup) y Restauración
 
 - **Ubicación y formato de los backups:**
   - Los respaldos se guardan en `%ProgramData%\PesajeFaeneo\backups` organizados en tres subcarpetas según su origen: `manuales`, `automaticos` y `seguridad`.
-  - Cada copia es un archivo `.zip` con nomenclatura estandarizada `PesajeFaeneo_{tipo}_{yyyyMMdd_HHmm}.zip` conteniendo:
+  - Cada copia es un archivo `.zip` con nomenclatura estandarizada `PesajeFaeneo_{tipo}_{yyyy-MM-dd[_HHmmss]}.zip` (el automático es uno por día y lleva solo la fecha) conteniendo:
     - `manifest.json`: Metadatos de la copia (versión del sistema, fecha de creación, máquina de origen, conteo de boletas, última boleta, ganaderos, clientes, usuarios activos y suma de verificación SHA-256).
     - `pesaje.db`: Base de datos SQLite consistente (copiada mediante `BackupDatabase` y convertida a modo journal `DELETE` para portabilidad sin archivos WAL auxiliares).
     - Carpeta `logo/`: Logotipo empresarial almacenado.
@@ -253,7 +253,7 @@ Herramientas avanzadas de administración accesibles desde el menú **Administra
 
 ### Importador de Datos Legados
 
-- **Acceso:** Menú **Administración › Utilitarios › Importar datos legados** (`FrmImportarLegado`).
+- **Acceso:** Menú **Utilitarios › Importar datos legados** (`FrmImportarLegado`).
 - **Formatos compatibles:**
   - **Archivos de texto delimitados:** `.csv` y `.txt` con delimitadores comunes (coma, punto y coma, tabulador) y detección automática de codificación (UTF-8 con/sin BOM, Windows-1252, DOS 850, DOS 437) con selector manual para ajustes finos.
   - **Tablas dBase / FoxPro:** Archivos `.dbf` leídos de forma nativa sin controladores externos, ignorando registros marcados como eliminados.
@@ -276,12 +276,12 @@ Herramientas avanzadas de administración accesibles desde el menú **Administra
 
 ### Visor de Registros (Logs)
 
-- **Acceso:** Menú **Administración › Utilitarios › Visor de logs** (`FrmVisorLogs`).
+- **Acceso:** Menú **Utilitarios › Visor de logs** (`FrmVisorLogs`).
 - **Características:**
   - Lectura segura en caliente de los archivos diarios de Serilog (`pesaje-*.log`) mediante modo compartido `FileShare.ReadWrite | FileShare.Delete` sin interferir con el logger activo de la aplicación.
   - Filtro jerárquico por nivel de severidad: "Todos", "Información o superior", "Advertencias y errores", "Solo errores".
-  - Búsqueda por subcadena de texto en tiempo real sobre el mensaje y detalle técnico.
+  - Búsqueda por subcadena de texto (se aplica con Enter o con el botón Filtrar) sobre el mensaje y detalle técnico.
   - Grilla interactiva con código de color visual (filas de advertencia en amarillo suave, errores y fallos fatales en rojo suave).
   - Panel inferior monoespaciado para inspección cómoda de trazas de excepción (`StackTrace`) y propiedades estructuradas.
   - Botón "Abrir carpeta" para explorar directamente el directorio de logs del sistema operativo (`%ProgramData%\PesajeFaeneo\logs`).
-  - Límite de seguridad de rendimiento: lectura de los últimos 4 MB de archivo y visualización de hasta 10 000 entradas para garantizar respuesta instantánea.
+  - Límite de seguridad de rendimiento: lectura de los últimos 4 MB de archivo y hasta 10 000 entradas leídas y 5 000 filas en la grilla (con aviso si se recortan) para garantizar respuesta instantánea.

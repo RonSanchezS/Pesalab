@@ -1,4 +1,4 @@
-﻿using PesajeFaeneo.Domain.Enums;
+using PesajeFaeneo.Domain.Enums;
 
 namespace PesajeFaeneo.Application.Utilitarios.Importacion.Dtos;
 

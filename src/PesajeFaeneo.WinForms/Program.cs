@@ -166,14 +166,23 @@ public static class Program
             try
             {
                 Task.Run(() => programador.DetenerAsync()).WaitAsync(TimeSpan.FromSeconds(10)).GetAwaiter().GetResult();
-                if (!reiniciar)
-                {
-                    Task.Run(() => programador.EjecutarAlCerrarAsync()).WaitAsync(TimeSpan.FromSeconds(60)).GetAwaiter().GetResult();
-                }
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "El backup automático de cierre no terminó correctamente.");
+                Log.Warning(ex, "El programador de backups no se detuvo a tiempo.");
+            }
+
+            // En un try propio: que DetenerAsync agote su espera no debe saltarse el backup de cierre.
+            if (!reiniciar)
+            {
+                try
+                {
+                    Task.Run(() => programador.EjecutarAlCerrarAsync()).WaitAsync(TimeSpan.FromSeconds(60)).GetAwaiter().GetResult();
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "El backup automático de cierre no terminó correctamente.");
+                }
             }
 
             try
@@ -189,6 +198,8 @@ public static class Program
 
             if (reiniciar)
             {
+                // Soltar las conexiones agrupadas: la nueva instancia moverá pesaje.db apenas obtenga el mutex.
+                Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
                 IniciarNuevaInstancia();
             }
 

@@ -434,6 +434,18 @@ public class FrmBackupRestaurarTests
     }
 
     [Fact]
+    public void Test12_GrillaNoEsOrdenable_LaSeleccionNoPuedeApuntarAOtroArchivo()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            using var form = new FrmBackupRestaurar(new ServicioBackupFalso(), Reloj());
+
+            Assert.All(form.dgvBackups.Columns.Cast<DataGridViewColumn>(),
+                c => Assert.Equal(DataGridViewColumnSortMode.NotSortable, c.SortMode));
+        });
+    }
+
+    [Fact]
     public void Test11_AbrirCarpeta_Y_TeclaF5Recarga()
     {
         HiloSta.Ejecutar(() =>

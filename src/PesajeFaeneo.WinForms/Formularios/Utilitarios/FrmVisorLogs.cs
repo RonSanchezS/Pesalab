@@ -17,6 +17,8 @@ public class FrmVisorLogs : FormBase
     private readonly IServicioLogs _servicio;
     private ContenidoLog? _contenido;
     private List<EntradaLog> _entradasFiltradas = new();
+    private int _versionLectura;
+    private const int MaximoFilasGrilla = 5000;
 
     // Controles internos para pruebas
     internal readonly ComboBox cmbArchivo;
@@ -238,7 +240,7 @@ public class FrmVisorLogs : FormBase
 
     private void ConfigurarColumnasGrilla()
     {
-        dgvEntradas.Columns.Add(new DataGridViewTextBoxColumn { Name = "colHora", HeaderText = "Hora", Width = 150 });
+        dgvEntradas.Columns.Add(new DataGridViewTextBoxColumn { Name = "colHora", HeaderText = "Hora", Width = 230 });
         dgvEntradas.Columns.Add(new DataGridViewTextBoxColumn { Name = "colNivel", HeaderText = "Nivel", Width = 90 });
         dgvEntradas.Columns.Add(new DataGridViewTextBoxColumn
         {
@@ -246,19 +248,26 @@ public class FrmVisorLogs : FormBase
             HeaderText = "Mensaje",
             AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
         });
+
+        // El detalle se resuelve por el índice de la fila en _entradasFiltradas: ordenar la grilla lo rompería.
+        foreach (DataGridViewColumn columna in dgvEntradas.Columns)
+        {
+            columna.SortMode = DataGridViewColumnSortMode.NotSortable;
+        }
     }
 
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
-        _ = EjecutarAsync(CargarInternoAsync);
+        // CargarInternoAsync ya envuelve su lectura en EjecutarAsync: envolverla otra vez la descartaría (regla 0.10).
+        _ = CargarInternoAsync();
     }
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
     {
         if (keyData == Keys.F5)
         {
-            _ = EjecutarAsync(CargarInternoAsync);
+            _ = CargarInternoAsync();
             return true;
         }
 
@@ -336,23 +345,47 @@ public class FrmVisorLogs : FormBase
             return;
         }
 
+        // Sin EjecutarAsync: con otra lectura en curso, FormBase descartaría esta en silencio y el combo
+        // mostraría un archivo distinto del de la grilla. Un token de versión descarta la respuesta tardía.
+        var version = ++_versionLectura;
         ContenidoLog? contenido = null;
         string? error = null;
+        UseWaitCursor = true;
 
-        await EjecutarAsync(async () =>
+        try
         {
-            try
+            contenido = await _servicio.LeerAsync(opc.Archivo.Nombre);
+        }
+        catch (DomainException dex)
+        {
+            error = dex.Message;
+        }
+        catch (Exception ex)
+        {
+            if (version == _versionLectura)
             {
-                contenido = await _servicio.LeerAsync(opc.Archivo.Nombre);
+                UseWaitCursor = false;
             }
-            catch (DomainException dex)
-            {
-                error = dex.Message;
-            }
-        });
+
+            ManejadorErrores.Mostrar(ex, this);
+            return;
+        }
+
+        if (version != _versionLectura)
+        {
+            return;
+        }
+
+        UseWaitCursor = false;
 
         if (error != null)
         {
+            // No dejar el contenido del archivo anterior bajo el nombre del nuevo.
+            _contenido = null;
+            _entradasFiltradas.Clear();
+            dgvEntradas.Rows.Clear();
+            txtDetalle.Text = string.Empty;
+            lblResumen.Text = string.Empty;
             MostrarAdvertencia(error);
             return;
         }
@@ -385,29 +418,44 @@ public class FrmVisorLogs : FormBase
                 (e.Detalle != null && e.Detalle.Contains(textoFiltro, StringComparison.OrdinalIgnoreCase)));
         }
 
-        _entradasFiltradas = query.Take(5000).ToList();
+        var coincidencias = query.Take(MaximoFilasGrilla + 1).ToList();
+        var recortadoGrilla = coincidencias.Count > MaximoFilasGrilla;
+        _entradasFiltradas = recortadoGrilla ? coincidencias.Take(MaximoFilasGrilla).ToList() : coincidencias;
 
-        dgvEntradas.Rows.Clear();
-        foreach (var entrada in _entradasFiltradas)
+        dgvEntradas.SuspendLayout();
+        try
         {
-            var idx = dgvEntradas.Rows.Add(entrada.Marca, FormatearNivel(entrada.Nivel), entrada.Mensaje);
-            var row = dgvEntradas.Rows[idx];
+            dgvEntradas.Rows.Clear();
+            foreach (var entrada in _entradasFiltradas)
+            {
+                var idx = dgvEntradas.Rows.Add(entrada.Marca, FormatearNivel(entrada.Nivel), entrada.Mensaje);
+                var row = dgvEntradas.Rows[idx];
 
-            if (entrada.Nivel == NivelLog.Error || entrada.Nivel == NivelLog.Fatal)
-            {
-                row.DefaultCellStyle.BackColor = Color.MistyRose;
+                if (entrada.Nivel == NivelLog.Error || entrada.Nivel == NivelLog.Fatal)
+                {
+                    row.DefaultCellStyle.BackColor = Color.MistyRose;
+                }
+                else if (entrada.Nivel == NivelLog.Advertencia)
+                {
+                    row.DefaultCellStyle.BackColor = Color.LightYellow;
+                }
             }
-            else if (entrada.Nivel == NivelLog.Advertencia)
-            {
-                row.DefaultCellStyle.BackColor = Color.LightYellow;
-            }
+        }
+        finally
+        {
+            dgvEntradas.ResumeLayout();
         }
 
         var sbResumen = new StringBuilder();
         sbResumen.Append($"Mostrando {_entradasFiltradas.Count} de {_contenido.Entradas.Count} entradas.");
+        if (recortadoGrilla)
+        {
+            sbResumen.Append($" (La grilla muestra solo las primeras {MaximoFilasGrilla:N0} coincidencias: refine el filtro.)");
+        }
+
         if (_contenido.Truncado)
         {
-            sbResumen.Append(" (Solo se leyeron los últimos 4 MB del archivo.)");
+            sbResumen.Append(" (El archivo se recortó: solo se leen los últimos 4 MB y hasta 10 000 entradas.)");
         }
         lblResumen.Text = sbResumen.ToString();
 
@@ -430,9 +478,10 @@ public class FrmVisorLogs : FormBase
         if (idx >= 0 && idx < _entradasFiltradas.Count)
         {
             var e = _entradasFiltradas[idx];
+            // El TextBox multilínea solo parte líneas con \r\n; el parser une el detalle con \n.
             txtDetalle.Text = string.IsNullOrEmpty(e.Detalle)
                 ? e.Mensaje
-                : $"{e.Mensaje}\r\n\r\n{e.Detalle}";
+                : $"{e.Mensaje}\r\n\r\n{e.Detalle.Replace("\r\n", "\n").Replace("\n", "\r\n")}";
         }
         else
         {

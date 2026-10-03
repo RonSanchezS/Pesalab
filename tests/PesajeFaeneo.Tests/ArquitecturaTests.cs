@@ -1,4 +1,4 @@
-﻿using PesajeFaeneo.Application.Abstracciones;
+using PesajeFaeneo.Application.Abstracciones;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Infrastructure.Persistencia;
 using Xunit;

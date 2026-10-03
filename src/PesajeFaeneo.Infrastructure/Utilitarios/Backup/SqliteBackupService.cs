@@ -288,7 +288,7 @@ public sealed class SqliteBackupService : IMotorBackup
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DirectoryNotFoundException)
                 {
                     advertencia = "La copia se creó, pero no se pudo copiar a la carpeta secundaria (¿está conectada?).";
-                    _logger.LogWarning(ex, "Falló la copia a la carpeta secundaria {Carpeta}.", solicitud.CarpetaSecundaria);
+                    _logger.LogWarning(ex, "Falló la copia a la carpeta secundaria {Carpeta}.", Path.GetFileName(solicitud.CarpetaSecundaria.TrimEnd('\\', '/')));
                 }
             }
 
@@ -824,7 +824,9 @@ public sealed class SqliteBackupService : IMotorBackup
             ruta,
             Path.GetFileName(ruta),
             m.Tipo,
-            m.CreadoEnUtc,
+            // Un manifiesto con offset (-04:00) se deserializa como Local; normalizar a UTC evita que
+            // ConvertTimeFromUtc de la UI rompa todo el listado.
+            m.CreadoEnUtc.ToUniversalTime(),
             fi.Length,
             m.VersionAplicacion,
             m.Equipo,

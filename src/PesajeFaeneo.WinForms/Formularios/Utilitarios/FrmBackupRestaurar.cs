@@ -256,6 +256,26 @@ public class FrmBackupRestaurar : FormBase
         dgvBackups.Columns.Add(new DataGridViewTextBoxColumn { Name = "colVersion", HeaderText = "Versión", Width = 80 });
         dgvBackups.Columns.Add(new DataGridViewTextBoxColumn { Name = "colArchivo", HeaderText = "Archivo", Width = 230 });
         dgvBackups.Columns.Add(new DataGridViewTextBoxColumn { Name = "colEstado", HeaderText = "Estado", Width = 120, AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+
+        // La fila seleccionada se resuelve por su índice en _backups: ordenar la grilla haría que "Restaurar" o
+        // "Exportar" actuaran sobre otro archivo distinto del que el usuario ve seleccionado.
+        foreach (DataGridViewColumn columna in dgvBackups.Columns)
+        {
+            columna.SortMode = DataGridViewColumnSortMode.NotSortable;
+        }
+    }
+
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        // Cerrar durante una operación dejaría una restauración programada sin reinicio y mensajes sobre un
+        // formulario desechado.
+        if (Ocupado)
+        {
+            e.Cancel = true;
+            return;
+        }
+
+        base.OnFormClosing(e);
     }
 
     protected override void OnShown(EventArgs e)

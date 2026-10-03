@@ -97,6 +97,35 @@ public class ServicioBackupTests
     }
 
     [Fact]
+    public async Task Test02b_CrearManualAsync_SiLaAuditoriaFalla_DevuelveLaCopiaYaCreada()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var sesion = new SesionActual();
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
+
+        var motor = new MotorBackupFalso();
+        var servicio = new ServicioBackup(
+            motor,
+            new AlmacenConfiguracionBackupFalso(),
+            new ProgramadorBackupFalso(),
+            new FabricaUowQueFalla(),
+            sesion,
+            new FakeTimeProvider(),
+            NullLogger<ServicioBackup>.Instance);
+
+        var resultado = await servicio.CrearManualAsync();
+
+        Assert.NotNull(resultado.Backup);
+        Assert.Single(motor.Solicitudes);
+    }
+
+    private sealed class FabricaUowQueFalla : PesajeFaeneo.Application.Abstracciones.Persistencia.IUnidadDeTrabajoFactory
+    {
+        public Task<PesajeFaeneo.Application.Abstracciones.Persistencia.IUnidadDeTrabajo> CrearAsync(CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Base ocupada (simulado).");
+    }
+
+    [Fact]
     public async Task Test03_CrearManualAsync_SiMotorLanza_NoRegistraAuditoria()
     {
         await using var db = await BaseDatosEnMemoria.CrearAsync();

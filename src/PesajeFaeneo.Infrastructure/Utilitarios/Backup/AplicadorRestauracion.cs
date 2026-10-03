@@ -1,5 +1,6 @@
 namespace PesajeFaeneo.Infrastructure.Utilitarios.Backup;
 
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -168,7 +169,7 @@ public sealed class AplicadorRestauracion : IAplicadorRestauracion
 
         // 5–7. Preparar reemplazo y mover archivos con soporte de Deshacer
         var local = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, _timeProvider.LocalTimeZone);
-        var prefijoReemplazada = $"reemplazada-{local:yyyyMMdd_HHmmss}";
+        var prefijoReemplazada = $"reemplazada-{local.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture)}";
         var carpetaReemplazada = Path.Combine(_appPaths.RestoreDir, prefijoReemplazada);
         int sufijo = 2;
         while (Directory.Exists(carpetaReemplazada))
@@ -193,7 +194,7 @@ public sealed class AplicadorRestauracion : IAplicadorRestauracion
                 {
                     var nombre = Path.GetFileName(rutaOriginal);
                     var destino = Path.Combine(carpetaReemplazada, nombre);
-                    File.Move(rutaOriginal, destino);
+                    MoverConReintentos(rutaOriginal, destino);
                     movimientos.Add((rutaOriginal, destino));
                     if (ext == "")
                     {
@@ -328,7 +329,7 @@ public sealed class AplicadorRestauracion : IAplicadorRestauracion
         SqliteConnection.ClearAllPools();
 
         var local = TimeZoneInfo.ConvertTimeFromUtc(_timeProvider.GetUtcNow().UtcDateTime, _timeProvider.LocalTimeZone);
-        var prefijoFallida = $"fallida-{local:yyyyMMdd_HHmmss}";
+        var prefijoFallida = $"fallida-{local.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture)}";
         var carpetaFallida = Path.Combine(_appPaths.RestoreDir, prefijoFallida);
         int sufijo = 2;
         while (Directory.Exists(carpetaFallida))
@@ -398,6 +399,28 @@ public sealed class AplicadorRestauracion : IAplicadorRestauracion
             motivo: "Restauración aplicada al iniciar el sistema"));
 
         await ctx.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Tras un reinicio, el proceso anterior puede seguir cerrándose y conservar un instante la base abierta:
+    /// se reintenta unos segundos antes de rendirse (y descartar una restauración ya validada).
+    /// </summary>
+    private static void MoverConReintentos(string origen, string destino)
+    {
+        const int intentos = 8;
+        for (var intento = 1; ; intento++)
+        {
+            try
+            {
+                File.Move(origen, destino);
+                return;
+            }
+            catch (IOException) when (intento < intentos)
+            {
+                SqliteConnection.ClearAllPools();
+                Thread.Sleep(400);
+            }
+        }
     }
 
     private static string CalcularSha256(string ruta)

@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using System.Data.OleDb;
 using System.Runtime.Versioning;
 using PesajeFaeneo.Application.Boletas.Diseno;
@@ -99,6 +99,9 @@ internal sealed class LectorAccessOleDb
         {
             var cadena = new OleDbConnectionStringBuilder { Provider = proveedor, DataSource = ruta };
             cadena["Mode"] = "Read";
+            // Sin el pooling de OLE DB el archivo no queda bloqueado (.laccdb/.ldb) hasta un minuto tras leerlo:
+            // en un pendrive o una carpeta compartida impediría expulsarlo o moverlo (regla 0.16).
+            cadena["OLE DB Services"] = -4;
             var conexion = new OleDbConnection(cadena.ConnectionString);
             try
             {

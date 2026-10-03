@@ -28,6 +28,9 @@ public class FormBase : Form
         base.OnLoad(e);
     }
 
+    /// <summary>True mientras un <see cref="EjecutarAsync"/> está en curso (para impedir cerrar o relanzar acciones).</summary>
+    protected bool Ocupado => _ocupado;
+
     protected async Task EjecutarAsync(Func<Task> accion, Control? botonDisparador = null)
     {
         if (_ocupado)

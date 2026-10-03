@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
 using PesajeFaeneo.Application.Utilitarios.Importacion;
 using PesajeFaeneo.Application.Utilitarios.Importacion.Dtos;
