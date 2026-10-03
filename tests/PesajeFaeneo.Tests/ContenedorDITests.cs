@@ -108,6 +108,9 @@ public class ContenedorDITests
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Logs.ILectorArchivosLog>());
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Utilitarios.Logs.IServicioLogs>());
 
+            // F9: puesta en marcha
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.PuestaEnMarcha.IServicioPuestaEnMarcha>());
+
             using (var scope = proveedor.CreateScope())
             {
                 Assert.NotNull(scope.ServiceProvider.GetService<IDatabaseInitializer>());
