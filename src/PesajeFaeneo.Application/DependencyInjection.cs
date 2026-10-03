@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddSingleton<Utilitarios.Backup.IProgramadorBackupAutomatico, Utilitarios.Backup.ProgramadorBackupAutomatico>();
         services.AddTransient<Utilitarios.Importacion.IServicioImportacion, Utilitarios.Importacion.ServicioImportacion>();
         services.AddTransient<Utilitarios.Logs.IServicioLogs, Utilitarios.Logs.ServicioLogs>();
+        services.AddScoped<Arranque.IActualizadorBaseDatos, Arranque.ActualizadorBaseDatos>();
         return services;
     }
 }

@@ -53,6 +53,7 @@ public static class ReglasBackup
             TipoBackup.Manual => $"PesajeFaeneo_manual_{local.ToString("yyyy-MM-dd_HHmmss", CultureInfo.InvariantCulture)}.zip",
             TipoBackup.PreRestauracion => $"PesajeFaeneo_prerestauracion_{local.ToString("yyyy-MM-dd_HHmmss", CultureInfo.InvariantCulture)}.zip",
             TipoBackup.PreImportacion => $"PesajeFaeneo_preimportacion_{local.ToString("yyyy-MM-dd_HHmmss", CultureInfo.InvariantCulture)}.zip",
+            TipoBackup.PreMigracion => $"PesajeFaeneo_premigracion_{local.ToString("yyyy-MM-dd_HHmmss", CultureInfo.InvariantCulture)}.zip",
             _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Tipo de backup no válido.")
         };
     }
@@ -65,6 +66,7 @@ public static class ReglasBackup
             TipoBackup.Manual => CarpetaManuales,
             TipoBackup.PreRestauracion => CarpetaSeguridad,
             TipoBackup.PreImportacion => CarpetaSeguridad,
+            TipoBackup.PreMigracion => CarpetaSeguridad,
             _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Tipo de backup no válido.")
         };
     }
@@ -137,6 +139,7 @@ public static class ReglasBackup
         {
             TipoBackup.PreRestauracion => "PesajeFaeneo_prerestauracion_",
             TipoBackup.PreImportacion => "PesajeFaeneo_preimportacion_",
+            TipoBackup.PreMigracion => "PesajeFaeneo_premigracion_",
             _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Tipo de seguridad no válido.")
         };
 
@@ -181,6 +184,7 @@ public static class ReglasBackup
             TipoBackup.Automatico => "Automático",
             TipoBackup.PreRestauracion => "Resguardo previo a restaurar",
             TipoBackup.PreImportacion => "Resguardo previo a importar",
+            TipoBackup.PreMigracion => "Resguardo previo a actualizar",
             _ => "Desconocido"
         };
     }

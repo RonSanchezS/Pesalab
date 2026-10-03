@@ -5,7 +5,8 @@ public enum TipoBackup
     Manual = 1,
     Automatico = 2,
     PreRestauracion = 3,
-    PreImportacion = 4
+    PreImportacion = 4,
+    PreMigracion = 5
 }
 
 /// <summary>Una copia de seguridad en disco. RutaArchivo es para la UI; nunca va al log (regla 0.14).</summary>

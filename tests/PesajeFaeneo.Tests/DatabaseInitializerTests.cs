@@ -79,6 +79,54 @@ public class DatabaseInitializerTests : IClassFixture<SqliteArchivoFixture>
         Assert.Equal(1L, count);
     }
 
+    [Fact]
+    public async Task EvaluarAsync_ArchivoNuevo_AplicadasVaciaYPendientesTodas_LuegoDeInicializarPendientesVacia()
+    {
+        var dbPath = Path.Combine(Path.GetTempPath(), $"pesaje_eval_test_{Guid.NewGuid():N}.db");
+        try
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<PesajeDbContext>();
+            optionsBuilder.ConfigurarSqlite($"Data Source={dbPath};Pooling=False");
+            var factory = new SimpleDbContextFactory(optionsBuilder.Options);
+            var initializer = new DatabaseInitializer(factory);
+
+            await using var context = await factory.CreateDbContextAsync();
+            var todas = context.Database.GetMigrations().ToList();
+
+            var estadoInicial = await initializer.EvaluarAsync();
+            Assert.Empty(estadoInicial.Aplicadas);
+            Assert.Empty(estadoInicial.Desconocidas);
+            Assert.Equal(todas, estadoInicial.Pendientes);
+
+            await initializer.InicializarAsync();
+
+            var estadoFinal = await initializer.EvaluarAsync();
+            Assert.Empty(estadoFinal.Pendientes);
+            Assert.Empty(estadoFinal.Desconocidas);
+            Assert.Equal(todas, estadoFinal.Aplicadas);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            if (File.Exists(dbPath)) try { File.Delete(dbPath); } catch { }
+            var wal = $"{dbPath}-wal";
+            if (File.Exists(wal)) try { File.Delete(wal); } catch { }
+            var shm = $"{dbPath}-shm";
+            if (File.Exists(shm)) try { File.Delete(shm); } catch { }
+        }
+    }
+
+    private sealed class SimpleDbContextFactory : IDbContextFactory<PesajeDbContext>
+    {
+        private readonly DbContextOptions<PesajeDbContext> _options;
+        public SimpleDbContextFactory(DbContextOptions<PesajeDbContext> options) => _options = options;
+        public PesajeDbContext CreateDbContext() => new(_options);
+        public Task<PesajeDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new PesajeDbContext(_options));
+    }
+
 
     private static async Task<string> LeerPragmaAsync(SqliteConnection conexion, string pragma)
     {

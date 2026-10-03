@@ -239,7 +239,7 @@ public sealed class SqliteBackupService : IMotorBackup
                     }
                 }
             }
-            else if (solicitud.Tipo == TipoBackup.PreRestauracion || solicitud.Tipo == TipoBackup.PreImportacion)
+            else if (solicitud.Tipo is TipoBackup.PreRestauracion or TipoBackup.PreImportacion or TipoBackup.PreMigracion)
             {
                 var nombres = new DirectoryInfo(carpeta).GetFiles("*.zip").Select(f => f.Name);
                 var aEliminar = ReglasBackup.SeleccionarSeguridadAEliminar(nombres, solicitud.Tipo);
@@ -353,6 +353,8 @@ public sealed class SqliteBackupService : IMotorBackup
                     {
                         var tipo = c.EndsWith(ReglasBackup.CarpetaManuales, StringComparison.OrdinalIgnoreCase) ? TipoBackup.Manual :
                                    c.EndsWith(ReglasBackup.CarpetaAutomaticos, StringComparison.OrdinalIgnoreCase) ? TipoBackup.Automatico :
+                                   nombre.StartsWith("PesajeFaeneo_premigracion_", StringComparison.OrdinalIgnoreCase) ? TipoBackup.PreMigracion :
+                                   nombre.StartsWith("PesajeFaeneo_preimportacion_", StringComparison.OrdinalIgnoreCase) ? TipoBackup.PreImportacion :
                                    TipoBackup.PreRestauracion;
 
                         resultado.Add(new InfoBackup(

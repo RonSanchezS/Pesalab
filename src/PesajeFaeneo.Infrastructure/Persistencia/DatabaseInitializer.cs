@@ -16,6 +16,18 @@ public class DatabaseInitializer : IDatabaseInitializer
         _logger = logger;
     }
 
+    public async Task<EstadoEsquemaBaseDatos> EvaluarAsync(CancellationToken cancellationToken = default)
+    {
+        // Abrir una base inexistente la crea vacía (H10): en ese caso no hay aplicadas y todo está pendiente.
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+        var conocidas = context.Database.GetMigrations().ToList();
+        var aplicadas = (await context.Database.GetAppliedMigrationsAsync(cancellationToken).ConfigureAwait(false)).ToList();
+        return new EstadoEsquemaBaseDatos(
+            aplicadas,
+            conocidas.Except(aplicadas, StringComparer.Ordinal).ToList(),
+            aplicadas.Except(conocidas, StringComparer.Ordinal).ToList());
+    }
+
     public async Task InicializarAsync(CancellationToken cancellationToken = default)
     {
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);

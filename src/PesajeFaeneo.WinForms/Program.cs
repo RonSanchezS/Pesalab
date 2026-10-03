@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PesajeFaeneo.Application;
 using PesajeFaeneo.Application.Abstracciones;
+using PesajeFaeneo.Application.Arranque;
 using PesajeFaeneo.Application.Boletas.Diseno;
 using PesajeFaeneo.Application.Utilitarios.Backup;
 using PesajeFaeneo.Application.Utilitarios.Backup.Dtos;
@@ -211,6 +212,12 @@ public static class Program
 
             return 0;
         }
+        catch (ArranqueBaseDatosException ex)
+        {
+            Log.Error(ex, "La base de datos no se pudo preparar ({Motivo}).", ex.Motivo);
+            MessageBox.Show(ex.Message, "No se pudo abrir la base de datos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return 2;
+        }
         catch (Exception ex)
         {
             Log.Fatal(ex, "Error fatal al iniciar la aplicación.");
@@ -264,8 +271,20 @@ public static class Program
     private static void Inicializar(IServiceProvider servicios)
     {
         using var scope = servicios.CreateScope();
-        scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>().InicializarAsync().GetAwaiter().GetResult();
+        // F9-02: evalúa el esquema, copia antes de migrar si es una actualización y migra. Lanza
+        // ArranqueBaseDatosException cuando la aplicación no debe abrir (base más nueva, copia o migración fallida).
+        var actualizador = scope.ServiceProvider.GetRequiredService<IActualizadorBaseDatos>();
+        var resultado = actualizador.PrepararAsync().GetAwaiter().GetResult();
         scope.ServiceProvider.GetRequiredService<IDataSeeder>().SembrarAsync().GetAwaiter().GetResult();
+
+        try
+        {
+            actualizador.RegistrarAuditoriaAsync(resultado).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "No se pudo auditar la actualización de la base de datos.");
+        }
     }
 
     private static void AvisarRestauracion(ResultadoRestauracionArranque r, TimeZoneInfo zona)

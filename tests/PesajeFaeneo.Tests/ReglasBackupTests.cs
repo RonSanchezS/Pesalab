@@ -112,4 +112,31 @@ public class ReglasBackupTests
         var cAbs = new ConfiguracionBackup(true, true, 30, @"C:\Backups");
         Assert.Empty(ReglasBackup.ValidarConfiguracion(cAbs));
     }
+
+    [Fact]
+    public void PreMigracion_ReglasCompletas()
+    {
+        var local = new DateTime(2026, 10, 3, 10, 15, 0);
+        var nombre = ReglasBackup.NombreArchivo(TipoBackup.PreMigracion, local);
+        Assert.Equal("PesajeFaeneo_premigracion_2026-10-03_101500.zip", nombre);
+
+        Assert.Equal("seguridad", ReglasBackup.Carpeta(TipoBackup.PreMigracion));
+        Assert.Equal("Resguardo previo a actualizar", ReglasBackup.TextoTipo(TipoBackup.PreMigracion));
+
+        var nombres = new List<string>();
+        for (int i = 1; i <= 12; i++)
+        {
+            nombres.Add($"PesajeFaeneo_premigracion_2026-10-03_{i:D6}.zip");
+        }
+        for (int i = 1; i <= 3; i++)
+        {
+            nombres.Add($"PesajeFaeneo_prerestauracion_2026-10-03_{i:D6}.zip");
+        }
+
+        var eliminados = ReglasBackup.SeleccionarSeguridadAEliminar(nombres, TipoBackup.PreMigracion);
+        Assert.Equal(2, eliminados.Count);
+        Assert.Contains("PesajeFaeneo_premigracion_2026-10-03_000001.zip", eliminados);
+        Assert.Contains("PesajeFaeneo_premigracion_2026-10-03_000002.zip", eliminados);
+        Assert.DoesNotContain(eliminados, n => n.Contains("prerestauracion"));
+    }
 }

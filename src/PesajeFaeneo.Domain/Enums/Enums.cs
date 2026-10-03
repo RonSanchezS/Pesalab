@@ -79,7 +79,8 @@ public enum AccionAuditoria
     Reimprimir = 13,
     Backup = 14,
     Restauracion = 15,
-    Importacion = 16
+    Importacion = 16,
+    ActualizacionSistema = 17
 }
 
 public enum Permiso

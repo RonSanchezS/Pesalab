@@ -112,6 +112,7 @@ public class ContenedorDITests
             {
                 Assert.NotNull(scope.ServiceProvider.GetService<IDatabaseInitializer>());
                 Assert.NotNull(scope.ServiceProvider.GetService<IDataSeeder>());
+                Assert.NotNull(scope.ServiceProvider.GetService<PesajeFaeneo.Application.Arranque.IActualizadorBaseDatos>());
             }
 
             HiloSta.Ejecutar(() =>
