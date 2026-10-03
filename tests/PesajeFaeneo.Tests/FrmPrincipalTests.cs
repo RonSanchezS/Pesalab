@@ -813,4 +813,37 @@ public class FrmPrincipalTests
             Assert.True(itemAcercaDe.Available);
         });
     }
+
+    [Theory]
+    [InlineData(Rol.Administrador, true)]
+    [InlineData(Rol.Supervisor, false)]
+    [InlineData(Rol.Operador, false)]
+    public void FrmPrincipal_MenuAyuda_AsistenteSoloParaAdministradorYAcercaDeParaTodos(Rol rol, bool veAsistente)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "usuario", "Usuario Prueba", rol, false));
+
+            using var principal = new FrmPrincipal(sesion, new FalsaFormFactory(), TimeProvider.System, new FalsoServicioParametros(), new ServicioBalanzaFalso());
+
+            ToolStripMenuItem? mnuAyuda = null;
+            foreach (ToolStripMenuItem top in principal.MenuPrincipal.Items)
+            {
+                if (top.Text?.Replace("&", "").Contains("Ayuda", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    mnuAyuda = top;
+                }
+            }
+
+            Assert.NotNull(mnuAyuda);
+            var asistente = mnuAyuda.DropDownItems.OfType<ToolStripMenuItem>()
+                .Single(i => i.Text!.Replace("&", "").Contains("Asistente de puesta en marcha", StringComparison.OrdinalIgnoreCase));
+            var acercaDe = mnuAyuda.DropDownItems.OfType<ToolStripMenuItem>()
+                .Single(i => i.Text!.Replace("&", "").Contains("Acerca de", StringComparison.OrdinalIgnoreCase));
+
+            Assert.Equal(veAsistente, asistente.Available);
+            Assert.True(acercaDe.Available);
+        });
+    }
 }

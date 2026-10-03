@@ -309,4 +309,22 @@ public class LayoutFormulariosTests
             VerificadorLayout.VerificarEscalado(form);
         });
     }
+
+    [Fact]
+    public void AsistentePuestaEnMarcha_ConSimulador_SinTextosCortados_NiConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new PesajeFaeneo.Tests.Utilidades.PuestaEnMarcha.ServicioPuestaEnMarchaFalso();
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "admin", "Administrador", Rol.Administrador, false));
+            using var form = new PesajeFaeneo.WinForms.Formularios.PuestaEnMarcha.FrmAsistentePuestaEnMarcha(servicio, sesion, new FormFactoryFalsa());
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.True(form.ChkSimulador.Visible);
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
 }

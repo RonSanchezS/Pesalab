@@ -1,6 +1,10 @@
 using Microsoft.Extensions.Logging;
+using PesajeFaeneo.Application.PuestaEnMarcha;
+using PesajeFaeneo.Application.PuestaEnMarcha.Dtos;
 using PesajeFaeneo.Application.Seguridad;
+using PesajeFaeneo.Domain.Enums;
 using PesajeFaeneo.WinForms.Formularios;
+using PesajeFaeneo.WinForms.Formularios.PuestaEnMarcha;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
 
 namespace PesajeFaeneo.WinForms.Infraestructura;
@@ -10,6 +14,7 @@ public sealed class ContextoAplicacion : ApplicationContext
     private readonly IFormFactory _formFactory;
     private readonly IServicioAutenticacion _autenticacion;
     private readonly ISesionActual _sesionActual;
+    private readonly IServicioPuestaEnMarcha _puestaEnMarcha;
     private readonly ILogger<ContextoAplicacion> _logger;
 
     public bool ReinicioSolicitado { get; private set; }
@@ -18,11 +23,13 @@ public sealed class ContextoAplicacion : ApplicationContext
         IFormFactory formFactory,
         IServicioAutenticacion autenticacion,
         ISesionActual sesionActual,
+        IServicioPuestaEnMarcha puestaEnMarcha,
         ILogger<ContextoAplicacion> logger)
     {
         _formFactory = formFactory ?? throw new ArgumentNullException(nameof(formFactory));
         _autenticacion = autenticacion ?? throw new ArgumentNullException(nameof(autenticacion));
         _sesionActual = sesionActual ?? throw new ArgumentNullException(nameof(sesionActual));
+        _puestaEnMarcha = puestaEnMarcha ?? throw new ArgumentNullException(nameof(puestaEnMarcha));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         MostrarLogin();
@@ -62,6 +69,25 @@ public sealed class ContextoAplicacion : ApplicationContext
                 }
             }
 
+            if (await DebeMostrarAsistenteAsync())
+            {
+                bool reinicio;
+                using (var asistente = _formFactory.Crear<FrmAsistentePuestaEnMarcha>())
+                {
+                    asistente.ShowDialog();
+                    reinicio = asistente.ReinicioSolicitado;
+                }
+
+                if (reinicio)
+                {
+                    // Se programó una restauración desde el asistente: mismo camino que el shell (Program relanza la aplicación).
+                    await _autenticacion.CerrarSesionAsync();
+                    ReinicioSolicitado = true;
+                    ExitThread();
+                    return;
+                }
+            }
+
             MostrarShell();
         }
         catch (Exception ex)
@@ -71,6 +97,29 @@ public sealed class ContextoAplicacion : ApplicationContext
             ExitThread();
         }
     }
+
+    private async Task<bool> DebeMostrarAsistenteAsync()
+    {
+        var tienePermiso = _sesionActual.TienePermiso(Permiso.GestionarParametros);
+        if (!tienePermiso)
+        {
+            return false;
+        }
+
+        try
+        {
+            return DebeMostrarAsistente(tienePermiso, await _puestaEnMarcha.ObtenerEstadoAsync());
+        }
+        catch (Exception ex)
+        {
+            // Nunca bloquear el inicio de sesión por el asistente.
+            _logger.LogWarning(ex, "No se pudo consultar el estado de la puesta en marcha; se omite el asistente.");
+            return false;
+        }
+    }
+
+    internal static bool DebeMostrarAsistente(bool tienePermiso, EstadoPuestaEnMarcha? estado) =>
+        tienePermiso && estado is { Completa: false };
 
     private void MostrarShell()
     {

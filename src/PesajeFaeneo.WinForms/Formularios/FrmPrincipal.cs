@@ -8,6 +8,7 @@ using PesajeFaeneo.WinForms.Formularios.Administracion;
 using PesajeFaeneo.WinForms.Formularios.Boletas;
 using PesajeFaeneo.WinForms.Formularios.Catalogos;
 using PesajeFaeneo.WinForms.Formularios.Pesaje;
+using PesajeFaeneo.WinForms.Formularios.PuestaEnMarcha;
 using PesajeFaeneo.WinForms.Formularios.Reportes;
 using PesajeFaeneo.WinForms.Formularios.Seguridad;
 using PesajeFaeneo.WinForms.Formularios.Utilitarios;
@@ -256,9 +257,15 @@ public partial class FrmPrincipal : FormBase
 
         // 8. Ayuda
         var mnuAyuda = new ToolStripMenuItem("A&yuda");
+        var itemAsistente = new ToolStripMenuItem("Asistente de &puesta en marcha…")
+        {
+            Tag = new OpcionMenu(Permiso.GestionarParametros, null)
+        };
+        itemAsistente.Click += async (_, _) => await AbrirAsistenteAsync();
+
         var itemAcercaDe = new ToolStripMenuItem("&Acerca de…");
         itemAcercaDe.Click += (_, _) => AbrirAcercaDe();
-        mnuAyuda.DropDownItems.Add(itemAcercaDe);
+        mnuAyuda.DropDownItems.AddRange(new ToolStripItem[] { itemAsistente, itemAcercaDe });
 
         menuStrip.Items.AddRange(new ToolStripItem[]
         {
@@ -532,6 +539,27 @@ public partial class FrmPrincipal : FormBase
             frm.Obligatorio = false;
             frm.ShowDialog(this);
         });
+    }
+
+    private async Task AbrirAsistenteAsync()
+    {
+        var reiniciar = false;
+        Ejecutar(() =>
+        {
+            _sesion.ExigirPermiso(Permiso.GestionarParametros);
+            using var frm = _formFactory.Crear<FrmAsistentePuestaEnMarcha>();
+            frm.ShowDialog(this);
+            reiniciar = frm.ReinicioSolicitado;
+        });
+
+        if (reiniciar)
+        {
+            Solicitud = SolicitudCierreShell.ReiniciarAplicacion;
+            Close();
+            return;
+        }
+
+        await EjecutarAsync(ActualizarEmpresaAsync);
     }
 
     private void AbrirAcercaDe()
