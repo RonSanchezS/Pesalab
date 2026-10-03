@@ -9,6 +9,7 @@ using PesajeFaeneo.Application.Utilitarios.Backup;
 using PesajeFaeneo.Application.Utilitarios.Backup.Dtos;
 using PesajeFaeneo.Infrastructure;
 using PesajeFaeneo.Infrastructure.Common;
+using PesajeFaeneo.Infrastructure.Instalacion;
 using PesajeFaeneo.WinForms.Formularios;
 using PesajeFaeneo.WinForms.Infraestructura;
 using Serilog;
@@ -24,6 +25,13 @@ public static class Program
     public static int Main(string[] args)
     {
         ApplicationConfiguration.Initialize();
+
+        // Autoprueba de la instalación (F9-01, D5): no toma el mutex, no toca ProgramData y nunca muestra diálogos.
+        var indiceAutoprueba = Array.FindIndex(args, a => string.Equals(a, ArgumentoAutoprueba, StringComparison.OrdinalIgnoreCase));
+        if (indiceAutoprueba >= 0)
+        {
+            return EjecutarAutoprueba(indiceAutoprueba + 1 < args.Length ? args[indiceAutoprueba + 1] : null);
+        }
 
         // 1. Instancia única. Tras una restauración (F8-03) la aplicación se relanza con --reinicio: la nueva
         // instancia espera a que la anterior termine en lugar de avisar que ya está en ejecución.
@@ -296,5 +304,63 @@ public static class Program
         {
             Log.Error(ex, "No se pudo relanzar la aplicación; la restauración se aplicará al abrirla manualmente.");
         }
+    }
+
+    internal const string ArgumentoAutoprueba = "--autoprueba";
+
+    private static int EjecutarAutoprueba(string? carpeta)
+    {
+        if (!AutopruebaInstalacion.CarpetaValida(carpeta))
+        {
+            return 3;
+        }
+
+        var appPaths = new AppPaths(carpeta!);
+        appPaths.AsegurarDirectorios();
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .WriteTo.File(Path.Combine(appPaths.LogsDir, "pesaje-.log"), rollingInterval: RollingInterval.Day,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateBootstrapLogger();
+
+        ResultadoAutoprueba resultado;
+        try
+        {
+            var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+            {
+                Args = Array.Empty<string>(),
+                ContentRootPath = AppContext.BaseDirectory
+            });
+            ConfiguracionLogging.ConfigurarSerilog(builder, appPaths);
+            builder.Services.AddApplication();
+            builder.Services.AddInfrastructure(appPaths);
+            builder.Services.AddWinForms();
+
+            using var host = builder.Build();
+            using var scope = host.Services.CreateScope();
+            var autoprueba = ActivatorUtilities.CreateInstance<AutopruebaInstalacion>(scope.ServiceProvider);
+            resultado = autoprueba.EjecutarAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "La autoprueba no pudo iniciarse.");
+            resultado = AutopruebaInstalacion.ResultadoDeError(ex);
+        }
+
+        try
+        {
+            AutopruebaInstalacion.EscribirResultado(appPaths.BaseDir, resultado);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "No se pudo escribir el resultado de la autoprueba.");
+            resultado = resultado with { Exito = false };
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
+
+        return resultado.Exito ? 0 : 1;
     }
 }
