@@ -110,6 +110,7 @@ public class ContenedorDITests
 
             // F9: puesta en marcha
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.PuestaEnMarcha.IServicioPuestaEnMarcha>());
+            Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Seguridad.IServicioRecuperacionAdministrador>());
 
             using (var scope = proveedor.CreateScope())
             {

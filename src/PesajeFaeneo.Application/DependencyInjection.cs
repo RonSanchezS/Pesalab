@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddTransient<Utilitarios.Logs.IServicioLogs, Utilitarios.Logs.ServicioLogs>();
         services.AddScoped<Arranque.IActualizadorBaseDatos, Arranque.ActualizadorBaseDatos>();
         services.AddTransient<PuestaEnMarcha.IServicioPuestaEnMarcha, PuestaEnMarcha.ServicioPuestaEnMarcha>();
+        services.AddTransient<Seguridad.IServicioRecuperacionAdministrador, Seguridad.ServicioRecuperacionAdministrador>();
         return services;
     }
 }

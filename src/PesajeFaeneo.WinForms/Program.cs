@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Principal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -6,6 +7,7 @@ using PesajeFaeneo.Application;
 using PesajeFaeneo.Application.Abstracciones;
 using PesajeFaeneo.Application.Arranque;
 using PesajeFaeneo.Application.Boletas.Diseno;
+using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Application.Utilitarios.Backup;
 using PesajeFaeneo.Application.Utilitarios.Backup.Dtos;
 using PesajeFaeneo.Infrastructure;
@@ -39,7 +41,23 @@ public static class Program
         var esReinicio = args.Contains(InstanciaUnica.ArgumentoReinicio, StringComparer.OrdinalIgnoreCase);
         // El argumento es solo para el mutex: no se pasa al Host (su proveedor de línea de comandos lo tomaría
         // como una clave de configuración y, si hubiera otro argumento detrás, como su valor; H17).
-        var argsHost = args.Where(a => !string.Equals(a, InstanciaUnica.ArgumentoReinicio, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var restablecerAdmin = args.Contains(ArgumentoRestablecerAdmin, StringComparer.OrdinalIgnoreCase);
+        var argsHost = args
+            .Where(a => !string.Equals(a, InstanciaUnica.ArgumentoReinicio, StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(a, ArgumentoRestablecerAdmin, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        // Recuperación local del administrador (F9-04, D17): solo con el proceso elevado como administrador de Windows.
+        if (restablecerAdmin && !EsAdministradorWindows())
+        {
+            MessageBox.Show(
+                "Para restablecer la cuenta de administrador, ejecute el sistema como administrador de Windows (clic derecho › Ejecutar como administrador).",
+                "Restablecer administrador",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return 3;
+        }
+
         using var instancia = InstanciaUnica.Adquirir(MutexName, esReinicio, TimeSpan.FromSeconds(30));
         if (instancia is null)
         {
@@ -144,6 +162,13 @@ public static class Program
             // 6. Inicializar BD y Seeder; si la base recién restaurada no inicializa, se vuelve a la anterior.
             restauracion = InicializarBaseDeDatos(host.Services, aplicador, restauracion);
             AvisarRestauracion(restauracion, host.Services.GetRequiredService<TimeProvider>().LocalTimeZone);
+
+            if (restablecerAdmin)
+            {
+                var codigo = RestablecerAdministrador(host.Services);
+                host.StopAsync().GetAwaiter().GetResult();
+                return codigo;
+            }
 
             // 7. Balanza: se inicia después de migrar (lee su configuración de la BD) y nunca impide abrir la
             // aplicación; si falla, la barra de estado lo mostrará y el administrador podrá corregirlo.
@@ -325,7 +350,41 @@ public static class Program
         }
     }
 
+    internal const string ArgumentoRestablecerAdmin = "--restablecer-admin";
     internal const string ArgumentoAutoprueba = "--autoprueba";
+
+    private static bool EsAdministradorWindows()
+    {
+        using var identidad = WindowsIdentity.GetCurrent();
+        return new WindowsPrincipal(identidad).IsInRole(WindowsBuiltInRole.Administrator);
+    }
+
+    private static int RestablecerAdministrador(IServiceProvider servicios)
+    {
+        var respuesta = MessageBox.Show(
+            "Se restablecerá la cuenta 'admin' con una contraseña temporal nueva. Quien la use deberá cambiarla al ingresar. ¿Continuar?",
+            "Restablecer administrador",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning,
+            MessageBoxDefaultButton.Button2);
+        if (respuesta != DialogResult.Yes)
+        {
+            return 0;
+        }
+
+        Log.Information("Recuperación local de la cuenta de administrador solicitada.");
+        var password = GeneradorPasswordTemporal.Generar();
+        using var scope = servicios.CreateScope();
+        var resultado = scope.ServiceProvider.GetRequiredService<IServicioRecuperacionAdministrador>()
+            .RestablecerAsync(password).GetAwaiter().GetResult();
+
+        MessageBox.Show(
+            $"Cuenta '{resultado.NombreUsuario}' restablecida.{Environment.NewLine}{Environment.NewLine}Contraseña temporal: {password}{Environment.NewLine}{Environment.NewLine}Anótela ahora: no se volverá a mostrar. Al ingresar, el sistema pedirá cambiarla.",
+            "Restablecer administrador",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+        return 0;
+    }
 
     private static int EjecutarAutoprueba(string? carpeta)
     {
