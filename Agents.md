@@ -37,7 +37,7 @@ flowchart TD
 | **F6** | **Edición, anulación y auditoría** | ✅ Completado | 5 | 5 | 2026-09-30 |
 | **F7** | **Reportes** | ✅ Completado | 6 | 6 | 2026-10-01 |
 | **F8** | **Utilitarios** | ✅ Completado | 6 | 6 | 2026-10-01 |
-| **F9** | **Empaquetado, instalador y puesta en marcha** | ⏳ Siguiente en turno | 0 | 6 | — |
+| **F9** | **Empaquetado, instalador y puesta en marcha** | ✅ Completado | 6 | 6 | 2026-10-03 |
 
 ---
 
@@ -117,13 +117,13 @@ flowchart TD
 - [x] **HU-F8-05:** Lectores opcionales DBF y MDB
 - [x] **HU-F8-06:** Visor de logs
 
-### [ ] Fase F9 — Empaquetado, instalador y puesta en marcha
-- [ ] **HU-F9-01:** Publicación self-contained y versionado
-- [ ] **HU-F9-02:** Migraciones automáticas al iniciar con backup previo
-- [ ] **HU-F9-03:** Instalador Inno Setup
-- [ ] **HU-F9-04:** Asistente de primer arranque
-- [ ] **HU-F9-05:** Checklist de aceptación en sitio (UAT)
-- [ ] **HU-F9-06:** Manual de usuario y guía de balanza
+### [x] Fase F9 — Empaquetado, instalador y puesta en marcha (COMPLETADA)
+- [x] **HU-F9-01:** Publicación self-contained y versionado
+- [x] **HU-F9-02:** Migraciones automáticas al iniciar con backup previo
+- [x] **HU-F9-03:** Instalador Inno Setup
+- [x] **HU-F9-04:** Asistente de primer arranque
+- [x] **HU-F9-05:** Checklist de aceptación en sitio (UAT)
+- [x] **HU-F9-06:** Manual de usuario y guía de balanza
 
 ---
 
@@ -161,7 +161,9 @@ flowchart TD
 - **Reportes (F7):** servicio desacoplado `IServicioReportes` bajo permiso `VerReportes` (autorizado para Supervisor y Administrador, solo lectura); 5 tipos de reporte (pesajes del día, entre fechas, por ganadero, por cliente, boletas anuladas; D1); separación estricta entre boletas vigentes y anuladas (D2); regla pura de cómputo de reses en `ReglasReportes.Reses` (res completa = 1, media res = 0,5) con cálculo de totales en memoria sobre variables `decimal` exactas a 0,1 kg sin funciones de agregación SQL (D3); inclusión de boletas con peso simulado marcadas con asterisco y nota de advertencia al pie (D4); límites de procesamiento y presentación: máximo de 20 000 boletas consultables (con mensaje de reducción de rango si se supera), 1 000 filas visibles en grilla UI y 2 000 boletas máximas para renderizado e impresión directa en memoria (D7); definición declarativa de columnas en `ColumnasReporte` (D6); exportación a PDF fiel al legado mediante QuestPDF con licencia comunitaria en constructores estáticos de `DisenoPdfReporte` y `CargadorLogoReporte`, y logo del sistema precargado y validado una sola vez (tolerancia a ausencia o archivo dañado con aviso en log/pantalla sin interrumpir el reporte; D10); formato de pesos decimales con coma (`#,##0.0`, D11); exportación a Excel mediante ClosedXML con valores numéricos y fechas reales sin fórmulas (D13); impresión física y vista previa basadas en rasterizado de páginas PDF a PNG en memoria proyectadas sobre `DocumentoPaginasReporte` con `FrmVistaPrevia` y escalado proporcional centrado (D14); instantánea inmutable desacoplada e invalidación inmediata de vista y acciones al cambiar filtros en UI (D15); optimización del planificador SQLite con `ANALYZE` en `DatabaseInitializer` sin migraciones de esquema ni índices nuevos (D16); aislamiento de dependencias de QuestPDF y ClosedXML exclusivamente en `PesajeFaeneo.Infrastructure.Reportes` verificado por `ArquitecturaTests` (regla 0.5).
 - **Utilitarios (F8):** backup `.zip` (manifiesto `manifest.json` + `pesaje.db` en modo journal DELETE + carpeta de logos `logo/`; sin `config` ni `logs`), copia binaria consistente con `BackupDatabase` desde conexión en solo lectura y validación con `PRAGMA quick_check` previa al empaquetado (D1–D2); nomenclatura estandarizada `PesajeFaeneo_{tipo}_{yyyy-MM-dd[_HHmmss]}.zip` (el automático lleva solo la fecha: uno por día) en subcarpetas `manuales`, `automaticos` y `seguridad` (D3); programador automático diario en segundo plano (`ProgramadorBackupAutomatico`) con `PeriodicTimer` y revisión al arranque (después de 2 minutos de espera) y al cerrar el sistema (`chkAlCerrar`) sin bloquear la UI (D4); el cierre espera hasta 10 s al programador y hasta 60 s al backup de cierre, en `Program.Main` y sin UI; configuración persistida en `config/backup.json` con guardado atómico (D5); retención configurable de backups automáticos (7 a 365 días, por defecto 30) conservando siempre un mínimo de 3 copias más recientes para evitar borrado accidental (D6); soporte de copia secundaria a pendrive o ruta de red con tolerancia a desconexión y advertencia informativa (D7); validación integral de restauración con extracción temporal, comprobación de integridad SHA-256, verificación de esquema, versión y existencia de administrador activo, y simulación de migraciones EF Core en base de datos de prueba antes de programar (D8); resguardos previos automáticos obligatorios ante restauraciones e importaciones (D9); aplicación de restauraciones exclusivamente durante el arranque del sistema (`Program.Main` vía `IAplicadorRestauracion.AplicarPendiente()`) antes de cualquier conexión activa a la BD, con movimiento atómico del trío de archivos (`pesaje.db`, `-wal`, `-shm`) y capacidad de reversión garantizada en caso de error (D10–D12); sincronización de reinicio automático mediante `InstanciaUnica` con espera de hasta 30 s ante argumento `--reinicio` (D11); registro de auditoría de restauración aplicada asociado a entidad `Sistema` y `UsuarioId = null` para evitar violaciones de clave foránea con usuarios de la base previa (D13); importador de datos legados en 3 pasos con diseño desacoplado (D14): simulacro idéntico a importación sobre la misma transacción con rollback y cálculo de huella SHA-256 (D14, D51); soporte multiformato con lectores dedicados para CSV/TXT delimitados (D15–D18), DBF de dBase III / Visual FoxPro (D19) y Access MDB/ACCDB mediante OleDb de 64 bits con detección de motor ACE (D20); reglas estrictas de importación: orden sugerido ganaderos → clientes → pesajes (D21), numeración atómica `max(actual, mayor + 1)` (D24), tolerancia a discrepancias históricas con advertencias sin rechazar la boleta (D25), deducción de res completa / media res y cálculo de secuencia del día (D26), informe exportable a CSV estructurado con BOM UTF-8 y protección contra inyección de fórmulas (D27); auditoría consolidada de una fila por importación masiva (D28); persistencia optimizada en lotes de 1 000 registros con `AutoDetectChanges = false` y `ChangeTracker.Clear()` (D29); visor de logs Serilog con lectura no bloqueante `FileShare.ReadWrite | FileShare.Delete` sobre el archivo del día, filtros en memoria por nivel jerárquico y búsqueda por texto, detalle monoespaciado y límites de seguridad de 4 MB y 10 000 entradas (D30–D31); conexiones SQLite manuales obligatoriamente con `Pooling = false` en `SqliteConnectionStringBuilder` para prevenir bloqueo de archivos en disco (regla 0.16).
 
-### Notas hacia fases futuras (registradas en las revisiones post-F0 a post-F8)
+- **Empaquetado y puesta en marcha (F9):** versión única en `<Version>` de `Directory.Build.props` (D1) leída por `InfoVersion` (`Version` = `1.0.0`, `Informativa` = versión + sha recortado a 7) y mostrada en la barra de estado y en "Ayuda › Acerca de" (`FrmAcercaDe`); publicación self-contained win-x64 **solo** por `scripts/publicar.ps1` (D2–D3: `-r win-x64 --self-contained`, sin `RuntimeIdentifier`/`SelfContained` en ningún `.csproj` porque la suite referencia al ejecutable de WinForms) con verificación de archivos nativos obligatorios (`e_sqlite3.dll`, `QuestPdfSkia.dll`, fuentes Lato); autoprueba `--autoprueba "<carpeta>"` (`AutopruebaInstalacion`, D5) sobre una carpeta temporal vacía —jamás `ProgramData`—, sin diálogos ni mutex, que escribe `autoprueba.json` y sale con 0/1/3; `ActualizadorBaseDatos` (Application/Arranque, D6–D8) evalúa el esquema tras aplicar una restauración pendiente y antes de sembrar: instalación nueva → migra sin copia; al día → solo WAL y `ANALYZE`; actualización → resguardo `TipoBackup.PreMigracion` (`PesajeFaeneo_premigracion_*.zip` en `backups\seguridad`, retención de 10) con `IMotorBackup` y migración; si el resguardo falla no se migra y si la base es de una versión más nueva no se toca (`ArranqueBaseDatosException`, código de salida 2); auditoría `AccionAuditoria.ActualizacionSistema` (entidad `Sistema`, `UsuarioId = null`) tras sembrar; instalador Inno Setup 6.3+ (`instalador/PesajeFaeneo.iss`, D9–D12) por equipo en `{autopf}` con `AppId` fijo `{0157C544-528F-4307-A487-5208BF10696F}`, `AppMutex=Global\PesajeFaeneo`, `CloseApplications=no`, permisos de Modificar a Usuarios por SID (`*S-1-5-32-545`, no por nombre localizado), primera ejecución con `runasoriginaluser`, carpeta de datos nunca borrada al desinstalar; el mutex `Global\PesajeFaeneo` se mantiene (una instancia por equipo) y `InstanciaUnica` atrapa `UnauthorizedAccessException` cuando lo creó otro usuario de Windows (D10); asistente de puesta en marcha (D13–D16): `IServicioPuestaEnMarcha` (permiso `GestionarParametros`, `ReglasPuestaEnMarcha` con "NOMBRE DE EMPRESA" como valor sin configurar) y `FrmAsistentePuestaEnMarcha` como centro de pasos que abre los formularios existentes, mostrado por `ContextoAplicacion` tras el login solo al Administrador con `ConfiguracionInicialCompleta = false` (cualquier error del servicio lo omite: nunca bloquea el inicio de sesión), reabrible desde "Ayuda"; "Finalizar" audita `CambioParametros` en una sola llamada a `GuardarCambiosAsync`; recuperación local del administrador (D17) con `--restablecer-admin` (solo con el proceso elevado como administrador de Windows, `ServicioRecuperacionAdministrador` + `GeneradorPasswordTemporal` con `RandomNumberGenerator`, contraseña mostrada una sola vez, jamás en logs ni auditoría); todos los `.ps1`/`.iss`/`.txt` de `scripts/` e `instalador/` son ASCII puro (Windows PowerShell 5.1 e Inno Setup leen los archivos sin BOM como ANSI).
+
+### Notas hacia fases futuras (registradas en las revisiones post-F0 a post-F9)
 - **F4-02 / F6 (R6) — resuelto en F4:** numeración atómica implementada con `UPDATE ParametrosSistema SET SiguienteNumeroBoleta = SiguienteNumeroBoleta + 1 WHERE Id = 1 RETURNING ...` en `SqlQuery<long>`.
 - **F4-05 (R13) — resuelto en F4:** captura condicionada a `Instantanea.EsCapturable(ahora)` y retorno a cero estricto entre lados.
 - **F4-07 (R9) — resuelto en F4:** altas rápidas desde la pantalla de pesaje implementadas con `CrearRapidoAsync` en catálogos bajo permiso `AltaRapidaCatalogos` (Operador).
@@ -173,7 +175,7 @@ flowchart TD
 - **F5-Futuro (R29, original):** formato real de la boleta de faeneo (posible formulario preimpreso o papel continuo matricial); requerir boleta escaneada al cliente para ajustar coordenadas si es necesario.
 - **F5-Futuro (R30):** reimpresiones usan maestros actuales (empresa, logo, fleteros); evaluar si en F6 se almacena snapshot JSON de la boleta en auditoría `Imprimir`.
 - **F5 / F9-06 (R31):** si en sitio las matriciales con drivers GDI genéricos son lentas o dentadas, considerar implementar `IImpresorBoletas` en modo texto crudo (ESC/P); documentar en manual.
-- **F5 / F9 (R32):** el instalador Inno Setup debe dar permisos de escritura a `Users` sobre `%ProgramData%\PesajeFaeneo\config` (igual que para la BD).
+- **F5 / F9 (R32) — resuelto en F9 (D11):** el instalador Inno Setup debe dar permisos de escritura a `Users` sobre `%ProgramData%\PesajeFaeneo\config` (igual que para la BD).
 - **F6 (R-F6-1) — resuelto en F6:** leyenda de anulación en media carta recortada a 30 caracteres ("ANULADA — {motivo}") con tamaño de letra adaptable según presencia de otras leyendas para no desbordar.
 - **F5-Futuro (R40):** `Print()` se ejecuta en el hilo de UI de forma síncrona; si un spooler de red causa bloqueos prolongados, evaluar mover solo `Print()` a hilo STA dedicado con el documento instanciado en él.
 - **F6 (R12) — resuelto para Pesaje en F6:** token de concurrencia `Pesaje.Version` agregado con `IsConcurrencyToken` e incrementado en `SaveChanges`. R12 permanece abierta para `ParametrosSistema` (la importación en F8 usa `UPDATE … max(…)` atómico).
@@ -186,19 +188,19 @@ flowchart TD
 - **F7 (R3) — resuelto en F7:** los reportes de pesaje excluyen boletas anuladas de los totales de peso y cabezas; el reporte específico de anuladas (`TipoReporte.Anuladas`) consolida `MotivoAnulacion`, `AnuladoPor` y `AnuladoEnLocal`.
 - **F7 / QuestPDF (R15) — resuelto en F7:** QuestPDF 2024.x tiene configurada la licencia comunitaria `LicenseType.Community` en los constructores estáticos de `DisenoPdfReporte` y `CargadorLogoReporte`.
 - **F7 / F8 (R4, R5) — resuelto en F8:** el respaldo de base de datos incluye la tabla `sqlite_stat1`; tras restaurar, el siguiente arranque recalcula estadísticas al ejecutar `ANALYZE` en `DatabaseInitializer`.
-- **F7 / F9 (R40):** la publicación self-contained debe incluir la librería nativa de QuestPDF (`runtimes/win-x64/native`); verificar que el instalador Inno Setup la copie en el directorio de salida.
-- **F8 / F9 (R76):** el instalador Inno Setup debe dar permisos de Modificar a `Users` también sobre las carpetas `backups` y `restore` en `%ProgramData%\PesajeFaeneo`.
-- **F8 / F9 (R35):** la publicación self-contained debe incluir `System.Data.OleDb` (runtimes `win-x64` y `win-x86`) para dar soporte a lectura de archivos Access legados.
-- **F8 / F9-06 (R34, D20):** el manual de usuario debe documentar la instalación del motor ACE de 64 bits para lectura de `.mdb`/`.accdb` (y uso del modificador `/quiet` si coexiste con Office de 32 bits), o la alternativa de exportar a CSV.
-- **F8 / F9-02:** F9-02 (migraciones automáticas con backup previo) puede reutilizar `IMotorBackup.CrearAsync` con un nuevo `TipoBackup.PreMigracion` (hay que agregarlo también a los `switch` de `ReglasBackup.NombreArchivo` y `Carpeta`, que hoy lanzan `ArgumentOutOfRangeException` para tipos desconocidos).
-- **F9-04 (R11):** `ConfiguracionInicialCompleta` permanece en `false` tras guardar parámetros en F2. El asistente de primer arranque en F9-04 debe decidir si marcarla o si detecta el nombre de empresa distinto del valor por defecto.
-- **F9-04 / F1:** recuperación de contraseña de administrador en caso de pérdida total sin otro administrador sigue pendiente.
-- **F9-06 (R21):** la guía de balanza debe documentar cómo fijar el número de puerto COM estático en el Administrador de dispositivos de Windows para adaptadores USB-serie.
-- **F9:** el instalador debe dar permisos de Modificar a `Users` sobre `%ProgramData%\PesajeFaeneo` (por defecto, archivos creados por un admin son de solo lectura para usuarios estándar → la app no podría escribir la BD). Revisar si el mutex `Global\` (bloquea a un segundo usuario de Windows en otra sesión) es el comportamiento deseado.
+- **F7 / F9 (R40) — resuelto en F9:** la publicación self-contained debe incluir la librería nativa de QuestPDF (`runtimes/win-x64/native`); verificar que el instalador Inno Setup la copie en el directorio de salida.
+- **F8 / F9 (R76) — resuelto en F9 (D11):** el instalador Inno Setup debe dar permisos de Modificar a `Users` también sobre las carpetas `backups` y `restore` en `%ProgramData%\PesajeFaeneo`.
+- **F8 / F9 (R35) — corregido en F9:** solo se publica x64 y `System.Data.OleDb` no trae nativos (el SDK copia su implementación administrada a la raíz); se descarta `win-x86`. Texto original: la publicación self-contained debe incluir `System.Data.OleDb` (runtimes `win-x64` y `win-x86`) para dar soporte a lectura de archivos Access legados.
+- **F8 / F9-06 (R34, D20) — resuelto en F9 (guía de instalación y soporte §10):** el manual de usuario debe documentar la instalación del motor ACE de 64 bits para lectura de `.mdb`/`.accdb` (y uso del modificador `/quiet` si coexiste con Office de 32 bits), o la alternativa de exportar a CSV.
+- **F8 / F9-02 — resuelto en F9:** se agregó `TipoBackup.PreMigracion` con sus ramas en `ReglasBackup`. Texto original: F9-02 (migraciones automáticas con backup previo) puede reutilizar `IMotorBackup.CrearAsync` con un nuevo `TipoBackup.PreMigracion` (hay que agregarlo también a los `switch` de `ReglasBackup.NombreArchivo` y `Carpeta`, que hoy lanzan `ArgumentOutOfRangeException` para tipos desconocidos).
+- **F9-04 (R11) — resuelto en F9 (D13–D16):** el asistente marca `ConfiguracionInicialCompleta` con "Finalizar". Texto original: `ConfiguracionInicialCompleta` permanece en `false` tras guardar parámetros en F2. El asistente de primer arranque en F9-04 debe decidir si marcarla o si detecta el nombre de empresa distinto del valor por defecto.
+- **F9-04 / F1 — resuelto en F9 (D17):** `--restablecer-admin`. Texto original: recuperación de contraseña de administrador en caso de pérdida total sin otro administrador sigue pendiente.
+- **F9-06 (R21) — resuelto en F9 (guía de balanza §2):** la guía de balanza debe documentar cómo fijar el número de puerto COM estático en el Administrador de dispositivos de Windows para adaptadores USB-serie.
+- **F9 — resuelto en F9 (D10, D11):** el instalador da permisos de Modificar a Usuarios y el mutex `Global\` se mantiene con aviso claro entre sesiones. Texto original: el instalador debe dar permisos de Modificar a `Users` sobre `%ProgramData%\PesajeFaeneo` (por defecto, archivos creados por un admin son de solo lectura para usuarios estándar → la app no podría escribir la BD). Revisar si el mutex `Global\` (bloquea a un segundo usuario de Windows en otra sesión) es el comportamiento deseado.
 - **F3-Futuro (R22):** si el indicador de balanza del cliente no opera en modo continuo sino bajo demanda, incorporar campo `ComandoSolicitud` (p. ej. `P`, `W` o `ENQ`) y sondeo periódico mediante temporizador.
 - **F3 (R23) — resuelto:** el indicador RX8 Accurex del sitio transmite `=NNNNNN ` en **gramos**, separado por espacios y sin CR/LF. Configuración de campo: Serie, COM del adaptador CH340, 9600 8N1, separación de tramas "Inicio con '='" (`DelimitadorTrama.SignoIgual`: en ráfagas el RX8 encadena tramas sin espacio, p. ej. `=650000-=381000-`), unidad "Gramos", patrón sembrado. Pendiente: validar la conversión con un peso patrón conocido; si otro indicador usa libras, agregar `UnidadPesoTrama.Libras`.
 - **F3-Futuro (R34):** si algún indicador de balanza específico requiere forzar DTR/RTS o control de flujo por hardware (CTS/RTS o XON/XOFF), hacerlo con `EscapeCommFunction` o flags explícitos y configurables, nunca reescribiendo el DCB completo (rompe CH340). Hoy se respetan los valores del driver.
-- **F9-06 (R35):** documentar en la guía de balanza que reconectar el adaptador USB-serie puede cambiar el número de COM (COM3 → COM4 observado en sitio) y dejar entradas fantasma en el Administrador de dispositivos.
+- **F9-06 (R35) — resuelto en F9 (guía de balanza §2):** documentar en la guía de balanza que reconectar el adaptador USB-serie puede cambiar el número de COM (COM3 → COM4 observado en sitio) y dejar entradas fantasma en el Administrador de dispositivos.
 - **F8-Abierto (P1–P7):**
   - **(P1)** Access requiere motor ACE 64 bits; si no está disponible, se informa al usuario la opción de instalarlo o exportar a CSV.
   - **(P2)** En importación, filas válidas se importan y con error se omiten con informe estructurado (D23).
@@ -207,6 +209,15 @@ flowchart TD
   - **(P5)** Backup automático programado diario + al cerrar (`chkAlCerrar`) con retención configurable de 30 días (D4, D6).
   - **(P6)** Los backups no incluyen la configuración de impresión ni de backup (propias de cada equipo; D1).
   - **(P7)** Formato real exacto de columnas del sistema legado a validar con muestra real durante UAT en sitio (D27).
+- **F9-Abierto:**
+  - **(R16)** Arranque sin ReadyToRun: medir en la UAT; si supera 5 s en PCs viejas, evaluar `PublishReadyToRun=true` (solo en `scripts/publicar.ps1`).
+  - **(R21)** Sin reversión automática si una migración falla a mitad (parte del SQL de las migraciones que reconstruyen tablas corre fuera de transacción): la guía de soporte §6 describe la vuelta atrás manual desde `PesajeFaeneo_premigracion_*.zip`.
+  - **(R27)** Cualquier usuario local de Windows puede leer la base y los backups (con hashes de contraseña); aceptado, documentado.
+  - **(R28)** Instalador sin firma de código: SmartScreen y antivirus pueden advertir.
+  - **(R49)** `Microsoft.EntityFrameworkCore.Design` se publica con la aplicación (~20 MB) porque WinForms es el proyecto de inicio de `dotnet ef`; sin efecto funcional.
+  - **(R50, R51)** El instalador no se ejecutó en ninguna PC durante F9: debe probarse en otra PC o máquina virtual (Windows 11 Home no tiene Sandbox ni Hyper-V).
+  - **(P10)** Condiciones de la licencia Community de QuestPDF: el cliente debe confirmarlas.
+  - Sin test automatizado: el flujo completo de `--restablecer-admin` (diálogos de `Program`) y el clic de los pasos del asistente que abren formularios reales (cubiertos por UAT-SEG-03 y UAT-PRI).
 
 ---
 
@@ -525,7 +536,7 @@ flowchart TD
   - D30–D31: Visor de logs Serilog con lectura segura `FileShare.ReadWrite | FileShare.Delete` sobre el log activo, filtros jerárquicos y límites de seguridad de 4 MB y 10 000 entradas.
   - D32: Los formularios de utilitarios no se registran en DI: los crea `IFormFactory` en un ámbito propio por formulario; integración en el menú «Utilitarios» del Shell.
 - **Desviaciones:** Ninguna.
-- **Siguiente paso:** Fase F9 — Empaquetado, instalador y puesta en marcha.
+- **Siguiente paso:** Fase F9 — Empaquetado, instalador y puesta en marcha (completada; ver su entrada).
 
 ### Fase F8 — Remediación post-revisión
 - **Fecha:** 2026-10-03
@@ -548,3 +559,23 @@ flowchart TD
   - `MinimumSize` de los formularios de F8 (hasta 1000×700) supera el área útil de una pantalla de 1366×768 al 125 %; verificar en sitio.
   - "Recargar" en `FrmBackupRestaurar` pisa cambios sin guardar de la configuración automática.
   - `Environment.ProcessPath` es `dotnet.exe` bajo `dotnet run`: el reinicio automático solo funciona con el ejecutable publicado.
+
+### Fase F9 — Empaquetado, instalador y puesta en marcha
+- **Fecha:** 2026-10-03
+- **Estado:** ✅ Completado (6/6 HUs). Plan: `docs/plans/F9-empaquetado-instalador.md`, rama `feat/f9-empaquetado` (commits `wip(F9-T1..T9)`; T10–T13 preparados en el árbol de trabajo).
+- **Compilación:** `dotnet build src/PesajeFaeneo.sln -c Release` con 0 warnings y 0 errores (`TreatWarningsAsErrors=true`); `build.ps1` con cobertura correcto.
+- **Pruebas:** 1512 tests en verde (0 fallos, 0 omitidos; 1431 al cierre de F8 → 1512, +81), varias corridas seguidas sin fallos intermitentes.
+- **Base de datos:** sin migraciones (`has-pending-model-changes` limpio, carpeta `Migraciones/` y `.csproj` sin cambios respecto de F8). Único cambio de modelo de dominio: `AccionAuditoria.ActualizacionSistema = 17` (sin CHECK en BD).
+- **Entregables:** versión única e `InfoVersion` + "Ayuda › Acerca de"; `scripts/publicar.ps1`; autoprueba `--autoprueba`; `ActualizadorBaseDatos` con resguardo `PreMigracion`; `instalador/PesajeFaeneo.iss` + `scripts/construir-instalador.ps1`; instancia única entre sesiones; `IServicioPuestaEnMarcha` + `FrmAsistentePuestaEnMarcha`; `--restablecer-admin`; `docs/puesta-en-marcha/` (checklist UAT con 45 casos y acta), `docs/manual/` (manual de usuario, guía de balanza, guía de instalación y soporte), `CHANGELOG.md` y secciones nuevas del `README.md`.
+- **Decisiones de diseño aplicadas (D1–D20):** ver la viñeta "Empaquetado y puesta en marcha (F9)" de §4 y la Parte 1 del plan.
+- **Verificación real (14.2):**
+  - `scripts/publicar.ps1` desde cero: código 0, autoprueba con los 5 pasos `OK` (BaseDeDatos, Pdf, Excel, Backup, Escritura), 341 archivos, 181,6 MB, ~8 s.
+  - `scripts/construir-instalador.ps1 -SinPublicar` (Inno Setup en `%LOCALAPPDATA%\Programs\Inno Setup 6`): código 0, 0 `Warning`, `PesajeFaeneo-Setup-1.0.0-x64.exe` de 56,3 MB (SHA-256 `461194f0c03920ea6bb25cda50a84c5a9b4481bb48fa0d824437d3e4cf91ca25`; cambia en cada compilación). **No se ejecutó el instalador.**
+  - El ejecutable publicado arrancó con los datos reales de la PC de desarrollo (log "Aplicación iniciada v1.0.0", balanza COM3 conectada, sin errores) y se cerró con normalidad; `--restablecer-admin` sin elevar mostró el aviso y terminó con código 3. La carpeta `C:\ProgramData\PesajeFaeneo` se respaldó antes (`Downloads\respaldo-programdata-f9`) y se restauró después; no se volvió a lanzar la aplicación tras restaurar.
+- **Desviaciones:**
+  - El plan hablaba de 47 casos UAT; la tabla 11.2 tiene 45 y ese es el total.
+  - El `.iss` incluye una guarda `#if Ver < EncodeVer(6, 3, 0)` adicional al texto del plan.
+  - Los commits `wip` de T1–T9 se dejaron en la rama (no se hizo el `reset --soft` final de E.5-4; queda a criterio del usuario).
+  - T10 y T11 se redactaron con subagentes; se verificaron títulos, conteo de IDs y una muestra de mensajes contra el código.
+- **Pendiente para el usuario:** probar el instalador en una PC o VM limpia (UAT-INS-01 a 07, PRI-01 a 04, SEG-03, ACT-01/02, DES-01), completar las capturas marcadas `> [Captura: …]` en los manuales, validar la conversión de peso con una pesa patrón y responder P1–P10 de la Parte 15 del plan (se asumió la opción indicada en cada una).
+- **Siguiente paso:** UAT en sitio.

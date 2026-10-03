@@ -62,6 +62,7 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
 1. El sistema solicitará obligatoriamente cambiar la contraseña antes de permitir el acceso al menú principal.
 2. La nueva contraseña no puede ser idéntica a la anterior (`admin`) y debe cumplir con la longitud mínima requerida por las políticas de seguridad (mínimo 6 caracteres).
 3. Tras confirmar el cambio, la sesión continuará hacia la pantalla principal con el rol de Administrador.
+4. Mientras la puesta en marcha no esté finalizada, el Administrador verá el **Asistente de puesta en marcha** antes del menú principal (ver "Puesta en marcha" más abajo).
 
 ## Catálogos y Parámetros
 
@@ -285,3 +286,45 @@ Herramientas avanzadas de administración accesibles desde el menú **Utilitario
   - Panel inferior monoespaciado para inspección cómoda de trazas de excepción (`StackTrace`) y propiedades estructuradas.
   - Botón "Abrir carpeta" para explorar directamente el directorio de logs del sistema operativo (`%ProgramData%\PesajeFaeneo\logs`).
   - Límite de seguridad de rendimiento: lectura de los últimos 4 MB de archivo y hasta 10 000 entradas leídas y 5 000 filas en la grilla (con aviso si se recortan) para garantizar respuesta instantánea.
+
+## Publicación e instalador (F9)
+
+La versión del sistema tiene **una sola fuente**: la propiedad `<Version>` de `Directory.Build.props` (`1.0.0`). `AssemblyVersion`, `FileVersion`, el nombre del instalador, la barra de estado, "Ayuda › Acerca de" y el manifiesto de los backups la derivan de ahí (`InfoVersion`).
+
+- **Publicar** (aplicación autocontenida win-x64, sin necesidad de .NET en la PC destino):
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts\publicar.ps1
+  ```
+  Deja la salida en `artifacts\publish\win-x64\` y la verifica con `--autoprueba` (5 pasos). La configuración de publicación (`-r win-x64 --self-contained`) vive **solo** en este script: nunca en un `.csproj`. Requiere red (descarga los paquetes de runtime de .NET 8). Opción `-SinAutoprueba` para omitir la verificación.
+- **Construir el instalador** (Inno Setup 6.3 o superior, `winget install --id JRSoftware.InnoSetup -e`):
+  ```powershell
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts\construir-instalador.ps1
+  ```
+  Genera `artifacts\instalador\PesajeFaeneo-Setup-<versión>-x64.exe` y su `.sha256` (publica antes salvo con `-SinPublicar`). El instalador es por equipo (`C:\Program Files\PesajeFaeneo`), conserva siempre la carpeta de datos `C:\ProgramData\PesajeFaeneo` al desinstalar y no está firmado digitalmente.
+- Los scripts `.ps1` y el `.iss` son **ASCII puro** (Windows PowerShell 5.1 e Inno Setup leen los archivos sin BOM como ANSI).
+
+### Autoprueba de una instalación
+
+```powershell
+& "C:\Program Files\PesajeFaeneo\PesajeFaeneo.WinForms.exe" --autoprueba "C:\Temp\autoprueba"
+```
+Corre sobre una carpeta temporal y vacía (nunca sobre `ProgramData`), sin diálogos, y escribe `autoprueba.json`. Pasos: base de datos (migraciones), PDF, Excel, backup y escritura. Código de salida: 0 todo correcto, 1 algún paso falló, 3 argumentos inválidos.
+
+### Actualización de versión
+
+Se instala el nuevo instalador sobre el existente (mismo `AppId`). Al abrir, si la base necesita migraciones, el sistema crea antes un resguardo `PesajeFaeneo_premigracion_<fecha>.zip` en `backups\seguridad`, migra y registra la acción `ActualizacionSistema` en la auditoría. Si la base pertenece a una versión **más nueva**, no se toca y el sistema no abre (código de salida 2). Si el resguardo falla, no se migra. Guarde siempre los instaladores anteriores.
+
+### Recuperación del administrador
+
+Con el sistema cerrado y desde una consola abierta **como administrador de Windows**:
+```powershell
+& "C:\Program Files\PesajeFaeneo\PesajeFaeneo.WinForms.exe" --restablecer-admin
+```
+Tras confirmar, la cuenta `admin` queda activa, desbloqueada y con una contraseña temporal aleatoria que se muestra una sola vez; deberá cambiarla al ingresar. Queda registrado en la auditoría (la contraseña nunca va a logs ni auditoría). Sin elevación, el sistema solo avisa y termina con código 3.
+
+## Puesta en marcha, manuales y aceptación en sitio
+
+- **Asistente de puesta en marcha:** tras iniciar sesión, el Administrador ve un asistente mientras `ConfiguracionInicialCompleta` sea `false`. Cada paso abre la pantalla existente (copias de seguridad, datos de la empresa, balanza, impresión, fleteros, usuarios, importación). Empresa y balanza son obligatorias (la balanza puede quedar en simulador solo con confirmación explícita); "Finalizar" lo marca como completado y lo audita; "Omitir por ahora" cierra sin marcar. Se reabre desde **Ayuda › Asistente de puesta en marcha**.
+- **Manuales:** [`docs/manual/manual-usuario.md`](docs/manual/manual-usuario.md), [`docs/manual/guia-balanza.md`](docs/manual/guia-balanza.md) y [`docs/manual/guia-instalacion-soporte.md`](docs/manual/guia-instalacion-soporte.md).
+- **Aceptación en sitio (UAT):** [`docs/puesta-en-marcha/checklist-uat.md`](docs/puesta-en-marcha/checklist-uat.md) y [`docs/puesta-en-marcha/acta-aceptacion.md`](docs/puesta-en-marcha/acta-aceptacion.md).
+- **Historial de cambios:** [`CHANGELOG.md`](CHANGELOG.md).
