@@ -771,4 +771,46 @@ public class FrmPrincipalTests
 
         return (itemBuscar, itemAnular, itemAuditoria);
     }
+
+    [Theory]
+    [InlineData(Rol.Operador)]
+    [InlineData(Rol.Supervisor)]
+    [InlineData(Rol.Administrador)]
+    public void FrmPrincipal_MenuAyuda_AcercaDe_VisibleParaTodosLosRoles(Rol rol)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "usuario", "Nombre", rol, false));
+            var formFactory = new FalsaFormFactory();
+            var tiempo = TimeProvider.System;
+            var paramService = new FalsoServicioParametros();
+            var balanza = new ServicioBalanzaFalso();
+
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+
+            ToolStripMenuItem? mnuAyuda = null;
+            ToolStripMenuItem? itemAcercaDe = null;
+
+            foreach (ToolStripMenuItem top in principal.MenuPrincipal.Items)
+            {
+                if (top.Text?.Replace("&", "").Contains("Ayuda", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    mnuAyuda = top;
+                    foreach (ToolStripItem sub in top.DropDownItems)
+                    {
+                        if (sub.Text?.Replace("&", "").Contains("Acerca de", StringComparison.OrdinalIgnoreCase) == true)
+                        {
+                            itemAcercaDe = sub as ToolStripMenuItem;
+                        }
+                    }
+                }
+            }
+
+            Assert.NotNull(mnuAyuda);
+            Assert.True(mnuAyuda.Available);
+            Assert.NotNull(itemAcercaDe);
+            Assert.True(itemAcercaDe.Available);
+        });
+    }
 }

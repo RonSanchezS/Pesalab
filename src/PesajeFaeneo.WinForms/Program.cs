@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -100,8 +99,7 @@ public static class Program
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateBootstrapLogger();
 
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0";
-        Log.Information("Aplicación iniciada v{Version}", version);
+        Log.Information("Aplicación iniciada v{Version} ({Compilacion})", InfoVersion.Version, InfoVersion.Informativa);
 
         try
         {

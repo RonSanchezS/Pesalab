@@ -294,4 +294,19 @@ public class LayoutFormulariosTests
             VerificadorLayout.VerificarEscalado(form);
         });
     }
+
+    [Fact]
+    public void AcercaDe_SinTextosCortados_NiConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var rutaLarga = @"C:\" + new string('A', 190);
+            var appPaths = new PesajeFaeneo.Infrastructure.Common.AppPaths(rutaLarga);
+            using var form = new PesajeFaeneo.WinForms.Formularios.Ayuda.FrmAcercaDe(appPaths);
+            form.Show();
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
 }

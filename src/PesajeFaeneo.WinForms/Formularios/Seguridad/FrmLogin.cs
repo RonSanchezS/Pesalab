@@ -1,4 +1,4 @@
-using System.Reflection;
+using PesajeFaeneo.Infrastructure.Common;
 using PesajeFaeneo.Application.Seguridad;
 
 namespace PesajeFaeneo.WinForms.Formularios.Seguridad;
@@ -148,10 +148,9 @@ public class FrmLogin : FormBase
         mainLayout.SetColumnSpan(pnlBotones, 2);
         mainLayout.Controls.Add(pnlBotones, 0, 4);
 
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
         lblVersion = new Label
         {
-            Text = $"v{version}",
+            Text = $"v{InfoVersion.Version}",
             ForeColor = Color.Gray,
             Font = new Font("Segoe UI", 8F),
             Dock = DockStyle.Fill,

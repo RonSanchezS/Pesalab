@@ -23,7 +23,7 @@ public sealed class SqliteBackupService : IMotorBackup
     private readonly ILogger<SqliteBackupService> _logger;
     private readonly string _nombreEquipo;
     private readonly SemaphoreSlim _bloqueo = new(1, 1);
-    private static readonly string VersionAplicacion = typeof(SqliteBackupService).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+    private static readonly string VersionAplicacion = InfoVersion.Version;
     private readonly Lazy<IReadOnlyList<string>> _migracionesConocidas;
 
     internal Func<string, long>? EspacioLibreParaTest { get; set; }

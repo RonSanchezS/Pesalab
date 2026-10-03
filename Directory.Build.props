@@ -4,6 +4,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Version>1.0.0</Version>
+    <Product>Sistema de Pesaje para Faeneo</Product>
+    <Company>Pesalab</Company>
+    <Copyright>Copyright (c) 2026 Pesalab</Copyright>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 </Project>

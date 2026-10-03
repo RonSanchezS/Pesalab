@@ -1,4 +1,5 @@
-using System.Reflection;
+using PesajeFaeneo.Infrastructure.Common;
+using PesajeFaeneo.WinForms.Formularios.Ayuda;
 using PesajeFaeneo.Application.Parametros;
 using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Domain.Enums;
@@ -253,6 +254,12 @@ public partial class FrmPrincipal : FormBase
 
         mnuSesion.DropDownItems.AddRange(new ToolStripItem[] { itemCambiarPassword, itemCerrarSesion, new ToolStripSeparator(), itemSalir });
 
+        // 8. Ayuda
+        var mnuAyuda = new ToolStripMenuItem("A&yuda");
+        var itemAcercaDe = new ToolStripMenuItem("&Acerca de…");
+        itemAcercaDe.Click += (_, _) => AbrirAcercaDe();
+        mnuAyuda.DropDownItems.Add(itemAcercaDe);
+
         menuStrip.Items.AddRange(new ToolStripItem[]
         {
             mnuPesaje,
@@ -261,7 +268,8 @@ public partial class FrmPrincipal : FormBase
             mnuReportes,
             mnuAdministracion,
             mnuUtilitarios,
-            mnuSesion
+            mnuSesion,
+            mnuAyuda
         });
     }
 
@@ -308,10 +316,9 @@ public partial class FrmPrincipal : FormBase
         };
         ActualizarReloj();
 
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
         lblStatusVersion = new ToolStripStatusLabel
         {
-            Text = $"v{version}"
+            Text = $"v{InfoVersion.Version}"
         };
 
         statusStrip.Items.AddRange(new ToolStripItem[]
@@ -523,6 +530,15 @@ public partial class FrmPrincipal : FormBase
         {
             using var frm = _formFactory.Crear<FrmCambioPassword>();
             frm.Obligatorio = false;
+            frm.ShowDialog(this);
+        });
+    }
+
+    private void AbrirAcercaDe()
+    {
+        Ejecutar(() =>
+        {
+            using var frm = _formFactory.Crear<FrmAcercaDe>();
             frm.ShowDialog(this);
         });
     }
