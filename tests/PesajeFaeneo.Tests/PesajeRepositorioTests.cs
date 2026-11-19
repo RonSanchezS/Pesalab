@@ -12,8 +12,8 @@ public class PesajeRepositorioTests
     {
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
 
-        var g1 = new GanaderoBuilder().ConMarca("G1").ConNombre("Ganadero 1").Build();
-        var g2 = new GanaderoBuilder().ConMarca("G2").ConNombre("Ganadero 2").Build();
+        var g1 = new GanaderoBuilder().ConCodigo("G1").ConNombre("Ganadero 1").Build();
+        var g2 = new GanaderoBuilder().ConCodigo("G2").ConNombre("Ganadero 2").Build();
         var c = new ClienteBuilder().ConCodigo(9001).ConNombre("Cliente 9001").Build();
         var u = new UsuarioBuilder().ConNombreUsuario("pesador_repositorio").Build();
 
@@ -139,7 +139,7 @@ public class PesajeRepositorioTests
 
             // Verifica navegaciones cargadas
             Assert.NotNull(lista[0].Ganadero);
-            Assert.Equal("G1", lista[0].Ganadero.Marca);
+            Assert.Equal("G1", lista[0].Ganadero.Codigo);
             Assert.NotNull(lista[0].Cliente);
             Assert.Equal("Cliente 9001", lista[0].Cliente.Nombre);
         }
@@ -173,7 +173,7 @@ public class PesajeRepositorioTests
             Assert.Equal(401L, recuperado.NumeroBoleta);
             Assert.Equal(225.0m, recuperado.PesoTotal);
             Assert.NotNull(recuperado.Ganadero);
-            Assert.Equal("G1", recuperado.Ganadero.Marca);
+            Assert.Equal("G1", recuperado.Ganadero.Codigo);
             Assert.NotNull(recuperado.Cliente);
             Assert.Equal("Cliente 9001", recuperado.Cliente.Nombre);
         }

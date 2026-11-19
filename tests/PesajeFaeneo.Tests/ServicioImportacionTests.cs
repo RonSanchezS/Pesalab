@@ -43,6 +43,7 @@ public class ServicioImportacionTests
             repo,
             motor,
             sesion,
+            new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso(),
             tiempo,
             NullLogger<ServicioImportacion>.Instance);
 
@@ -95,7 +96,7 @@ public class ServicioImportacionTests
             Assert.Equal("UTF-8", vista.Codificacion);
             Assert.Equal(3, vista.Columnas.Count);
 
-            Assert.Equal(0, vista.MapeoSugerido[CamposImportacion.Marca]);
+            Assert.Equal(0, vista.MapeoSugerido[CamposImportacion.Codigo]);
             Assert.Equal(1, vista.MapeoSugerido[CamposImportacion.Nombre]);
             Assert.Equal(2, vista.MapeoSugerido[CamposImportacion.Activo]);
         }
@@ -121,7 +122,7 @@ public class ServicioImportacionTests
             var lectura = new SolicitudLectura("archivo.csv", FormatoOrigen.Csv, null, null);
             var mapeo = new Dictionary<string, int?>
             {
-                [CamposImportacion.Marca] = 0,
+                [CamposImportacion.Codigo] = 0,
                 [CamposImportacion.Nombre] = 1,
                 [CamposImportacion.Activo] = 2
             };
@@ -168,7 +169,7 @@ public class ServicioImportacionTests
             var lectura = new SolicitudLectura("archivo.csv", FormatoOrigen.Csv, null, null);
             var mapeo = new Dictionary<string, int?>
             {
-                [CamposImportacion.Marca] = 0,
+                [CamposImportacion.Codigo] = 0,
                 [CamposImportacion.Nombre] = 1,
                 [CamposImportacion.Activo] = 2
             };
@@ -188,10 +189,10 @@ public class ServicioImportacionTests
             // Filas en BD y auditoría
             await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
             {
-                var ganaderos = await ctx.Ganaderos.OrderBy(g => g.Marca).ToListAsync();
+                var ganaderos = await ctx.Ganaderos.OrderBy(g => g.Codigo).ToListAsync();
                 Assert.Equal(2, ganaderos.Count);
-                Assert.Equal("G1", ganaderos[0].Marca);
-                Assert.Equal("G2", ganaderos[1].Marca);
+                Assert.Equal("G1", ganaderos[0].Codigo);
+                Assert.Equal("G2", ganaderos[1].Codigo);
 
                 var auditorias = await ctx.Auditorias.ToListAsync();
                 Assert.Single(auditorias);
@@ -221,7 +222,7 @@ public class ServicioImportacionTests
             var lectura = new SolicitudLectura("archivo.csv", FormatoOrigen.Csv, null, null);
             var mapeo = new Dictionary<string, int?>
             {
-                [CamposImportacion.Marca] = 0,
+                [CamposImportacion.Codigo] = 0,
                 [CamposImportacion.Nombre] = 1,
                 [CamposImportacion.Activo] = 2
             };
@@ -237,7 +238,7 @@ public class ServicioImportacionTests
             // Con mapeo cambiado
             var mapeoCambiado = new Dictionary<string, int?>
             {
-                [CamposImportacion.Marca] = 1,
+                [CamposImportacion.Codigo] = 1,
                 [CamposImportacion.Nombre] = 0,
                 [CamposImportacion.Activo] = 2
             };
@@ -273,7 +274,7 @@ public class ServicioImportacionTests
             var lectura = new SolicitudLectura("archivo.csv", FormatoOrigen.Csv, null, null);
             var mapeo = new Dictionary<string, int?>
             {
-                [CamposImportacion.Marca] = 0,
+                [CamposImportacion.Codigo] = 0,
                 [CamposImportacion.Nombre] = 1,
                 [CamposImportacion.Activo] = 2
             };
@@ -314,7 +315,7 @@ public class ServicioImportacionTests
             var lectura = new SolicitudLectura("archivo.csv", FormatoOrigen.Csv, null, null);
             var mapeo = new Dictionary<string, int?>
             {
-                [CamposImportacion.Marca] = 0,
+                [CamposImportacion.Codigo] = 0,
                 [CamposImportacion.Nombre] = 1,
                 [CamposImportacion.Activo] = 2
             };
@@ -349,7 +350,7 @@ public class ServicioImportacionTests
             var lectura = new SolicitudLectura("archivo.csv", FormatoOrigen.Csv, null, null);
             var mapeo = new Dictionary<string, int?>
             {
-                [CamposImportacion.Marca] = 0,
+                [CamposImportacion.Codigo] = 0,
                 [CamposImportacion.Nombre] = 1,
                 [CamposImportacion.Activo] = 2
             };
@@ -388,7 +389,7 @@ public class ServicioImportacionTests
             var solG = new SolicitudImportacion(
                 new SolicitudLectura("ganaderos.csv", FormatoOrigen.Csv, null, null),
                 TipoImportacion.Ganaderos,
-                new Dictionary<string, int?> { [CamposImportacion.Marca] = 0, [CamposImportacion.Nombre] = 1, [CamposImportacion.Activo] = 2 });
+                new Dictionary<string, int?> { [CamposImportacion.Codigo] = 0, [CamposImportacion.Nombre] = 1, [CamposImportacion.Activo] = 2 });
 
             var simG = await servicio.SimularAsync(solG);
             await servicio.ImportarAsync(solG, simG.Huella);
@@ -428,7 +429,7 @@ public class ServicioImportacionTests
                     [CamposImportacion.NumeroBoleta] = 0,
                     [CamposImportacion.Fecha] = 1,
                     [CamposImportacion.Hora] = 2,
-                    [CamposImportacion.MarcaGanadero] = 3,
+                    [CamposImportacion.CodigoGanadero] = 3,
                     [CamposImportacion.CodigoCliente] = 4,
                     [CamposImportacion.PesoIzquierdo] = 5,
                     [CamposImportacion.PesoDerecho] = 6,
@@ -443,7 +444,7 @@ public class ServicioImportacionTests
             await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
             {
                 var pesaje = await ctx.Pesajes.Include(p => p.Ganadero).Include(p => p.Cliente).SingleAsync(p => p.NumeroBoleta == 500);
-                Assert.Equal("G1", pesaje.Ganadero.Marca);
+                Assert.Equal("G1", pesaje.Ganadero.Codigo);
                 Assert.Equal(10, pesaje.Cliente.Codigo);
                 Assert.Equal("CALLE PRINCIPAL", pesaje.Direccion);
                 Assert.Equal(125.4m, pesaje.PesoIzquierdo);

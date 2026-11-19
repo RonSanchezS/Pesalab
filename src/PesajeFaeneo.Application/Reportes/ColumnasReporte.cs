@@ -18,8 +18,9 @@ public static class ColumnasReporte
         new("Numero", "N° Bol.", null, 40f, false),
         new("Fecha", "Fecha", null, 44f, false),
         new("Secuencia", "N° Res", null, 26f, false),
-        new("Marca", "Marca", null, 30f, false),
+        new("Codigo", "Código", null, 34f, false),
         new("Cliente", "Cliente", null, 30f, false),
+        new("Fletero", "Fletero", null, 64f, false),
         new("Direccion", "Dirección", null, 0f, false),
         new("Izquierdo", "IZQ.", "PESO KG.", 34f, true),
         new("Derecho", "DER.", "PESO KG.", 34f, true),
@@ -32,7 +33,7 @@ public static class ColumnasReporte
         new("Item", "Item", null, 24f, false),
         new("Numero", "N° Bol.", null, 40f, false),
         new("Fecha", "Fecha", null, 44f, false),
-        new("Marca", "Marca", null, 30f, false),
+        new("Codigo", "Código", null, 34f, false),
         new("Cliente", "Cliente", null, 30f, false),
         new("Desposte", "Tipo Corte", null, 58f, false),
         new("Total", "TOTAL\nNETO", null, 40f, true),
@@ -41,12 +42,40 @@ public static class ColumnasReporte
         new("Motivo", "Motivo", null, 0f, false)
     }.AsReadOnly();
 
-    public static IReadOnlyList<ColumnaReporte> Para(bool anuladas) =>
-        anuladas ? ColumnasAnuladas : ColumnasNormales;
+    // F11 (D6): sin desposte visible se omite "Tipo Corte"; las columnas relativas (Dirección, Motivo) absorben su ancho.
+    private const string ClaveDesposte = "Desposte";
 
-    public static IReadOnlyList<string> Textos(FilaReporte f, bool anuladas)
+    private static readonly IReadOnlyList<ColumnaReporte> ColumnasNormalesSinDesposte =
+        ColumnasNormales.Where(c => c.Clave != ClaveDesposte).ToList().AsReadOnly();
+
+    private static readonly IReadOnlyList<ColumnaReporte> ColumnasAnuladasSinDesposte =
+        ColumnasAnuladas.Where(c => c.Clave != ClaveDesposte).ToList().AsReadOnly();
+
+    public static IReadOnlyList<ColumnaReporte> Para(bool anuladas, bool mostrarDesposte = true) =>
+        (anuladas, mostrarDesposte) switch
+        {
+            (true, true) => ColumnasAnuladas,
+            (true, false) => ColumnasAnuladasSinDesposte,
+            (false, true) => ColumnasNormales,
+            (false, false) => ColumnasNormalesSinDesposte
+        };
+
+    public static IReadOnlyList<string> Textos(FilaReporte f, bool anuladas, bool mostrarDesposte = true)
     {
         ArgumentNullException.ThrowIfNull(f);
+
+        var textos = TextosCompletos(f, anuladas);
+        if (mostrarDesposte)
+        {
+            return textos;
+        }
+
+        var completas = Para(anuladas);
+        return textos.Where((_, i) => completas[i].Clave != ClaveDesposte).ToArray();
+    }
+
+    private static IReadOnlyList<string> TextosCompletos(FilaReporte f, bool anuladas)
+    {
 
         if (!anuladas)
         {
@@ -56,8 +85,9 @@ public static class ColumnasReporte
                 TextosReporte.NumeroBoleta(f),
                 TextosReporte.Fecha(f.FechaHoraLocal),
                 f.Secuencia.ToString(TextosBoleta.Cultura),
-                f.MarcaGanadero,
+                f.CodigoGanadero,
                 f.CodigoCliente.ToString(TextosBoleta.Cultura),
+                f.NombreFletero,
                 f.Direccion,
                 TextosReporte.Kg(f.PesoIzquierdo),
                 TextosReporte.Kg(f.PesoDerecho),
@@ -71,7 +101,7 @@ public static class ColumnasReporte
             TextosReporte.Entero(f.Item),
             TextosReporte.NumeroBoleta(f),
             TextosReporte.Fecha(f.FechaHoraLocal),
-            f.MarcaGanadero,
+            f.CodigoGanadero,
             f.CodigoCliente.ToString(TextosBoleta.Cultura),
             TextosBoleta.Desposte(f.TipoDesposte),
             TextosReporte.Kg(f.PesoTotal),

@@ -1,0 +1,1078 @@
+{
+    "comun-01-login": [
+        {
+            "control": "txtUsuario",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Escriba su usuario"
+        },
+        {
+            "control": "txtPassword",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Escriba su contraseña"
+        },
+        {
+            "control": "btnIngresar",
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Pulse Ingresar"
+        }
+    ],
+    "comun-03-cambio-password-obligatorio": [
+        {
+            "control": "txtActual",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Contraseña actual"
+        },
+        {
+            "control": "txtNueva",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Contraseña nueva"
+        },
+        {
+            "control": "txtConfirmacion",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Repita la contraseña nueva"
+        },
+        {
+            "control": "btnAceptar",
+            "numero": 4,
+            "tipo": "recuadro",
+            "leyenda": "Pulse Aceptar"
+        }
+    ],
+    "comun-10-inicio-administrador": [
+        {
+            "area": [
+                8,
+                34,
+                520,
+                19
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Barra de menús"
+        },
+        {
+            "area": [
+                58,
+                304,
+                1068,
+                230
+            ],
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Tarjetas de acceso rápido"
+        },
+        {
+            "area": [
+                458,
+                650,
+                242,
+                20
+            ],
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Estado de la balanza, en la barra de estado"
+        }
+    ],
+    "comun-31-acerca-de": [
+        {
+            "area": [
+                22,
+                90,
+                375,
+                185
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Versión, equipo y carpetas del sistema"
+        },
+        {
+            "control": "<BtnCopiar>k__BackingField",
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Copiar para soporte"
+        }
+    ],
+    "ad-01-asistente-puesta-en-marcha": [
+        {
+            "area": [
+                20,
+                105,
+                100,
+                495
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Estado de cada paso"
+        },
+        {
+            "area": [
+                772,
+                104,
+                96,
+                494
+            ],
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Abrir… abre la ventana de cada paso"
+        },
+        {
+            "control": "btnFinalizar",
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Finalizar"
+        },
+        {
+            "control": "btnOmitir",
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Omitir por ahora"
+        }
+    ],
+    "ad-20-parametros": [
+        {
+            "control": "txtNombreEmpresa",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Nombre de la empresa"
+        },
+        {
+            "control": "txtObservacionPorDefecto",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Observación por defecto"
+        },
+        {
+            "control": "numSiguienteBoleta",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Siguiente número de boleta"
+        },
+        {
+            "control": "btnCambiarLogo",
+            "numero": 4,
+            "tipo": "recuadro",
+            "leyenda": "Cambiar el logo"
+        },
+        {
+            "control": "btnGuardar",
+            "numero": 5,
+            "tipo": "recuadro",
+            "leyenda": "Guardar"
+        }
+    ],
+    "ad-10-usuarios": [
+        {
+            "control": "dgvUsuarios",
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Lista de usuarios"
+        },
+        {
+            "control": "btnNuevo",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Nuevo usuario"
+        },
+        {
+            "control": "btnEditar",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Editar el usuario elegido"
+        },
+        {
+            "control": "btnActivarDesactivar",
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Desactivar o activar"
+        },
+        {
+            "control": "btnRestablecer",
+            "numero": 5,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Restablecer la contraseña"
+        }
+    ],
+    "ad-11-usuario-nuevo": [
+        {
+            "control": "txtNombreUsuario",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Nombre de usuario"
+        },
+        {
+            "control": "txtNombreCompleto",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Nombre completo"
+        },
+        {
+            "control": "cmbRol",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Rol"
+        },
+        {
+            "control": "txtPassword",
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Contraseña inicial"
+        },
+        {
+            "control": "txtConfirmacion",
+            "numero": 5,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Confirmación: repita la contraseña"
+        }
+    ],
+    "ad-12-restablecer-password": [
+        {
+            "area": [
+                164,
+                86,
+                248,
+                22
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Contraseña temporal"
+        },
+        {
+            "area": [
+                164,
+                121,
+                248,
+                22
+            ],
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Repita la contraseña temporal"
+        },
+        {
+            "area": [
+                205,
+                167,
+                98,
+                33
+            ],
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Pulse Aceptar"
+        }
+    ],
+    "ad-30-configuracion-impresion": [
+        {
+            "control": "cmbImpresora",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Impresora de las boletas"
+        },
+        {
+            "control": "cmbFormato",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Formato de la boleta"
+        },
+        {
+            "control": "chkImprimirAlGrabar",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Imprimir sola al grabar"
+        },
+        {
+            "control": "btnCalibracion",
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Imprimir página de calibración"
+        },
+        {
+            "control": "btnGuardar",
+            "numero": 5,
+            "tipo": "recuadro",
+            "leyenda": "Guardar"
+        }
+    ],
+    "ad-31-impresion-muestra": [
+        {
+            "area": [
+                40,
+                72,
+                800,
+                95
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Nombre, dirección y logo de su empresa"
+        },
+        {
+            "control": "btnCerrar",
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Cerrar la vista previa"
+        }
+    ],
+    "ad-40-configuracion-balanza": [
+        {
+            "control": "cmbTipoConexion",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Tipo de conexión"
+        },
+        {
+            "control": "cmbPuerto",
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Puerto COM"
+        },
+        {
+            "control": "cmbDelimitador",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Separación de tramas"
+        },
+        {
+            "control": "cmbUnidad",
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Unidad que transmite"
+        },
+        {
+            "control": "btnProbarConexion",
+            "numero": 5,
+            "tipo": "recuadro",
+            "leyenda": "Probar conexión"
+        }
+    ],
+    "ad-50-backup-restaurar": [
+        {
+            "control": "dgvBackups",
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Lista de copias de seguridad"
+        },
+        {
+            "control": "btnCrear",
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Crear una copia ahora"
+        },
+        {
+            "control": "btnRestaurar",
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Restaurar la copia elegida"
+        },
+        {
+            "control": "chkAutomatico",
+            "numero": 4,
+            "tipo": "recuadro",
+            "leyenda": "Copia automática diaria"
+        },
+        {
+            "control": "btnGuardarConfiguracion",
+            "numero": 5,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Guardar configuración"
+        },
+        {
+            "control": "txtCarpetaSecundaria",
+            "numero": 6,
+            "tipo": "recuadro",
+            "leyenda": "Carpeta secundaria (pendrive o red)"
+        }
+    ],
+    "ad-51-confirmar-restauracion": [
+        {
+            "control": "tblDetalles",
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Datos de la copia"
+        },
+        {
+            "control": "txtConfirmacion",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Escriba RESTAURAR"
+        },
+        {
+            "control": "btnRestaurar",
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Restaurar"
+        }
+    ],
+    "ad-60-importar-paso1": [
+        {
+            "control": "cmbTipo",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Tipo de datos que va a importar"
+        },
+        {
+            "control": "btnExaminar",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Elegir el archivo"
+        },
+        {
+            "control": "cmbCodificacion",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Codificación (si las tildes salen mal)"
+        },
+        {
+            "control": "btnLeer",
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Leer archivo"
+        }
+    ],
+    "ad-61-importar-paso2": [
+        {
+            "control": "lblInfoArchivo",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Cuántas filas tiene el archivo"
+        },
+        {
+            "control": "dgvMapeo",
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Columna del archivo para cada dato del sistema"
+        },
+        {
+            "area": [
+                451,
+                232,
+                242,
+                175
+            ],
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Muestra de las filas del archivo"
+        }
+    ],
+    "ad-62-importar-paso3-simulacro": [
+        {
+            "control": "btnSimular",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Simulacro"
+        },
+        {
+            "control": "btnImportar",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Importar"
+        },
+        {
+            "control": "lblResumen",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Resumen del simulacro"
+        },
+        {
+            "control": "dgvIncidencias",
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Detalle de cada problema"
+        }
+    ],
+    "ad-70-visor-logs": [
+        {
+            "control": "cmbArchivo",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Archivo (el día)"
+        },
+        {
+            "control": "cmbNivel",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Nivel"
+        },
+        {
+            "control": "txtBuscar",
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Texto a buscar"
+        },
+        {
+            "control": "dgvEntradas",
+            "numero": 4,
+            "tipo": "recuadro",
+            "leyenda": "Entradas del log"
+        },
+        {
+            "control": "txtDetalle",
+            "numero": 5,
+            "tipo": "recuadro",
+            "leyenda": "Detalle de la entrada elegida"
+        }
+    ],
+    "comun-15-menu-administracion-detalle": [
+        {
+            "area": [
+                252,
+                29,
+                222,
+                22
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Usuarios"
+        },
+        {
+            "area": [
+                252,
+                51,
+                222,
+                22
+            ],
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Parámetros del sistema"
+        },
+        {
+            "area": [
+                252,
+                73,
+                222,
+                22
+            ],
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Tipo de pesaje"
+        },
+        {
+            "area": [
+                252,
+                95,
+                222,
+                22
+            ],
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Configuración de balanza"
+        },
+        {
+            "area": [
+                252,
+                117,
+                222,
+                22
+            ],
+            "numero": 5,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Configuración de impresión"
+        },
+        {
+            "area": [
+                252,
+                139,
+                222,
+                22
+            ],
+            "numero": 6,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Visor de auditoría"
+        }
+    ],
+    "comun-16-menu-utilitarios-detalle": [
+        {
+            "area": [
+                352,
+                29,
+                196,
+                22
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Backup / Restaurar"
+        },
+        {
+            "area": [
+                352,
+                51,
+                196,
+                22
+            ],
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Importar datos legados"
+        },
+        {
+            "area": [
+                352,
+                73,
+                196,
+                22
+            ],
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Visor de logs"
+        }
+    ],
+    "comun-17-menu-sesion-detalle": [
+        {
+            "area": [
+                421,
+                29,
+                214,
+                22
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Cambiar contraseña…"
+        },
+        {
+            "area": [
+                421,
+                51,
+                214,
+                22
+            ],
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Cerrar sesión"
+        },
+        {
+            "area": [
+                421,
+                79,
+                214,
+                22
+            ],
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Salir"
+        }
+    ],
+    "comun-18-menu-ayuda-detalle": [
+        {
+            "area": [
+                474,
+                29,
+                244,
+                22
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Asistente de puesta en marcha…"
+        },
+        {
+            "area": [
+                474,
+                51,
+                244,
+                22
+            ],
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "izquierda",
+            "leyenda": "Acerca de…"
+        }
+    ],
+    "ad-46-asistente-simulador": [
+        {
+            "control": "chkSimulador",
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Casilla para continuar con el simulador"
+        },
+        {
+            "control": "lblResumen",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Aviso de lo que falta"
+        },
+        {
+            "control": "btnFinalizar",
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Finalizar"
+        }
+    ],
+    "ad-21-parametros-antes-primera-boleta": [
+        {
+            "control": "numSiguienteBoleta",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Campo Siguiente, activo"
+        },
+        {
+            "control": "lblNotaNumeracion",
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Nota: solo antes de la primera boleta"
+        }
+    ],
+    "ad-22-parametros-confirmar-numeracion": [
+        {
+            "area": [
+                234,
+                119,
+                75,
+                23
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Pulse Sí"
+        }
+    ],
+    "ad-13-restablecer-confirmacion": [
+        {
+            "area": [
+                209,
+                119,
+                75,
+                23
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Pulse Sí"
+        }
+    ],
+    "ad-14-usuarios-bloqueado": [
+        {
+            "area": [
+                488,
+                134,
+                80,
+                24
+            ],
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Bloqueado: Sí"
+        },
+        {
+            "control": "btnRestablecer",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Restablecer clave (desbloquea)"
+        }
+    ],
+    "ad-15-usuarios-inactivos": [
+        {
+            "control": "chkMostrarInactivos",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Mostrar usuarios inactivos"
+        },
+        {
+            "area": [
+                18,
+                183,
+                694,
+                25
+            ],
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Usuario inactivo: Activo dice No"
+        }
+    ],
+    "ad-16-usuario-editar": [
+        {
+            "control": "txtNombreUsuario",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Nombre de usuario: no se puede cambiar"
+        },
+        {
+            "control": "txtNombreCompleto",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Nombre completo"
+        },
+        {
+            "control": "cmbRol",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Rol"
+        },
+        {
+            "control": "btnGuardar",
+            "numero": 4,
+            "tipo": "recuadro",
+            "leyenda": "Guardar"
+        }
+    ],
+    "ad-32-impresion-impresora-virtual": [
+        {
+            "control": "cmbImpresora",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Impresora virtual elegida"
+        },
+        {
+            "control": "chkImprimirAlGrabar",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Impresión automática marcada"
+        },
+        {
+            "control": "lblAdvertencia",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Aviso en rojo"
+        }
+    ],
+    "ad-43-balanza-rx8": [
+        {
+            "control": "cmbTipoConexion",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Tipo: Serie"
+        },
+        {
+            "control": "cmbPuerto",
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Puerto COM del adaptador"
+        },
+        {
+            "control": "cmbDelimitador",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Separación de tramas: Inicio con '='"
+        },
+        {
+            "control": "cmbUnidad",
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Unidad: Gramos"
+        }
+    ],
+    "ad-43b-balanza-rx8-prueba": [
+        {
+            "control": "lblEstadoPrueba",
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Resultado de la prueba"
+        },
+        {
+            "control": "lblPesoPrueba",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Peso que lee el sistema"
+        },
+        {
+            "control": "lstTramas",
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Mensajes del RX8, con el signo ="
+        },
+        {
+            "area": [
+                809,
+                810,
+                90,
+                29
+            ],
+            "numero": 4,
+            "tipo": "recuadro",
+            "leyenda": "Guardar"
+        }
+    ],
+    "ad-45-balanza-simulador": [
+        {
+            "control": "cmbTipoConexion",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Tipo: Simulador"
+        },
+        {
+            "control": "numPesoObjetivo",
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Peso objetivo (kg)"
+        },
+        {
+            "control": "btnCargaAleatoria",
+            "numero": 3,
+            "tipo": "recuadro",
+            "leyenda": "Simular carga"
+        },
+        {
+            "control": "chkDesconexion",
+            "numero": 4,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Simular desconexión"
+        }
+    ],
+    "ad-47-pesaje-modo-simulador": [
+        {
+            "control": "lblSimulador",
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Aviso MODO SIMULADOR"
+        },
+        {
+            "area": [
+                22,
+                162,
+                290,
+                22
+            ],
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "[SIMULADOR] Balanza: conectada"
+        }
+    ],
+    "ad-52-restauracion-programada": [
+        {
+            "control": "Boton",
+            "numero": 1,
+            "tipo": "recuadro",
+            "leyenda": "Pulse Aceptar"
+        }
+    ],
+    "ad-25-tipo-de-pesaje": [
+        {
+            "control": "rbAmbos",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Res completa y media res"
+        },
+        {
+            "control": "rbSoloResCompleta",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Solo res completa"
+        },
+        {
+            "control": "rbSoloMediaRes",
+            "numero": 3,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Solo media res"
+        },
+        {
+            "control": "btnGuardar",
+            "numero": 4,
+            "tipo": "recuadro",
+            "leyenda": "Guardar"
+        }
+    ],
+    "ad-26-tipo-de-pesaje-aviso": [
+        {
+            "control": "rbSoloResCompleta",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Opción elegida"
+        },
+        {
+            "control": "lblAviso",
+            "numero": 2,
+            "tipo": "recuadro",
+            "posicion": "arriba-derecha",
+            "leyenda": "Aviso de boletas existentes del otro tipo"
+        }
+    ],
+    "ad-27-pesaje-solo-res-completa": [
+        {
+            "control": "cmbSexo",
+            "numero": 1,
+            "tipo": "recuadro",
+            "posicion": "derecha",
+            "leyenda": "Después de Sexo sigue Observación: no hay Desposte"
+        },
+        {
+            "control": "btnCapturarIzquierdo",
+            "numero": 2,
+            "tipo": "recuadro",
+            "leyenda": "Se capturan los dos lados"
+        },
+        {
+            "control": "btnCapturarDerecho",
+            "numero": 3,
+            "tipo": "recuadro"
+        }
+    ]
+}

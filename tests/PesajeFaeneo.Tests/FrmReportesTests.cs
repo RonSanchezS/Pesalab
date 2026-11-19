@@ -85,6 +85,9 @@ public class FrmReportesTests
             Assert.Equal(0, form.cmbTipo.SelectedIndex); // PesajesDelDia
 
             form.Configurar(TipoReporte.Anuladas);
+            Assert.Equal(5, form.cmbTipo.SelectedIndex);
+
+            form.Configurar(TipoReporte.PorRaza);
             Assert.Equal(4, form.cmbTipo.SelectedIndex);
 
             form.Configurar(TipoReporte.PesajesEntreFechas);
@@ -985,6 +988,33 @@ public class FrmReportesTests
             Assert.True(form.dgvVista.ReadOnly);
             Assert.False(form.dgvVista.AllowUserToAddRows);
             Assert.False(form.dgvVista.AllowUserToDeleteRows);
+        });
+    }
+
+    // F11 (D6, D9): la columna "Tipo Corte" y el desglose por tipo dependen de cada reporte generado.
+    [Fact]
+    public void Generar_SinDesposte_OcultaTipoCorteYDesglose_YLoRecuperaConElSiguienteReporte()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new ServicioReportesFalso();
+            using var form = new FrmReportes(servicio, new GeneradorPdfReportesFalso(), new GeneradorExcelReportesFalso(), CrearTimeProvider());
+            form.Configurar(TipoReporte.PesajesEntreFechas);
+
+            servicio.Resultado = DatosReporteDePrueba.Crear(TipoReporte.PesajesEntreFechas, 3) with { MostrarDesposte = false };
+            form.GenerarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Null(form.dgvVista.Columns["colDesposte"]);
+            Assert.Equal(ColumnasReporte.Para(false, false).Count, form.dgvVista.Columns.Count);
+            Assert.Equal(TextosReporte.Kg(servicio.Resultado.Filas[0].PesoTotal), form.dgvVista.Rows[0].Cells["colTotal"].Value);
+            Assert.Contains("Boletas: 3", form.lblTotales.Text);
+            Assert.DoesNotContain("media res", form.lblTotales.Text);
+
+            servicio.Resultado = DatosReporteDePrueba.Crear(TipoReporte.PesajesEntreFechas, 3);
+            form.GenerarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.NotNull(form.dgvVista.Columns["colDesposte"]);
+            Assert.Contains("media res", form.lblTotales.Text);
         });
     }
 }

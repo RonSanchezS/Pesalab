@@ -67,7 +67,7 @@ public class PreparadorImportacionTests
         var tabla = new TablaOrigen(cols, filas, "H", "UTF-8", Array.Empty<string>());
         var mapeo = new Dictionary<string, int?>
         {
-            [CamposImportacion.Marca] = 0,
+            [CamposImportacion.Codigo] = 0,
             [CamposImportacion.Nombre] = 1,
             [CamposImportacion.Activo] = 2
         };
@@ -75,7 +75,7 @@ public class PreparadorImportacionTests
         var plan = PreparadorImportacion.Preparar(TipoImportacion.Ganaderos, tabla, mapeo, ClavesPrueba, AhoraUtc, ZonaUtcMenos4);
 
         Assert.Single(plan.Ganaderos);
-        Assert.Equal("CD", plan.Ganaderos[0].Marca);
+        Assert.Equal("CD", plan.Ganaderos[0].Codigo);
         Assert.Equal(100, plan.Ganaderos[0].Nombre.Length);
 
         Assert.Equal(3, plan.FilasConError);      // Filas 4, 5, 6
@@ -141,7 +141,7 @@ public class PreparadorImportacionTests
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
             [CamposImportacion.Hora] = 2,
-            [CamposImportacion.MarcaGanadero] = 3,
+            [CamposImportacion.CodigoGanadero] = 3,
             [CamposImportacion.CodigoCliente] = 4,
             [CamposImportacion.Secuencia] = 5,
             [CamposImportacion.Direccion] = 6,
@@ -190,7 +190,7 @@ public class PreparadorImportacionTests
         {
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
-            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoGanadero] = 2,
             [CamposImportacion.CodigoCliente] = 3,
             [CamposImportacion.PesoIzquierdo] = 4,
             [CamposImportacion.PesoDerecho] = 5
@@ -221,7 +221,7 @@ public class PreparadorImportacionTests
         {
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
-            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoGanadero] = 2,
             [CamposImportacion.CodigoCliente] = 3,
             [CamposImportacion.PesoIzquierdo] = 4,
             [CamposImportacion.PesoDerecho] = 5
@@ -253,7 +253,7 @@ public class PreparadorImportacionTests
         {
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
-            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoGanadero] = 2,
             [CamposImportacion.CodigoCliente] = 3,
             [CamposImportacion.PesoIzquierdo] = 4,
             [CamposImportacion.PesoDerecho] = 5,
@@ -284,7 +284,7 @@ public class PreparadorImportacionTests
         {
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
-            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoGanadero] = 2,
             [CamposImportacion.CodigoCliente] = 3,
             [CamposImportacion.PesoIzquierdo] = 4,
             [CamposImportacion.PesoDerecho] = 5,
@@ -317,7 +317,7 @@ public class PreparadorImportacionTests
         {
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
-            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoGanadero] = 2,
             [CamposImportacion.CodigoCliente] = 3,
             [CamposImportacion.PesoIzquierdo] = 4,
             [CamposImportacion.PesoDerecho] = 5,
@@ -334,7 +334,7 @@ public class PreparadorImportacionTests
         {
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
-            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoGanadero] = 2,
             [CamposImportacion.CodigoCliente] = 3,
             [CamposImportacion.PesoIzquierdo] = 4,
             [CamposImportacion.PesoDerecho] = 5,
@@ -368,7 +368,7 @@ public class PreparadorImportacionTests
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
             [CamposImportacion.Hora] = 2,
-            [CamposImportacion.MarcaGanadero] = 3,
+            [CamposImportacion.CodigoGanadero] = 3,
             [CamposImportacion.CodigoCliente] = 4,
             [CamposImportacion.PesoIzquierdo] = 5,
             [CamposImportacion.PesoDerecho] = 6,
@@ -401,7 +401,7 @@ public class PreparadorImportacionTests
         {
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
-            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoGanadero] = 2,
             [CamposImportacion.CodigoCliente] = 3,
             [CamposImportacion.PesoIzquierdo] = 4,
             [CamposImportacion.PesoDerecho] = 5
@@ -429,7 +429,7 @@ public class PreparadorImportacionTests
         {
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
-            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoGanadero] = 2,
             [CamposImportacion.CodigoCliente] = 3,
             [CamposImportacion.PesoIzquierdo] = 4,
             [CamposImportacion.PesoDerecho] = 5
@@ -458,7 +458,7 @@ public class PreparadorImportacionTests
         {
             [CamposImportacion.NumeroBoleta] = 0,
             [CamposImportacion.Fecha] = 1,
-            [CamposImportacion.MarcaGanadero] = 2,
+            [CamposImportacion.CodigoGanadero] = 2,
             [CamposImportacion.CodigoCliente] = 3,
             [CamposImportacion.PesoIzquierdo] = 4,
             [CamposImportacion.PesoDerecho] = 5
@@ -476,5 +476,44 @@ public class PreparadorImportacionTests
         Assert.Equal(3, plan.Incidencias.Count);
         Assert.True(plan.IncidenciasTruncadas);
         Assert.Equal(5, plan.FilasConError);
+    }
+
+    // F11 (D10): con un tipo de pesaje único, las boletas legadas del otro tipo se importan con una advertencia.
+    [Theory]
+    [InlineData(ModoDesposte.SoloResCompleta, 1)]
+    [InlineData(ModoDesposte.SoloMediaRes, 1)]
+    [InlineData(ModoDesposte.Ambos, 0)]
+    public void Preparar_Pesajes_TipoDistintoDelConfigurado_AdvierteYSeImportaIgual(ModoDesposte modo, int advertenciasEsperadas)
+    {
+        var cols = new[] { "Num", "Fecha", "Marca", "Cli", "Izq", "Der", "Desp" };
+        var filas = new List<FilaOrigen>
+        {
+            new(2, new[] { "1", "01/09/2026", "AB", "10", "110", "108", "RC" }),
+            new(3, new[] { "2", "01/09/2026", "AB", "10", "110", "", "MEDIA" })
+        };
+
+        var tabla = new TablaOrigen(cols, filas, "H", "UTF-8", Array.Empty<string>());
+        var mapeo = new Dictionary<string, int?>
+        {
+            [CamposImportacion.NumeroBoleta] = 0,
+            [CamposImportacion.Fecha] = 1,
+            [CamposImportacion.CodigoGanadero] = 2,
+            [CamposImportacion.CodigoCliente] = 3,
+            [CamposImportacion.PesoIzquierdo] = 4,
+            [CamposImportacion.PesoDerecho] = 5,
+            [CamposImportacion.TipoDesposte] = 6
+        };
+
+        var plan = PreparadorImportacion.Preparar(
+            TipoImportacion.Pesajes, tabla, mapeo, ClavesPrueba with { ModoDesposte = modo }, AhoraUtc, ZonaUtcMenos4);
+
+        Assert.Equal(2, plan.Pesajes.Count);
+        Assert.Equal(0, plan.FilasConError);
+        Assert.Equal(new[] { TipoDesposte.ResCompleta, TipoDesposte.MediaRes }, plan.Pesajes.Select(p => p.TipoDesposte));
+        var advertencias = plan.Incidencias
+            .Where(i => i.Campo == CamposImportacion.TipoDesposte && i.Nivel == NivelIncidencia.Advertencia)
+            .ToList();
+        Assert.Equal(advertenciasEsperadas, advertencias.Count);
+        Assert.All(advertencias, i => Assert.Contains("se importa igual", i.Mensaje));
     }
 }

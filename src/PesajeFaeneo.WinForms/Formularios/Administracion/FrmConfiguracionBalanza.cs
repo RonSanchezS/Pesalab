@@ -799,6 +799,12 @@ public class FrmConfiguracionBalanza : FormBase
             lblEstadoPrueba.Text = "Prueba cancelada.";
             lblEstadoPrueba.ForeColor = PresentacionBalanza.ColorGris;
         }
+        else if (resultado.Conecto && resultado.TramasRecibidas == 0)
+        {
+            // F12 (E6): "Conexión correcta: 0 de 0" parecía un éxito; el caso típico es la separación de tramas equivocada.
+            lblEstadoPrueba.Text = MensajeSinTramas;
+            lblEstadoPrueba.ForeColor = PresentacionBalanza.ColorRojoOscuro;
+        }
         else if (resultado.Conecto)
         {
             string estabilidad = resultado.AlcanzoEstabilidad ? "alcanzada" : "no alcanzada";
@@ -816,6 +822,10 @@ public class FrmConfiguracionBalanza : FormBase
             lblEstadoPrueba.ForeColor = PresentacionBalanza.ColorRojoOscuro;
         }
     }
+
+    internal const string MensajeSinTramas =
+        "Se conectó, pero no llegó ninguna trama. Revise que el indicador esté encendido y transmitiendo, " +
+        "y la «Separación de tramas» (el RX8 usa «Inicio con '='»).";
 
     private void CancelarPruebaClick()
     {

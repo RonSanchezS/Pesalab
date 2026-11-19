@@ -26,6 +26,7 @@ public class PesajeRepositorio : IPesajeRepositorio
             .AsNoTracking()
             .Include(p => p.Ganadero)
             .Include(p => p.Cliente)
+            .Include(p => p.Fletero)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
@@ -75,6 +76,7 @@ public class PesajeRepositorio : IPesajeRepositorio
             .AsNoTracking()
             .Include(p => p.Ganadero)
             .Include(p => p.Cliente)
+            .Include(p => p.Fletero)
             .Where(p => p.FechaHora >= dUtc && p.FechaHora < hUtc)
             .OrderByDescending(p => p.NumeroBoleta)
             .Take(maximo)
@@ -87,6 +89,7 @@ public class PesajeRepositorio : IPesajeRepositorio
             .AsNoTracking()
             .Include(p => p.Ganadero)
             .Include(p => p.Cliente)
+            .Include(p => p.Fletero)
             .Include(p => p.Usuario)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
@@ -97,6 +100,7 @@ public class PesajeRepositorio : IPesajeRepositorio
             .AsNoTracking()
             .Include(p => p.Ganadero)
             .Include(p => p.Cliente)
+            .Include(p => p.Fletero)
             .Include(p => p.Usuario)
             .FirstOrDefaultAsync(p => p.NumeroBoleta == numeroBoleta, cancellationToken);
     }
@@ -106,6 +110,7 @@ public class PesajeRepositorio : IPesajeRepositorio
         return await _context.Pesajes
             .Include(p => p.Ganadero)
             .Include(p => p.Cliente)
+            .Include(p => p.Fletero)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 
@@ -116,7 +121,8 @@ public class PesajeRepositorio : IPesajeRepositorio
         IQueryable<Pesaje> q = _context.Pesajes
             .AsNoTracking()
             .Include(p => p.Ganadero)
-            .Include(p => p.Cliente);
+            .Include(p => p.Cliente)
+            .Include(p => p.Fletero);
 
         if (criterios.DesdeUtc is { } d)
         {
@@ -179,9 +185,17 @@ public class PesajeRepositorio : IPesajeRepositorio
             q = q.Where(p => p.ClienteId == cid);
         }
 
+        if (criterios.ColorRaza is { } raza)
+        {
+            // Normalizada: lo guardado ya está en mayúsculas y sin espacios sobrantes (ServicioPesajes), pero los datos
+            // importados del sistema legado pueden no estarlo.
+            q = q.Where(p => p.ColorRaza.Trim().ToUpper() == raza);
+        }
+
         return q
             .Include(p => p.Ganadero)
             .Include(p => p.Cliente)
+            .Include(p => p.Fletero)
             .Include(p => p.AnuladoPor)
             .OrderBy(p => p.FechaHora)
             .ThenBy(p => p.NumeroBoleta)
@@ -196,5 +210,37 @@ public class PesajeRepositorio : IPesajeRepositorio
         }
 
         return await ConsultaReporte(criterios, maximo).ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<string>> ListarRazasAsync(CancellationToken cancellationToken = default)
+    {
+        // DISTINCT en SQL y normalización en memoria: son pocos valores y la normalización (mayúsculas con acentos) es de .NET.
+        var crudos = await _context.Pesajes
+            .AsNoTracking()
+            .Select(p => p.ColorRaza)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        return crudos
+            .Select(r => System.Text.RegularExpressions.Regex.Replace((r ?? string.Empty).Trim(), @"\s+", " ").ToUpperInvariant())
+            .Where(r => r.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(r => r, StringComparer.Create(System.Globalization.CultureInfo.GetCultureInfo("es-BO"), ignoreCase: false))
+            .ToList()
+            .AsReadOnly();
+    }
+
+    public async Task<(int ResCompleta, int MediaRes)> ContarVigentesPorTipoDesposteAsync(CancellationToken cancellationToken = default)
+    {
+        var conteos = await _context.Pesajes
+            .AsNoTracking()
+            .Where(p => p.Estado == EstadoPesaje.Vigente)
+            .GroupBy(p => p.TipoDesposte)
+            .Select(g => new { Tipo = g.Key, Cantidad = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        return (
+            conteos.Where(c => c.Tipo == TipoDesposte.ResCompleta).Sum(c => c.Cantidad),
+            conteos.Where(c => c.Tipo == TipoDesposte.MediaRes).Sum(c => c.Cantidad));
     }
 }

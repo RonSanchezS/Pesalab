@@ -21,7 +21,7 @@ public class CalculadoraTotalesReporteTests
             NumeroBoleta: 1000 + item,
             FechaHoraLocal: new DateTime(2026, 10, 1, 10, 0, 0, DateTimeKind.Unspecified),
             Secuencia: item,
-            MarcaGanadero: "CAB",
+            CodigoGanadero: "CAB",
             NombreGanadero: "GANADERO DE PRUEBA",
             CodigoCliente: 10,
             NombreCliente: "CLIENTE DE PRUEBA",

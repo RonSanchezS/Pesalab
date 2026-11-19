@@ -88,7 +88,7 @@ public class FrmImportarLegadoTests
             };
             var sugerido = new Dictionary<string, int?>
             {
-                ["Marca"] = 0,
+                ["Codigo"] = 0,
                 ["Nombre"] = 1
             };
             servicio.Vista = new VistaOrigen(columnas, muestra, 150, "DOS 850", new[] { "Advertencia 1" }, sugerido);
@@ -111,7 +111,7 @@ public class FrmImportarLegadoTests
             // Verificar dgvMapeo
             Assert.True(form.dgvMapeo.Rows.Count >= 2);
             var mapeo = form.MapeoActualParaTest();
-            Assert.Equal(0, mapeo["Marca"]);
+            Assert.Equal(0, mapeo["Codigo"]);
             Assert.Equal(1, mapeo["Nombre"]);
 
             // Verificar dgvMuestra
@@ -169,7 +169,7 @@ public class FrmImportarLegadoTests
                 20,
                 "Windows-1252",
                 Array.Empty<string>(),
-                new Dictionary<string, int?> { ["Marca"] = 0, ["Nombre"] = 1 });
+                new Dictionary<string, int?> { ["Codigo"] = 0, ["Nombre"] = 1 });
 
             var incidencias = new List<Incidencia>
             {
@@ -191,7 +191,7 @@ public class FrmImportarLegadoTests
 
             Assert.Single(servicio.SimulacionesSolicitadas);
             var sol = servicio.SimulacionesSolicitadas[0];
-            Assert.Equal(0, sol.Mapeo["Marca"]);
+            Assert.Equal(0, sol.Mapeo["Codigo"]);
             Assert.Equal(0, sol.Mapeo["Nombre"]); // ambos apuntan a 0 (COD)
 
             Assert.Contains("se importarían 18", form.lblResumen.Text);
@@ -213,7 +213,7 @@ public class FrmImportarLegadoTests
                 10,
                 "Windows-1252",
                 Array.Empty<string>(),
-                new Dictionary<string, int?> { ["Marca"] = 0, ["Nombre"] = 1 });
+                new Dictionary<string, int?> { ["Codigo"] = 0, ["Nombre"] = 1 });
             servicio.ResultadoSimulacro = new ResultadoImportacion(
                 true, "HUELLA-SIM", TipoImportacion.Ganaderos, 10, 10, 0, 0, 0, 0, Array.Empty<Incidencia>(), false, null);
 
@@ -245,7 +245,7 @@ public class FrmImportarLegadoTests
                 10,
                 "Windows-1252",
                 Array.Empty<string>(),
-                new Dictionary<string, int?> { ["Marca"] = 0, ["Nombre"] = 1 });
+                new Dictionary<string, int?> { ["Codigo"] = 0, ["Nombre"] = 1 });
             servicio.ResultadoSimulacro = new ResultadoImportacion(
                 true, "HUELLA-SIM", TipoImportacion.Ganaderos, 10, 8, 0, 1, 1, 0, Array.Empty<Incidencia>(), false, null);
             servicio.ResultadoImportacion = new ResultadoImportacion(
@@ -291,7 +291,7 @@ public class FrmImportarLegadoTests
                 10,
                 "Windows-1252",
                 Array.Empty<string>(),
-                new Dictionary<string, int?> { ["Marca"] = 0, ["Nombre"] = 1 });
+                new Dictionary<string, int?> { ["Codigo"] = 0, ["Nombre"] = 1 });
             servicio.ResultadoSimulacro = new ResultadoImportacion(
                 true, "HUELLA-VIEJA", TipoImportacion.Ganaderos, 10, 8, 0, 1, 1, 0, Array.Empty<Incidencia>(), false, null);
 
@@ -363,7 +363,7 @@ public class FrmImportarLegadoTests
                 10,
                 "Windows-1252",
                 Array.Empty<string>(),
-                new Dictionary<string, int?> { ["Marca"] = 0, ["Nombre"] = 1 });
+                new Dictionary<string, int?> { ["Codigo"] = 0, ["Nombre"] = 1 });
 
             var incidencias = new List<Incidencia>
             {

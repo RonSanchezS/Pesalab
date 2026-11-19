@@ -77,7 +77,7 @@ $iss = Join-Path $raiz 'instalador\PesajeFaeneo.iss'
 if ($LASTEXITCODE -ne 0) { Fallar "ISCC termino con codigo $LASTEXITCODE." }
 
 # 5. Resultado y su SHA-256
-$nombre = "PesajeFaeneo-Setup-$version-x64.exe"
+$nombre = "Capataz-Setup-$version-x64.exe"
 $setup = Join-Path $salida $nombre
 if (-not (Test-Path -LiteralPath $setup)) { Fallar "No se genero $nombre." }
 $hash = (Get-FileHash -LiteralPath $setup -Algorithm SHA256).Hash.ToLowerInvariant()

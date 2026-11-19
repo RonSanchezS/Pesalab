@@ -1,0 +1,1239 @@
+{
+  "comun-01-login": [
+    {
+      "control": "txtUsuario",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Escriba su usuario"
+    },
+    {
+      "control": "txtPassword",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Escriba su contraseña"
+    },
+    {
+      "control": "btnIngresar",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Ingresar"
+    }
+  ],
+  "comun-03-cambio-password-obligatorio": [
+    {
+      "control": "txtActual",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Contraseña actual (la temporal)"
+    },
+    {
+      "control": "txtNueva",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Su contraseña nueva"
+    },
+    {
+      "control": "txtConfirmacion",
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Repita la contraseña nueva"
+    },
+    {
+      "control": "btnAceptar",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Aceptar"
+    }
+  ],
+  "su-00-inicio-supervisor": [
+    {
+      "area": [
+        8,
+        33,
+        445,
+        20
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Barra de menús"
+    },
+    {
+      "control": "tarjetaPesaje",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Control de peso (F2)"
+    },
+    {
+      "control": "tarjetaTicket",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Imprimir ticket (F3)"
+    },
+    {
+      "control": "tarjetaHistorial",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Historial de pesajes (F4)"
+    }
+  ],
+  "su-00-menu-sesion-detalle": [
+    {
+      "area": [
+        352,
+        51,
+        214,
+        22
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Cerrar sesión"
+    },
+    {
+      "area": [
+        352,
+        79,
+        214,
+        22
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Salir"
+    }
+  ],
+  "su-00-menu-boletas-detalle": [
+    {
+      "area": [
+        58,
+        51,
+        205,
+        22
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Buscar / editar boleta (F6)"
+    }
+  ],
+  "su-00-menu-reportes-detalle": [
+    {
+      "area": [
+        187,
+        29,
+        172,
+        22
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Reportes de pesaje"
+    },
+    {
+      "area": [
+        187,
+        51,
+        172,
+        22
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Pesajes por raza"
+    },
+    {
+      "area": [
+        187,
+        73,
+        172,
+        22
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Boletas anuladas"
+    }
+  ],
+  "su-00-menu-catalogos-detalle": [
+    {
+      "area": [
+        115,
+        29,
+        130,
+        22
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Ganaderos"
+    },
+    {
+      "area": [
+        115,
+        51,
+        130,
+        22
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Clientes"
+    },
+    {
+      "area": [
+        115,
+        73,
+        130,
+        22
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Fleteros"
+    }
+  ],
+  "op-10-pesaje-vacio": [
+    {
+      "control": "lblPesoVivo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Peso en vivo de la balanza"
+    },
+    {
+      "control": "lblGuia",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Frase guía: qué hacer ahora"
+    },
+    {
+      "control": "ctlGanadero",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Ganadero (y luego Cliente)"
+    },
+    {
+      "control": "btnCapturarIzquierdo",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Capturar el peso (F5 / F6)"
+    },
+    {
+      "control": "btnGrabar",
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Grabar (F12)"
+    }
+  ],
+  "op-30-historial-hoy": [
+    {
+      "control": "dtpDia",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Día que desea ver"
+    },
+    {
+      "control": "btnActualizar",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Actualizar la lista"
+    },
+    {
+      "control": "btnReimprimir",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Reimprimir la boleta elegida"
+    }
+  ],
+  "op-40-reimprimir-boleta": [
+    {
+      "control": "numBoleta",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Número de boleta"
+    },
+    {
+      "control": "btnBuscar",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Buscar (Enter)"
+    },
+    {
+      "control": "btnVistaPrevia",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Vista previa (F4)"
+    },
+    {
+      "control": "btnImprimir",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Imprimir (F9)"
+    }
+  ],
+  "su-01-buscar-boletas": [
+    {
+      "area": [
+        8,
+        40,
+        1020,
+        80
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Filtros de búsqueda"
+    },
+    {
+      "area": [
+        0,
+        124,
+        1337,
+        476
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Lista de resultados"
+    },
+    {
+      "area": [
+        540,
+        610,
+        390,
+        32
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Editar, Anular y Cerrar"
+    }
+  ],
+  "su-01-filtros-detalle": [
+    {
+      "area": [
+        71,
+        28,
+        345,
+        28
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Fechas Desde y Hasta"
+    },
+    {
+      "control": "txtNumero",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "arriba-derecha",
+      "leyenda": "Número de boleta"
+    },
+    {
+      "control": "cmbEstado",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Estado: Todos, Vigente o Anulado"
+    },
+    {
+      "area": [
+        93,
+        62,
+        672,
+        27
+      ],
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Ganadero y Cliente",
+      "posicion": "derecha"
+    },
+    {
+      "control": "btnBuscar",
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Buscar (Enter)"
+    }
+  ],
+  "su-02-buscar-anulada-seleccionada": [
+    {
+      "control": "btnEditar",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Editar (F4) desactivado",
+      "posicion": "izquierda"
+    },
+    {
+      "control": "btnAnular",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Anular (F8) desactivado"
+    },
+    {
+      "area": [
+        1228,
+        474,
+        90,
+        24
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Boleta elegida: ANULADA"
+    }
+  ],
+  "su-03-buscar-solo-anuladas": [
+    {
+      "control": "cmbEstado",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Estado: Anulado",
+      "posicion": "arriba-derecha"
+    },
+    {
+      "area": [
+        0,
+        174,
+        1316,
+        25
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Boleta anulada: se ve en gris",
+      "posicion": "izquierda"
+    }
+  ],
+  "su-04b-buscar-ganadero-lista": [
+    {
+      "control": "ctlGanadero",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Escriba una parte del nombre",
+      "posicion": "arriba-derecha"
+    },
+    {
+      "area": [
+        97,
+        121,
+        346,
+        17
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Haga clic en el ganadero correcto"
+    }
+  ],
+  "su-05-editar-boleta": [
+    {
+      "area": [
+        12,
+        40,
+        618,
+        146
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Datos de origen: no se pueden cambiar"
+    },
+    {
+      "control": "ctlGanadero",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Ganadero"
+    },
+    {
+      "control": "ctlFletero",
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Fletero (opcional)"
+    },
+    {
+      "control": "txtMotivo",
+      "numero": 4,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Motivo del cambio (opcional)"
+    },
+    {
+      "control": "btnGuardar",
+      "numero": 5,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Guardar (F12)"
+    }
+  ],
+  "su-06-editar-boleta-motivo": [
+    {
+      "control": "txtColorRaza",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Dato corregido"
+    },
+    {
+      "control": "txtMotivo",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Motivo del cambio"
+    },
+    {
+      "control": "btnGuardar",
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Guardar (F12)"
+    }
+  ],
+  "su-06b-editar-sin-cambios": [
+    {
+      "area": [
+        14,
+        461,
+        176,
+        24
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Aviso: No se modificó ningún dato."
+    }
+  ],
+  "su-06c-editar-error-validacion": [
+    {
+      "area": [
+        617,
+        193,
+        23,
+        23
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "arriba-derecha",
+      "leyenda": "Círculo rojo: falta elegir el ganadero"
+    }
+  ],
+  "su-06e-editar-fletero-sin-elegir": [
+    {
+      "area": [
+        617,
+        289,
+        23,
+        23
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "arriba-derecha",
+      "leyenda": "Círculo rojo: elija el fletero de la lista o borre el texto"
+    }
+  ],
+  "su-06d-editar-boleta-cambiada": [
+    {
+      "area": [
+        317,
+        119,
+        75,
+        23
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Aceptar"
+    }
+  ],
+  "su-07-anular-boleta": [
+    {
+      "control": "lblResumen",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Verifique que es la boleta correcta"
+    },
+    {
+      "control": "lblAdvertencia",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Aviso: no se puede deshacer"
+    },
+    {
+      "control": "txtMotivo",
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Motivo de anulación (5 a 100 letras)"
+    },
+    {
+      "control": "btnAnular",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Anular boleta"
+    },
+    {
+      "control": "btnCancelar",
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Cancelar (Esc)"
+    }
+  ],
+  "su-07b-anular-confirmacion": [
+    {
+      "area": [
+        66,
+        125,
+        75,
+        23
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Sí: anula la boleta"
+    },
+    {
+      "area": [
+        149,
+        125,
+        75,
+        23
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "No: no hace nada"
+    }
+  ],
+  "su-07c-anular-motivo-corto": [
+    {
+      "area": [
+        539,
+        243,
+        20,
+        20
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "arriba-derecha",
+      "leyenda": "Círculo rojo: el motivo es muy corto (mínimo 5 caracteres)"
+    }
+  ],
+  "su-10-reporte-pesajes-del-dia": [
+    {
+      "control": "cmbTipo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Tipo de reporte",
+      "posicion": "arriba-derecha"
+    },
+    {
+      "control": "dtpDesde",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Desde: el día"
+    },
+    {
+      "control": "dtpHasta",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Hasta: en gris, sigue al Desde"
+    },
+    {
+      "control": "btnGenerar",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Generar (Enter)"
+    },
+    {
+      "area": [
+        10,
+        619,
+        253,
+        30
+      ],
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Vista previa e Imprimir…"
+    },
+    {
+      "area": [
+        276,
+        619,
+        253,
+        30
+      ],
+      "numero": 6,
+      "tipo": "recuadro",
+      "leyenda": "Exportar PDF… y Exportar Excel…"
+    }
+  ],
+  "su-10-totales-detalle": [
+    {
+      "control": "lblTotales",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Totales del reporte"
+    },
+    {
+      "control": "lblAviso",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Aviso de peso simulado"
+    }
+  ],
+  "su-10c-reporte-filtros-cambiaron": [
+    {
+      "control": "lblAviso",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Aviso: los filtros cambiaron"
+    },
+    {
+      "area": [
+        10,
+        619,
+        520,
+        30
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Botones apagados",
+      "posicion": "arriba-derecha"
+    }
+  ],
+  "su-11-reporte-entre-fechas": [
+    {
+      "area": [
+        8,
+        40,
+        1010,
+        80
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Filtros del reporte"
+    },
+    {
+      "area": [
+        0,
+        124,
+        1324,
+        446
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Lista de boletas"
+    },
+    {
+      "control": "lblTotales",
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Totales"
+    },
+    {
+      "area": [
+        10,
+        619,
+        653,
+        30
+      ],
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Botones de salida"
+    }
+  ],
+  "su-11b-reporte-peso-simulado": [
+    {
+      "area": [
+        52,
+        348,
+        80,
+        24
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Asterisco: peso simulado"
+    }
+  ],
+  "su-12-reporte-vista-previa": [
+    {
+      "area": [
+        181,
+        41,
+        498,
+        646
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Así saldrá el reporte en papel"
+    },
+    {
+      "control": "btnCerrar",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Cerrar (Esc)"
+    }
+  ],
+  "su-12b-reporte-vista-previa-pagina2": [
+    {
+      "area": [
+        206,
+        327,
+        448,
+        40
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Totales, en la última página"
+    }
+  ],
+  "su-13-reporte-por-ganadero": [
+    {
+      "area": [
+        22,
+        92,
+        371,
+        25
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "arriba-izquierda",
+      "leyenda": "Ganadero: elíjalo de la lista"
+    },
+    {
+      "control": "btnGenerar",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Generar (Enter)"
+    }
+  ],
+  "su-15-reporte-por-raza-lista": [
+    {
+      "control": "cmbRaza",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Raza: elija una de la lista"
+    }
+  ],
+  "su-17-reporte-anuladas": [
+    {
+      "area": [
+        617,
+        127,
+        707,
+        47
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Cuándo, quién y por qué se anuló"
+    }
+  ],
+  "su-18-reporte-abrir-archivo": [
+    {
+      "area": [
+        236,
+        151,
+        75,
+        23
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Sí: abre el archivo"
+    },
+    {
+      "area": [
+        318,
+        151,
+        75,
+        23
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "No: solo lo deja guardado"
+    }
+  ],
+  "su-20-catalogo-ganaderos": [
+    {
+      "area": [
+        81,
+        52,
+        412,
+        26
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Buscar un ganadero"
+    },
+    {
+      "area": [
+        507,
+        55,
+        132,
+        22
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Mostrar inactivos"
+    },
+    {
+      "area": [
+        19,
+        91,
+        80,
+        222
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Código (lo pone el sistema)"
+    },
+    {
+      "area": [
+        796,
+        94,
+        126,
+        111
+      ],
+      "numero": 4,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Nuevo, Editar y Desactivar"
+    }
+  ],
+  "su-21-ganadero-nuevo": [
+    {
+      "control": "txtCodigo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Código: no se escribe"
+    },
+    {
+      "control": "txtNombre",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Escriba el nombre"
+    },
+    {
+      "control": "btnGuardar",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Guardar"
+    }
+  ],
+  "su-21b-ganadero-error-nombre": [
+    {
+      "area": [
+        114,
+        119,
+        372,
+        26
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Círculo rojo: nombre muy corto",
+      "posicion": "arriba-derecha"
+    }
+  ],
+  "su-22-ganadero-editar": [
+    {
+      "control": "txtCodigo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Código: se ve, no se cambia"
+    },
+    {
+      "control": "txtNombre",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Corrija el nombre"
+    }
+  ],
+  "su-23-catalogo-clientes": [
+    {
+      "area": [
+        81,
+        52,
+        451,
+        26
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Buscar un cliente"
+    },
+    {
+      "area": [
+        547,
+        55,
+        135,
+        22
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Mostrar inactivos"
+    },
+    {
+      "area": [
+        19,
+        91,
+        80,
+        222
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Código (lo pone el sistema)"
+    },
+    {
+      "area": [
+        860,
+        94,
+        126,
+        111
+      ],
+      "numero": 4,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Nuevo, Editar y Desactivar"
+    }
+  ],
+  "su-24-cliente-nuevo": [
+    {
+      "control": "txtCodigo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Código: no se escribe"
+    },
+    {
+      "control": "txtNombre",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Escriba el nombre"
+    },
+    {
+      "control": "txtDireccion",
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Dirección (opcional)"
+    },
+    {
+      "control": "btnGuardar",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Guardar"
+    }
+  ],
+  "su-26-catalogo-fleteros": [
+    {
+      "area": [
+        622,
+        55,
+        132,
+        22
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Mostrar inactivos"
+    },
+    {
+      "area": [
+        19,
+        91,
+        80,
+        147
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Código (lo pone el sistema)"
+    },
+    {
+      "area": [
+        564,
+        91,
+        140,
+        147
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Celular"
+    },
+    {
+      "area": [
+        796,
+        94,
+        126,
+        111
+      ],
+      "numero": 4,
+      "tipo": "recuadro",
+      "posicion": "izquierda",
+      "leyenda": "Nuevo, Editar y Desactivar"
+    }
+  ],
+  "su-27-fletero-nuevo": [
+    {
+      "control": "txtCodigo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Código: no se escribe"
+    },
+    {
+      "control": "txtNombre",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Escriba el nombre"
+    },
+    {
+      "control": "txtCelular",
+      "numero": 3,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Celular (obligatorio)"
+    },
+    {
+      "control": "btnGuardar",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Guardar"
+    }
+  ],
+  "su-27b-fletero-error-celular": [
+    {
+      "area": [
+        114,
+        154,
+        372,
+        26
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Círculo rojo: celular no válido",
+      "posicion": "arriba-derecha"
+    }
+  ],
+  "su-29-ganaderos-inactivos": [
+    {
+      "control": "chkMostrarInactivos",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Mostrar inactivos marcado"
+    },
+    {
+      "area": [
+        18,
+        313,
+        758,
+        25
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Ganadero inactivo (Activo: No)"
+    },
+    {
+      "control": "btnActivarDesactivar",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "El botón ahora dice Activar"
+    }
+  ],
+  "su-29b-desactivar-confirmacion": [
+    {
+      "area": [
+        204,
+        119,
+        75,
+        23
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Sí: desactiva al ganadero"
+    }
+  ],
+  "su-30-auditoria": [
+    {
+      "area": [
+        71,
+        56,
+        345,
+        26
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Fechas Desde y Hasta"
+    },
+    {
+      "control": "cmbEntidad",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Entidad: qué tipo de dato"
+    },
+    {
+      "control": "cmbAccion",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Acción: qué se hizo"
+    },
+    {
+      "control": "txtBoleta",
+      "numero": 4,
+      "tipo": "recuadro",
+      "posicion": "arriba-derecha",
+      "leyenda": "Número de boleta"
+    }
+  ],
+  "su-31-auditoria-cambios": [
+    {
+      "area": [
+        0,
+        150,
+        1008,
+        25
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Registro elegido"
+    },
+    {
+      "area": [
+        6,
+        358,
+        980,
+        24
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Fila amarilla: lo que cambió"
+    }
+  ],
+  "su-32-auditoria-json": [
+    {
+      "control": "txtAntesJson",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "derecha",
+      "leyenda": "Detalle técnico: antes"
+    },
+    {
+      "control": "txtDespuesJson",
+      "numero": 2,
+      "tipo": "recuadro",
+      "posicion": "arriba-derecha",
+      "leyenda": "Detalle técnico: después"
+    }
+  ]
+}

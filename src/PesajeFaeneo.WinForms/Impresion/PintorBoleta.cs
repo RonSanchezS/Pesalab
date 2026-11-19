@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Drawing.Imaging;
 using PesajeFaeneo.Application.Boletas.Diseno;
 
 namespace PesajeFaeneo.WinForms.Impresion;
@@ -38,6 +39,9 @@ internal static class PintorBoleta
                         break;
                     case LogoBoleta logoElem:
                         PintarLogo(g, logoElem, logo);
+                        break;
+                    case FondoLogoBoleta fondo:
+                        PintarFondoLogo(g, fondo, logo);
                         break;
                 }
             }
@@ -109,6 +113,32 @@ internal static class PintorBoleta
     {
         using var lapiz = new Pen(Color.Black, r.GrosorMm);
         g.DrawRectangle(lapiz, r.X, r.Y, r.Ancho, r.Alto);
+    }
+
+    private static void PintarFondoLogo(Graphics g, FondoLogoBoleta fondo, Image? logo)
+    {
+        if (logo is null)
+        {
+            return;
+        }
+
+        var escala = Math.Min(fondo.Ancho / logo.Width, fondo.Alto / logo.Height);
+        var ancho = logo.Width * escala;
+        var alto = logo.Height * escala;
+        var destino = new RectangleF(fondo.X + (fondo.Ancho - ancho) / 2f, fondo.Y + (fondo.Alto - alto) / 2f, ancho, alto);
+
+        var matriz = new ColorMatrix { Matrix33 = Math.Clamp(fondo.Opacidad, 0f, 1f) };
+        using var atributos = new ImageAttributes();
+        atributos.SetColorMatrix(matriz, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+
+        // Con PageUnit en milímetros el destino va en mm y el origen en píxeles de la imagen.
+        var puntos = new[]
+        {
+            new PointF(destino.Left, destino.Top),
+            new PointF(destino.Right, destino.Top),
+            new PointF(destino.Left, destino.Bottom)
+        };
+        g.DrawImage(logo, puntos, new RectangleF(0, 0, logo.Width, logo.Height), GraphicsUnit.Pixel, atributos);
     }
 
     private static void PintarLogo(Graphics g, LogoBoleta logoElem, Image? logo)

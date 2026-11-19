@@ -14,7 +14,7 @@ public class BoletaRepositorioTests
     {
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
 
-        var g = new GanaderoBuilder().ConMarca("AH").ConNombre("Ganadero AH").Build();
+        var g = new GanaderoBuilder().ConCodigo("AH").ConNombre("Ganadero AH").Build();
         var c = new ClienteBuilder().ConCodigo(123).ConNombre("Cliente 123").Build();
         var u = new UsuarioBuilder().ConNombreUsuario("pesador_boleta").ConNombreCompleto("Juan Perez").Build();
 
@@ -53,7 +53,7 @@ public class BoletaRepositorioTests
 
             Assert.NotNull(encontrado);
             Assert.NotNull(encontrado.Ganadero);
-            Assert.Equal("AH", encontrado.Ganadero.Marca);
+            Assert.Equal("AH", encontrado.Ganadero.Codigo);
             Assert.NotNull(encontrado.Cliente);
             Assert.Equal(123, encontrado.Cliente.Codigo);
             Assert.NotNull(encontrado.Usuario);
@@ -90,7 +90,7 @@ public class BoletaRepositorioTests
             Assert.NotNull(encontrado);
             Assert.Equal(7777, encontrado.NumeroBoleta);
             Assert.NotNull(encontrado.Ganadero);
-            Assert.Equal("AH", encontrado.Ganadero.Marca);
+            Assert.Equal("AH", encontrado.Ganadero.Codigo);
             Assert.NotNull(encontrado.Cliente);
             Assert.Equal(123, encontrado.Cliente.Codigo);
             Assert.NotNull(encontrado.Usuario);

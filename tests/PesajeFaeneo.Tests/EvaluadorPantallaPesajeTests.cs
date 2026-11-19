@@ -96,7 +96,7 @@ public class EvaluadorPantallaPesajeTests
 
         var res = EvaluadorPantallaPesaje.Evaluar(datos);
 
-        Assert.Equal("Seleccione el ganadero (marca o nombre).", res.Mensaje);
+        Assert.Equal("Seleccione el ganadero (código o nombre).", res.Mensaje);
         Assert.Equal(NivelMensajeGuia.Info, res.Nivel);
         Assert.False(res.PuedeGrabar);
     }
@@ -150,7 +150,7 @@ public class EvaluadorPantallaPesajeTests
         Assert.Equal("Listo para grabar (F12).", res.Mensaje);
         Assert.Equal(NivelMensajeGuia.Exito, res.Nivel);
         Assert.True(res.PuedeGrabar);
-        Assert.True(res.PuedeBorrarPesos);
+        Assert.True(res.PuedeBorrarPesaje);
     }
 
     [Fact]
@@ -297,7 +297,7 @@ public class EvaluadorPantallaPesajeTests
 
         var res = EvaluadorPantallaPesaje.Evaluar(datos);
 
-        Assert.Equal("Media res: capture solo un lado. Use F8 para borrar.", res.Mensaje);
+        Assert.Equal("Media res: capture solo un lado. Use F8 para borrar el pesaje.", res.Mensaje);
         Assert.Equal(NivelMensajeGuia.Advertencia, res.Nivel);
         Assert.False(res.PuedeGrabar);
     }
@@ -326,7 +326,121 @@ public class EvaluadorPantallaPesajeTests
 
         Assert.False(res.PuedeCapturarIzquierdo);
         Assert.False(res.PuedeCapturarDerecho);
-        Assert.False(res.PuedeBorrarPesos);
+        Assert.False(res.PuedeBorrarPesaje);
         Assert.False(res.PuedeGrabar);
+    }
+
+    [Fact]
+    public void Fila10_MediaResConDesposteFijo_MensajeSinPrefijo()
+    {
+        var ahora = DateTimeOffset.UtcNow;
+        var datos = new DatosPantallaPesaje(
+            Instantanea: CrearInstantanea(pesoKg: 120m, instante: ahora),
+            Ahora: ahora,
+            GanaderoSeleccionado: true,
+            ClienteSeleccionado: true,
+            TipoDesposte: TipoDesposte.MediaRes,
+            Capturas: new ControlCapturas(puedeUsarSimulador: true),
+            PuedeUsarSimulador: true,
+            Ocupado: false,
+            DesposteFijo: true);
+
+        Assert.Equal("Capture un lado (F5 o F6).", EvaluadorPantallaPesaje.Evaluar(datos).Mensaje);
+    }
+
+    private static DatosPantallaPesaje DatosConPeso(decimal pesoKg, TipoDesposte tipo = TipoDesposte.ResCompleta, bool desposteFijo = false)
+    {
+        var ahora = DateTimeOffset.UtcNow;
+        return new DatosPantallaPesaje(
+            Instantanea: CrearInstantanea(pesoKg: pesoKg, estable: true, instante: ahora),
+            Ahora: ahora,
+            GanaderoSeleccionado: true,
+            ClienteSeleccionado: true,
+            TipoDesposte: tipo,
+            Capturas: new ControlCapturas(puedeUsarSimulador: true),
+            PuedeUsarSimulador: true,
+            Ocupado: false,
+            DesposteFijo: desposteFijo);
+    }
+
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(-0.4)]
+    [InlineData(2.0)]
+    public void Fila8_BalanzaEnReposo_NoEsFueraDeRango_PideCapturar(double peso)
+    {
+        // F12 (E4): con la balanza vacía la guía indica qué capturar, no "Peso fuera de rango".
+        var res = EvaluadorPantallaPesaje.Evaluar(DatosConPeso((decimal)peso));
+
+        Assert.Equal("Capture el lado izquierdo (F5) y el derecho (F6).", res.Mensaje);
+        Assert.Equal(NivelMensajeGuia.Info, res.Nivel);
+        Assert.False(res.PuedeCapturarIzquierdo);
+    }
+
+    [Fact]
+    public void Fila8_BalanzaEnReposo_SoloMediaRes_PideCapturarUnLado()
+    {
+        var res = EvaluadorPantallaPesaje.Evaluar(DatosConPeso(0m, TipoDesposte.MediaRes, desposteFijo: true));
+
+        Assert.Equal("Capture un lado (F5 o F6).", res.Mensaje);
+    }
+
+    [Fact]
+    public void Fila8_PesoApenasSobreElReposo_SigueFueraDeRango()
+    {
+        var res = EvaluadorPantallaPesaje.Evaluar(DatosConPeso(2.1m));
+
+        Assert.Equal("Peso fuera de rango (10,0 a 600,0 kg).", res.Mensaje);
+    }
+
+    [Fact]
+    public void FleteroSinElegir_BloqueaGrabarYAvisa()
+    {
+        // F12 (E1): pesos completos, pero el fletero quedó escrito sin elegir.
+        var ahora = DateTimeOffset.UtcNow;
+        var inst = CrearInstantanea(pesoKg: 120m, instante: ahora);
+        var capturas = new ControlCapturas(puedeUsarSimulador: true);
+        capturas.Capturar(LadoPesaje.Izquierdo, TipoDesposte.ResCompleta, inst, ahora);
+        capturas.Observar(CrearInstantanea(pesoKg: 0m, instante: ahora));
+        capturas.Capturar(LadoPesaje.Derecho, TipoDesposte.ResCompleta, inst, ahora);
+
+        var datos = new DatosPantallaPesaje(inst, ahora, true, true, TipoDesposte.ResCompleta, capturas, true, false, FleteroSinElegir: true);
+        var res = EvaluadorPantallaPesaje.Evaluar(datos);
+
+        Assert.False(res.PuedeGrabar);
+        Assert.Equal(EvaluadorPantallaPesaje.MensajeFleteroSinElegir, res.Mensaje);
+        Assert.Equal("Elija el fletero de la lista o borre el texto.", res.Mensaje);
+        Assert.Equal(NivelMensajeGuia.Advertencia, res.Nivel);
+
+        var sinFletero = EvaluadorPantallaPesaje.Evaluar(datos with { FleteroSinElegir = false });
+        Assert.True(sinFletero.PuedeGrabar);
+        Assert.Equal("Listo para grabar (F12).", sinFletero.Mensaje);
+    }
+
+    [Fact]
+    public void FleteroSinElegir_GanaderoFaltanteTienePrioridad()
+    {
+        var datos = DatosConPeso(120m) with { GanaderoSeleccionado = false, FleteroSinElegir = true };
+
+        Assert.Equal("Seleccione el ganadero (código o nombre).", EvaluadorPantallaPesaje.Evaluar(datos).Mensaje);
+    }
+
+    [Fact]
+    public void Fila11_MediaResConDosLados_AvisoF8AunqueEspereRetornoACero()
+    {
+        // F12 (E4): antes el aviso de F8 quedaba tapado por "Retire el peso…" mientras la res seguía en la balanza.
+        var ahora = DateTimeOffset.UtcNow;
+        var inst = CrearInstantanea(pesoKg: 120m, instante: ahora);
+        var capturas = new ControlCapturas(puedeUsarSimulador: true);
+        capturas.Capturar(LadoPesaje.Izquierdo, TipoDesposte.ResCompleta, inst, ahora);
+        capturas.Observar(CrearInstantanea(pesoKg: 0m, instante: ahora));
+        capturas.Capturar(LadoPesaje.Derecho, TipoDesposte.ResCompleta, inst, ahora);
+        Assert.True(capturas.EsperandoRetornoACero);
+
+        var datos = new DatosPantallaPesaje(inst, ahora, true, true, TipoDesposte.MediaRes, capturas, true, false);
+        var res = EvaluadorPantallaPesaje.Evaluar(datos);
+
+        Assert.Equal("Media res: capture solo un lado. Use F8 para borrar el pesaje.", res.Mensaje);
+        Assert.True(res.PuedeBorrarPesaje);
     }
 }

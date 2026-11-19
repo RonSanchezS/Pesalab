@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using PesajeFaeneo.Application.Abstracciones;
 using PesajeFaeneo.Application.Abstracciones.Persistencia;
 using PesajeFaeneo.Application.Boletas.Diseno;
+using PesajeFaeneo.Application.Catalogos;
 using PesajeFaeneo.Application.Catalogos.Busqueda;
 using PesajeFaeneo.Application.Comun;
 using PesajeFaeneo.Application.Reportes.Dtos;
@@ -46,7 +47,7 @@ public class ServicioReportes : IServicioReportes
         var clientes = await uow.Clientes.ListarAsync(incluirInactivos: true, cancellationToken);
 
         var listaGanaderos = ganaderos
-            .Select(g => new ElementoBusqueda(g.Id, g.Marca, g.Nombre, null, g.Activo))
+            .Select(g => new ElementoBusqueda(g.Id, g.Codigo, g.Nombre, null, g.Activo))
             .ToList()
             .AsReadOnly();
 
@@ -55,7 +56,9 @@ public class ServicioReportes : IServicioReportes
             .ToList()
             .AsReadOnly();
 
-        return new OpcionesReportes(listaGanaderos, listaClientes);
+        var razas = await uow.Pesajes.ListarRazasAsync(cancellationToken);
+
+        return new OpcionesReportes(listaGanaderos, listaClientes, razas);
     }
 
     public async Task<ReportePesajes> GenerarAsync(FiltroReporte filtro, CancellationToken cancellationToken = default)
@@ -87,6 +90,11 @@ public class ServicioReportes : IServicioReportes
             errores.Add(new ErrorValidacion(CamposReportes.Cliente, "Seleccione el cliente."));
         }
 
+        if (filtro.Tipo == TipoReporte.PorRaza && string.IsNullOrEmpty(ValidadorCatalogos.NormalizarMayusculas(filtro.ColorRaza)))
+        {
+            errores.Add(new ErrorValidacion(CamposReportes.Raza, "Seleccione la raza."));
+        }
+
         if (errores.Count > 0)
         {
             throw new ValidacionException(errores);
@@ -95,6 +103,8 @@ public class ServicioReportes : IServicioReportes
         int? ganaderoId = filtro.Tipo == TipoReporte.PorGanadero ? filtro.GanaderoId : null;
         int? clienteId = filtro.Tipo == TipoReporte.PorCliente ? filtro.ClienteId : null;
         var estado = filtro.Tipo == TipoReporte.Anuladas ? EstadoPesaje.Anulado : EstadoPesaje.Vigente;
+        // F10 (O8): la raza se compara normalizada (espacios colapsados y mayúsculas, igual que se guarda).
+        string? colorRaza = filtro.Tipo == TipoReporte.PorRaza ? ValidadorCatalogos.NormalizarMayusculas(filtro.ColorRaza) : null;
 
         await using var uow = await _uowFactory.CrearAsync(cancellationToken);
 
@@ -109,8 +119,8 @@ public class ServicioReportes : IServicioReportes
             {
                 throw new ValidacionException(CamposReportes.Ganadero, "El ganadero seleccionado no existe.");
             }
-            textoGanadero = TextosBoleta.UnirNoVacios(" - ", g.Marca, g.Nombre);
-            claveFiltro = g.Marca;
+            textoGanadero = TextosBoleta.UnirNoVacios(" - ", g.Codigo, g.Nombre);
+            claveFiltro = g.Codigo;
         }
 
         if (clienteId.HasValue)
@@ -123,11 +133,16 @@ public class ServicioReportes : IServicioReportes
             textoCliente = TextosBoleta.UnirNoVacios(" - ", c.Codigo.ToString(TextosBoleta.Cultura), c.Nombre);
             claveFiltro = c.Codigo.ToString(CultureInfo.InvariantCulture);
         }
+        if (colorRaza is not null)
+        {
+            claveFiltro = colorRaza;
+        }
+
 
         var zona = _timeProvider.LocalTimeZone;
         var rangoDesde = RangoDiaLocal.DelDia(filtro.Desde, zona);
         var rangoHasta = RangoDiaLocal.DelDia(hasta, zona);
-        var criterios = new CriteriosReporte(rangoDesde.DesdeUtc, rangoHasta.HastaUtc, estado, ganaderoId, clienteId);
+        var criterios = new CriteriosReporte(rangoDesde.DesdeUtc, rangoHasta.HastaUtc, estado, ganaderoId, clienteId, colorRaza);
 
         var lista = await uow.Pesajes.ListarParaReporteAsync(criterios, MaximoFilas + 1, cancellationToken);
         if (lista.Count > MaximoFilas)
@@ -172,7 +187,7 @@ public class ServicioReportes : IServicioReportes
                 NumeroBoleta: p.NumeroBoleta,
                 FechaHoraLocal: fechaLocal,
                 Secuencia: p.Secuencia,
-                MarcaGanadero: p.Ganadero?.Marca ?? string.Empty,
+                CodigoGanadero: p.Ganadero?.Codigo ?? string.Empty,
                 NombreGanadero: p.Ganadero?.Nombre ?? string.Empty,
                 CodigoCliente: p.Cliente?.Codigo ?? 0,
                 NombreCliente: p.Cliente?.Nombre ?? string.Empty,
@@ -184,7 +199,8 @@ public class ServicioReportes : IServicioReportes
                 Origen: p.OrigenPeso,
                 AnuladoEnLocal: anuladoEnLocal,
                 AnuladoPor: anuladoPor,
-                MotivoAnulacion: motivo));
+                MotivoAnulacion: motivo,
+                NombreFletero: p.Fletero?.Nombre ?? string.Empty));
         }
 
         var totales = CalculadoraTotalesReporte.Calcular(filas);
@@ -199,12 +215,13 @@ public class ServicioReportes : IServicioReportes
             ClaveFiltro: claveFiltro,
             Empresa: empresa,
             RutaLogo: rutaLogo,
-            Titulo: TextosReporte.Titulo(filtro.Tipo),
-            Subtitulo: TextosReporte.Subtitulo(filtro.Tipo, filtro.Desde, hasta, textoGanadero, textoCliente),
+            Titulo: TextosReporte.Titulo(filtro.Tipo, colorRaza),
+            Subtitulo: TextosReporte.Subtitulo(filtro.Tipo, filtro.Desde, hasta, textoGanadero, textoCliente, colorRaza),
             GeneradoPor: generadoPor,
             GeneradoEnLocal: ahoraLocal,
             Filas: filas.AsReadOnly(),
-            Totales: totales);
+            Totales: totales,
+            MostrarDesposte: ReglasDesposte.MostrarDesposte(ReglasDesposte.Efectivo(parametros.ModoDesposte), filas.Select(f => f.TipoDesposte)));
 
         _logger.LogInformation("Reporte {Tipo} generado: {Filas} boleta(s) del {Desde} al {Hasta} por el usuario {UsuarioId}.", filtro.Tipo, filas.Count, filtro.Desde, hasta, sesion.Id);
 

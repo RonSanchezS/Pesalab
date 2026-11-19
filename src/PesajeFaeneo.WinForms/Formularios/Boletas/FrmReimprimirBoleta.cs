@@ -27,6 +27,7 @@ public class FrmReimprimirBoleta : FormBase
     internal Label lblGanadero;
     internal Label lblCliente;
     internal Label lblDesposte;
+    internal Label lblDesposteTitulo;
     internal Label lblTotal;
     internal Label lblEstado;
     internal Label lblImpresiones;
@@ -132,6 +133,7 @@ public class FrmReimprimirBoleta : FormBase
         lblGanadero = AgregarFila(tblDatos, "Ganadero:");
         lblCliente = AgregarFila(tblDatos, "Cliente:");
         lblDesposte = AgregarFila(tblDatos, "Desposte:");
+        lblDesposteTitulo = (Label)tblDatos.GetControlFromPosition(0, tblDatos.RowCount - 1)!;
         lblTotal = AgregarFila(tblDatos, "Peso total:", negrita: true);
         lblEstado = AgregarFila(tblDatos, "Estado:");
         lblEstado.ForeColor = Color.DarkRed;
@@ -285,6 +287,9 @@ public class FrmReimprimirBoleta : FormBase
         lblGanadero.Text = TextosBoleta.Ganadero(d);
         lblCliente.Text = TextosBoleta.Cliente(d);
         lblDesposte.Text = TextosBoleta.Desposte(d.TipoDesposte);
+        // F11 (D6): la fila AutoSize colapsa si la boleta es del único tipo que pesa la empresa.
+        lblDesposte.Visible = d.MostrarDesposte;
+        lblDesposteTitulo.Visible = d.MostrarDesposte;
         lblTotal.Text = TextosBoleta.Peso(d.PesoTotal);
 
         var partesEstado = new List<string>();

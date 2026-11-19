@@ -9,4 +9,5 @@ public sealed record EstadoPuestaEnMarcha(
     TipoConexion TipoConexionBalanza,
     bool ImpresionConfigurada,
     int FleterosActivos,
-    int UsuariosNoAdministradoresActivos);
+    int UsuariosNoAdministradoresActivos,
+    ModoDesposte? ModoDesposte);           // F11 (D3): null = tipo de pesaje sin definir (paso obligatorio pendiente)

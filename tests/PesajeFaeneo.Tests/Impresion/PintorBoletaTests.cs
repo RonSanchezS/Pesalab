@@ -17,7 +17,7 @@ public class PintorBoletaTests
             NumeroBoleta: 100,
             FechaHoraLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
             Empresa: new EmpresaBoleta("EMPRESA TEST", "CALLE 1", "CIUDAD", "70000000", "REG-1", "80000000", rutaLogo),
-            MarcaGanadero: "AH",
+            CodigoGanadero: "AH",
             NombreGanadero: "GANADERO TEST",
             Secuencia: 1,
             CodigoCliente: 10,
@@ -34,11 +34,7 @@ public class PintorBoletaTests
             Estado: EstadoPesaje.Vigente,
             MotivoAnulacion: null,
             NombreOperador: "OPERADOR TEST",
-            Fleteros: new[]
-            {
-                new FleteroBoleta(1, "FLETERO 1", "70000001"),
-                new FleteroBoleta(2, "FLETERO 2", "")
-            },
+            Fletero: new FleteroBoleta(1, "FLETERO 1", "70000001"),
             ImpresionesPrevias: 1,
             GeneradoEnLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
             EsMuestra: false);

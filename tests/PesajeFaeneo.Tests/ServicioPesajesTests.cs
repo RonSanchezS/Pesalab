@@ -97,14 +97,14 @@ public class ServicioPesajesTests
                 false)
         };
         var factory = uowFactoryOverride ?? db.UnidadDeTrabajoFactory;
-        var servicio = new ServicioPesajes(factory, sesion, balanza, tiempo, NullLogger<ServicioPesajes>.Instance);
+        var servicio = new ServicioPesajes(factory, sesion, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso(), tiempo, NullLogger<ServicioPesajes>.Instance);
         return (servicio, sesion, balanza, tiempo);
     }
 
     private static async Task<(int GanaderoId, int ClienteId)> SembrarGanaderoYClienteAsync(BaseDatosEnMemoria db)
     {
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
-        var ganadero = new GanaderoBuilder().ConMarca("AH").ConNombre("GANADERO TEST").Build();
+        var ganadero = new GanaderoBuilder().ConCodigo("AH").ConNombre("GANADERO TEST").Build();
         var cliente = new ClienteBuilder().ConCodigo(100).ConNombre("CLIENTE TEST").Build();
         ctx.Ganaderos.Add(ganadero);
         ctx.Clientes.Add(cliente);
@@ -296,7 +296,7 @@ public class ServicioPesajesTests
         int clienteInactivoId;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var g = new GanaderoBuilder().ConMarca("IN").Inactivo().Build();
+            var g = new GanaderoBuilder().ConCodigo("IN").Inactivo().Build();
             var c = new ClienteBuilder().ConCodigo(99).Inactivo().Build();
             ctx.Ganaderos.Add(g);
             ctx.Clientes.Add(c);

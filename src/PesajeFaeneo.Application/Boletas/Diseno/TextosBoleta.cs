@@ -35,23 +35,21 @@ public static class TextosBoleta
         d.EsMuestra ? "MUESTRA" : "N° " + d.NumeroBoleta.ToString(Cultura);
 
     public static string Ganadero(DatosBoleta d) =>
-        UnirNoVacios(" - ", d.MarcaGanadero, d.NombreGanadero);
+        UnirNoVacios(" - ", d.CodigoGanadero, d.NombreGanadero);
 
     public static string Cliente(DatosBoleta d) =>
         UnirNoVacios(" - ", d.CodigoCliente.ToString(Cultura), d.NombreCliente);
 
-    // Bloque de firmas y fleteros del formato legado del cliente (guía de remisión).
+    // Bloque de firmas del formato legado del cliente (guía de remisión).
     public const string FirmaJefeDespacho = "Jefe de Despacho";
+    public const string FirmaFletero = "Fletero";
     public const string FirmaMedicoVeterinario = "Médico Veterinario";
-    public const string OtrosFleteros = "Otros: ....................................";
-    public const string SinFletero = "Fletero: ....................................";
 
-    public static string FleteroConCasilla(FleteroBoleta f) => "[   ]  " + Fletero(f);
-
+    /// <summary>Fletero del pesaje para la zona de datos: "NOMBRE — Cel. NNN" (sin celular, solo el nombre).</summary>
     public static string Fletero(FleteroBoleta f) =>
         string.IsNullOrWhiteSpace(f.Celular)
-            ? "F" + f.Orden.ToString(Cultura) + ": " + f.Nombre
-            : "F" + f.Orden.ToString(Cultura) + ": " + f.Nombre + " - " + f.Celular.Trim();
+            ? f.Nombre.Trim()
+            : f.Nombre.Trim() + " — Cel. " + f.Celular.Trim();
 
     public static string UnirNoVacios(string separador, params string?[] partes)
     {

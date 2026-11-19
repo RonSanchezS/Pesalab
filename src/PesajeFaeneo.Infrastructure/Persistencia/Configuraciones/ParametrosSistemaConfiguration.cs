@@ -12,6 +12,7 @@ public class ParametrosSistemaConfiguration : IEntityTypeConfiguration<Parametro
         {
             t.HasCheckConstraint("CK_ParametrosSistema_Id", "Id = 1");
             t.HasCheckConstraint("CK_ParametrosSistema_SiguienteNumeroBoleta", "SiguienteNumeroBoleta >= 1");
+            t.HasCheckConstraint("CK_ParametrosSistema_ModoDesposte", "ModoDesposte IS NULL OR ModoDesposte IN (1, 2, 3)");
         });
 
         builder.HasKey(p => p.Id);
@@ -50,6 +51,9 @@ public class ParametrosSistemaConfiguration : IEntityTypeConfiguration<Parametro
 
         builder.Property(p => p.ConfiguracionInicialCompleta)
             .IsRequired();
+
+        // F11 (D2): opcional; null = sin definir.
+        builder.Property(p => p.ModoDesposte);
 
         builder.Property(p => p.ModificadoEn)
             .IsRequired();

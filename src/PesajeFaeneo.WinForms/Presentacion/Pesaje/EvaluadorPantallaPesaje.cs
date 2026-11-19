@@ -18,12 +18,14 @@ internal sealed record DatosPantallaPesaje(
     TipoDesposte TipoDesposte,
     ControlCapturas Capturas,
     bool PuedeUsarSimulador,
-    bool Ocupado);
+    bool Ocupado,
+    bool DesposteFijo = false,    // F11: el tipo lo fija la configuración (sin combo en pantalla)
+    bool FleteroSinElegir = false); // F12 (E1): texto en Fletero que no quedó elegido
 
 internal sealed record EstadoUiPesaje(
     bool PuedeCapturarIzquierdo,
     bool PuedeCapturarDerecho,
-    bool PuedeBorrarPesos,
+    bool PuedeBorrarPesaje,
     bool PuedeGrabar,
     string Mensaje,
     NivelMensajeGuia Nivel);
@@ -32,13 +34,16 @@ internal static class EvaluadorPantallaPesaje
 {
     private static readonly CultureInfo CulturaBo = CultureInfo.GetCultureInfo("es-BO");
 
+    // F12 (E1): lo usan también la edición de boleta (FrmEditarBoleta) y los manuales.
+    internal const string MensajeFleteroSinElegir = "Elija el fletero de la lista o borre el texto.";
+
     public static EstadoUiPesaje Evaluar(DatosPantallaPesaje d)
     {
         ArgumentNullException.ThrowIfNull(d);
 
         var puedeCapturarIzq = !d.Ocupado && d.Capturas.Evaluar(LadoPesaje.Izquierdo, d.TipoDesposte, d.Instantanea, d.Ahora) == MotivoRechazoCaptura.Ninguno;
         var puedeCapturarDer = !d.Ocupado && d.Capturas.Evaluar(LadoPesaje.Derecho, d.TipoDesposte, d.Instantanea, d.Ahora) == MotivoRechazoCaptura.Ninguno;
-        var puedeBorrarPesos = !d.Ocupado && d.Capturas.TienePesos;
+        var puedeBorrarPesaje = !d.Ocupado && d.Capturas.TienePesos;
 
         var erroresPesos = ReglasPesaje.ValidarPesos(
             d.TipoDesposte,
@@ -50,6 +55,7 @@ internal static class EvaluadorPantallaPesaje
         var puedeGrabar = !d.Ocupado &&
                           d.GanaderoSeleccionado &&
                           d.ClienteSeleccionado &&
+                          !d.FleteroSinElegir &&
                           pesosCompletos &&
                           !(d.Capturas.CapturadoConSimulador && !d.PuedeUsarSimulador);
 
@@ -58,7 +64,7 @@ internal static class EvaluadorPantallaPesaje
         return new EstadoUiPesaje(
             puedeCapturarIzq,
             puedeCapturarDer,
-            puedeBorrarPesos,
+            puedeBorrarPesaje,
             puedeGrabar,
             mensaje,
             nivel);
@@ -84,7 +90,7 @@ internal static class EvaluadorPantallaPesaje
         // 3. !GanaderoSeleccionado
         if (!d.GanaderoSeleccionado)
         {
-            return ("Seleccione el ganadero (marca o nombre).", NivelMensajeGuia.Info);
+            return ("Seleccione el ganadero (código o nombre).", NivelMensajeGuia.Info);
         }
 
         // 4. !ClienteSeleccionado
@@ -93,10 +99,23 @@ internal static class EvaluadorPantallaPesaje
             return ("Seleccione el cliente (código o nombre).", NivelMensajeGuia.Info);
         }
 
+        // 4b. F12 (E1): fletero escrito sin elegir (bloquea el grabado)
+        if (d.FleteroSinElegir)
+        {
+            return (MensajeFleteroSinElegir, NivelMensajeGuia.Advertencia);
+        }
+
         // 5. Pesos completos y válidos
         if (pesosCompletos)
         {
             return ("Listo para grabar (F12).", NivelMensajeGuia.Exito);
+        }
+
+        // 5b. F12 (E4): los dos lados capturados pero incoherentes (p. ej. media res): la única salida es F8,
+        // así que va antes del retorno a cero, la estabilidad y el rango.
+        if (erroresPesos.Count > 0 && d.Capturas.PesoIzquierdo.HasValue && d.Capturas.PesoDerecho.HasValue)
+        {
+            return ($"{erroresPesos[0].Mensaje} Use F8 para borrar el pesaje.", NivelMensajeGuia.Advertencia);
         }
 
         // 6. Capturas.EsperandoRetornoACero
@@ -111,10 +130,12 @@ internal static class EvaluadorPantallaPesaje
             return ("Esperando peso estable…", NivelMensajeGuia.Info);
         }
 
-        // 8. Peso estable fuera de rango
+        // 8. Peso estable fuera de rango (F12, E4: la balanza en reposo, hasta el umbral de retorno a cero,
+        // no es "fuera de rango": cae en los mensajes de captura de abajo)
         if (d.Instantanea.Estado == EstadoBalanza.Conectada &&
             d.Instantanea.Estable &&
             d.Instantanea.PesoKg.HasValue &&
+            Math.Abs(d.Instantanea.PesoKg.Value) > ReglasPesaje.UmbralRetornoCeroKg &&
             !ReglasPesaje.EsPesoLadoValido(ReglasPesaje.Redondear(d.Instantanea.PesoKg.Value)))
         {
             var minStr = ReglasPesaje.PesoMinimoLadoKg.ToString("0.0", CulturaBo);
@@ -144,13 +165,13 @@ internal static class EvaluadorPantallaPesaje
             !d.Capturas.PesoIzquierdo.HasValue &&
             !d.Capturas.PesoDerecho.HasValue)
         {
-            return ("Media res: capture un lado (F5 o F6).", NivelMensajeGuia.Info);
+            return (d.DesposteFijo ? "Capture un lado (F5 o F6)." : "Media res: capture un lado (F5 o F6).", NivelMensajeGuia.Info);
         }
 
         // 11. Pesos incoherentes (p. ej. media res con dos lados)
         if (erroresPesos.Count > 0)
         {
-            return ($"{erroresPesos[0].Mensaje} Use F8 para borrar.", NivelMensajeGuia.Advertencia);
+            return ($"{erroresPesos[0].Mensaje} Use F8 para borrar el pesaje.", NivelMensajeGuia.Advertencia);
         }
 
         return (string.Empty, NivelMensajeGuia.Info);

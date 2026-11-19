@@ -19,7 +19,8 @@ public enum PasoPuestaEnMarcha
     Impresion = 4,
     Fleteros = 5,
     Usuarios = 6,
-    Importacion = 7
+    Importacion = 7,
+    TipoPesaje = 8      // F11: valor nuevo al final; en pantalla va tercero (orden del arreglo Pasos)
 }
 
 /// <summary>
@@ -38,19 +39,22 @@ public sealed class FrmAsistentePuestaEnMarcha : FormBase
         new(PasoPuestaEnMarcha.Empresa, "2. Datos de la empresa (obligatorio)",
             "Nombre, dirección y teléfonos que salen en la boleta; logo opcional.",
             Permiso.GestionarParametros),
-        new(PasoPuestaEnMarcha.Balanza, "3. Balanza (obligatorio)",
+        new(PasoPuestaEnMarcha.TipoPesaje, "3. Tipo de pesaje (obligatorio)",
+            "Res completa, media res o ambos. Define qué se muestra al pesar, en las boletas y en los reportes.",
+            Permiso.GestionarParametros),
+        new(PasoPuestaEnMarcha.Balanza, "4. Balanza (obligatorio)",
             "Tipo de conexión, puerto y protocolo del indicador. Use \"Probar conexión\" antes de guardar.",
             Permiso.ConfigurarBalanza),
-        new(PasoPuestaEnMarcha.Impresion, "4. Impresión de boletas (recomendado)",
+        new(PasoPuestaEnMarcha.Impresion, "5. Impresión de boletas (recomendado)",
             "Impresora, papel y calibración de este equipo.",
             Permiso.GestionarParametros),
-        new(PasoPuestaEnMarcha.Fleteros, "5. Fleteros (opcional)",
-            "Hasta 4 fleteros que salen en la boleta.",
+        new(PasoPuestaEnMarcha.Fleteros, "6. Fleteros (opcional)",
+            "Fleteros entre los que se elige al pesar; sale el elegido en la boleta.",
             Permiso.GestionarCatalogos),
-        new(PasoPuestaEnMarcha.Usuarios, "6. Usuarios (recomendado)",
+        new(PasoPuestaEnMarcha.Usuarios, "7. Usuarios (recomendado)",
             "Cree las cuentas de operadores y supervisores; no comparta la cuenta de administrador.",
             Permiso.GestionarUsuarios),
-        new(PasoPuestaEnMarcha.Importacion, "7. Datos del sistema anterior (opcional)",
+        new(PasoPuestaEnMarcha.Importacion, "8. Datos del sistema anterior (opcional)",
             "Importe ganaderos, clientes y boletas desde CSV, DBF o Access.",
             Permiso.ImportarLegado)
     ];
@@ -283,6 +287,15 @@ public sealed class FrmAsistentePuestaEnMarcha : FormBase
             PintarEstado(PasoPuestaEnMarcha.Empresa, "Pendiente", Color.DarkOrange);
         }
 
+        if (estado.ModoDesposte is { } modo)
+        {
+            PintarEstado(PasoPuestaEnMarcha.TipoPesaje, "Listo (" + TextoCorto(modo) + ")", Color.ForestGreen);
+        }
+        else
+        {
+            PintarEstado(PasoPuestaEnMarcha.TipoPesaje, "Pendiente", Color.DarkOrange);
+        }
+
         switch (estado.TipoConexionBalanza)
         {
             case TipoConexion.Simulador:
@@ -328,7 +341,11 @@ public sealed class FrmAsistentePuestaEnMarcha : FormBase
 
         if (!estado.EmpresaConfigurada)
         {
-            lblResumen.Text = "Falta: datos de la empresa.";
+            lblResumen.Text = $"Falta: datos de la empresa. El nombre sigue siendo «{ReglasPuestaEnMarcha.NombreEmpresaPorDefecto}»; cámbielo por el nombre real.";
+        }
+        else if (estado.ModoDesposte is null)
+        {
+            lblResumen.Text = "Falta: elegir el tipo de pesaje (res completa, media res o ambos).";
         }
         else if (!puedeFinalizar)
         {
@@ -339,6 +356,13 @@ public sealed class FrmAsistentePuestaEnMarcha : FormBase
             lblResumen.Text = string.Empty;
         }
     }
+
+    private static string TextoCorto(ModoDesposte modo) => modo switch
+    {
+        ModoDesposte.SoloResCompleta => "res completa",
+        ModoDesposte.SoloMediaRes => "media res",
+        _ => "ambos"
+    };
 
     private void PintarEstado(PasoPuestaEnMarcha paso, string texto, Color color)
     {
@@ -384,6 +408,12 @@ public sealed class FrmAsistentePuestaEnMarcha : FormBase
             case PasoPuestaEnMarcha.Empresa:
                 {
                     using var frm = _formFactory.Crear<FrmParametros>();
+                    frm.ShowDialog(this);
+                    return false;
+                }
+            case PasoPuestaEnMarcha.TipoPesaje:
+                {
+                    using var frm = _formFactory.Crear<FrmTipoPesaje>();
                     frm.ShowDialog(this);
                     return false;
                 }

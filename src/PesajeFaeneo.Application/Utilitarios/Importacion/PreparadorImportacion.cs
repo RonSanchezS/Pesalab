@@ -140,7 +140,7 @@ public static class PreparadorImportacion
         var clientesImportar = new List<ClienteAImportar>();
         var pesajesTemporales = new List<PesajeTemporal>();
 
-        var marcasVistas = new Dictionary<string, int>(StringComparer.Ordinal);
+        var codigosGanaderoVistos = new Dictionary<string, int>(StringComparer.Ordinal);
         var codigosVistos = new Dictionary<int, int>();
         var boletasVistas = new Dictionary<long, int>();
 
@@ -154,7 +154,7 @@ public static class PreparadorImportacion
             {
                 case TipoImportacion.Ganaderos:
                     {
-                        var marca = ValidadorCatalogos.NormalizarMarca(V(fila, CamposImportacion.Marca));
+                        var codigo = ValidadorCatalogos.NormalizarCodigoGanadero(V(fila, CamposImportacion.Codigo));
                         var nombre = ValidadorCatalogos.NormalizarMayusculas(V(fila, CamposImportacion.Nombre));
 
                         if (nombre.Length > 100)
@@ -163,7 +163,7 @@ public static class PreparadorImportacion
                             incsFila.Add(new Incidencia(fila.Numero, CamposImportacion.Nombre, NivelIncidencia.Advertencia, "El nombre tenía más de 100 caracteres y se recortó."));
                         }
 
-                        var errsGanadero = ValidadorCatalogos.ValidarGanadero(marca, nombre);
+                        var errsGanadero = ValidadorCatalogos.ValidarGanaderoImportado(codigo, nombre);
                         foreach (var err in errsGanadero)
                         {
                             incsFila.Add(new Incidencia(fila.Numero, err.Campo, NivelIncidencia.Error, err.Mensaje));
@@ -184,20 +184,20 @@ public static class PreparadorImportacion
                             }
                         }
 
-                        bool tieneErrorMarca = incsFila.Any(i => i.Campo == CamposCatalogo.Marca && i.Nivel == NivelIncidencia.Error);
-                        if (!tieneErrorMarca && !string.IsNullOrEmpty(marca))
+                        bool tieneErrorCodigo = incsFila.Any(i => i.Campo == CamposCatalogo.Codigo && i.Nivel == NivelIncidencia.Error);
+                        if (!tieneErrorCodigo && !string.IsNullOrEmpty(codigo))
                         {
-                            if (marcasVistas.TryGetValue(marca, out int primeraFila))
+                            if (codigosGanaderoVistos.TryGetValue(codigo, out int primeraFila))
                             {
-                                incsFila.Add(new Incidencia(fila.Numero, CamposImportacion.Marca, NivelIncidencia.Error, $"La marca {marca} se repite en el archivo (primera vez en la fila {primeraFila})."));
+                                incsFila.Add(new Incidencia(fila.Numero, CamposImportacion.Codigo, NivelIncidencia.Error, $"El código {codigo} se repite en el archivo (primera vez en la fila {primeraFila})."));
                             }
                             else
                             {
-                                marcasVistas[marca] = fila.Numero;
+                                codigosGanaderoVistos[codigo] = fila.Numero;
 
-                                if (existentes.GanaderosPorMarca.ContainsKey(marca))
+                                if (existentes.GanaderosPorCodigo.ContainsKey(codigo))
                                 {
-                                    incsFila.Add(new Incidencia(fila.Numero, CamposImportacion.Marca, NivelIncidencia.Omitida, $"Ya existe un ganadero con la marca {marca}; no se modifica."));
+                                    incsFila.Add(new Incidencia(fila.Numero, CamposImportacion.Codigo, NivelIncidencia.Omitida, $"Ya existe un ganadero con el código {codigo}; no se modifica."));
                                 }
                             }
                         }
@@ -216,7 +216,7 @@ public static class PreparadorImportacion
                             {
                                 filasConAdvertencia++;
                             }
-                            ganaderosImportar.Add(new GanaderoAImportar(fila.Numero, marca, nombre, activo));
+                            ganaderosImportar.Add(new GanaderoAImportar(fila.Numero, codigo, nombre, activo));
                         }
 
                         AgregarIncidencias(incsFila);
@@ -248,7 +248,7 @@ public static class PreparadorImportacion
 
                         if (codigoValido)
                         {
-                            var errsCliente = ValidadorCatalogos.ValidarCliente((int)codigoNum, nombre, direccion);
+                            var errsCliente = ValidadorCatalogos.ValidarClienteImportado((int)codigoNum, nombre, direccion);
                             foreach (var err in errsCliente)
                             {
                                 incsFila.Add(new Incidencia(fila.Numero, err.Campo, NivelIncidencia.Error, err.Mensaje));
@@ -365,11 +365,11 @@ public static class PreparadorImportacion
                         }
 
                         // P3 Ganadero
-                        var marcaGan = ValidadorCatalogos.NormalizarMarca(V(fila, CamposImportacion.MarcaGanadero));
+                        var codigoGan = ValidadorCatalogos.NormalizarCodigoGanadero(V(fila, CamposImportacion.CodigoGanadero));
                         int ganaderoId = 0;
-                        if (!existentes.GanaderosPorMarca.TryGetValue(marcaGan, out ganaderoId))
+                        if (!existentes.GanaderosPorCodigo.TryGetValue(codigoGan, out ganaderoId))
                         {
-                            incsFila.Add(new Incidencia(fila.Numero, CamposImportacion.MarcaGanadero, NivelIncidencia.Error, $"No existe un ganadero con la marca {marcaGan}. Importe primero los ganaderos."));
+                            incsFila.Add(new Incidencia(fila.Numero, CamposImportacion.CodigoGanadero, NivelIncidencia.Error, $"No existe un ganadero con el código {codigoGan}. Importe primero los ganaderos."));
                         }
 
                         // P4 Cliente
@@ -480,6 +480,16 @@ public static class PreparadorImportacion
                             else
                             {
                                 tipoDesposte = (izq > 0 && der > 0) ? TipoDesposte.ResCompleta : TipoDesposte.MediaRes;
+                            }
+
+                            // F11 (D10): el historial se importa tal cual; solo se advierte si el tipo no es el que pesa la empresa.
+                            if (!ReglasDesposte.Permite(existentes.ModoDesposte, tipoDesposte))
+                            {
+                                incsFila.Add(new Incidencia(
+                                    fila.Numero,
+                                    CamposImportacion.TipoDesposte,
+                                    NivelIncidencia.Advertencia,
+                                    $"Tipo de desposte «{TextosBoleta.Desposte(tipoDesposte)}» distinto del tipo de pesaje configurado ({ReglasDesposte.Texto(existentes.ModoDesposte)}); se importa igual."));
                             }
 
                             if (!errorPesos)

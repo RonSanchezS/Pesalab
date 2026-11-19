@@ -12,8 +12,8 @@ public class FrmFleteroEdicion : FormBase
     private int _id;
 
     internal Label lblTitulo = null!;
-    internal Label lblOrden = null!;
-    internal ComboBox cmbOrden = null!;
+    internal Label lblCodigo = null!;
+    internal TextBox txtCodigo = null!;
     internal Label lblNombre = null!;
     internal TextBox txtNombre = null!;
     internal Label lblCelular = null!;
@@ -24,11 +24,6 @@ public class FrmFleteroEdicion : FormBase
 
     public int? IdGuardado { get; private set; }
 
-    public sealed record ItemOrdenFletero(int Orden, string Texto)
-    {
-        public override string ToString() => Texto;
-    }
-
     public FrmFleteroEdicion(IServicioFleteros servicioFleteros)
     {
         _servicioFleteros = servicioFleteros ?? throw new ArgumentNullException(nameof(servicioFleteros));
@@ -37,7 +32,7 @@ public class FrmFleteroEdicion : FormBase
 
         _controlesPorCampo = new Dictionary<string, Control>
         {
-            { CamposCatalogo.Orden, cmbOrden },
+            { CamposCatalogo.Codigo, txtCodigo },
             { CamposCatalogo.Nombre, txtNombre },
             { CamposCatalogo.Celular, txtCelular }
         };
@@ -82,31 +77,21 @@ public class FrmFleteroEdicion : FormBase
         mainLayout.SetColumnSpan(lblTitulo, 2);
         mainLayout.Controls.Add(lblTitulo, 0, 0);
 
-        lblOrden = new Label
+        // F10 (O6): el código lo asigna el sistema; se muestra pero no se puede escribir.
+        lblCodigo = new Label
         {
-            Text = "Orden:",
+            Text = "Código:",
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleRight
         };
-        cmbOrden = new ComboBox
+        txtCodigo = new TextBox
         {
             Dock = DockStyle.Fill,
-            DropDownStyle = ComboBoxStyle.DropDownList
+            ReadOnly = true,
+            TabStop = false
         };
-
-        var opcionesOrden = new List<ItemOrdenFletero>
-        {
-            new(1, "F1"),
-            new(2, "F2"),
-            new(3, "F3"),
-            new(4, "F4")
-        };
-        cmbOrden.DisplayMember = nameof(ItemOrdenFletero.Texto);
-        cmbOrden.ValueMember = nameof(ItemOrdenFletero.Orden);
-        cmbOrden.DataSource = opcionesOrden;
-
-        mainLayout.Controls.Add(lblOrden, 0, 1);
-        mainLayout.Controls.Add(cmbOrden, 1, 1);
+        mainLayout.Controls.Add(lblCodigo, 0, 1);
+        mainLayout.Controls.Add(txtCodigo, 1, 1);
 
         lblNombre = new Label
         {
@@ -171,16 +156,18 @@ public class FrmFleteroEdicion : FormBase
         ResumeLayout(false);
     }
 
-    public void ConfigurarAlta(int ordenSugerido)
+    internal const string TextoCodigoAlta = "(se asigna al guardar)";
+
+    public void ConfigurarAlta()
     {
         _esEdicion = false;
         _id = 0;
         Text = "Nuevo Fletero";
         lblTitulo.Text = "Nuevo Fletero";
-        var ordenValido = Math.Clamp(ordenSugerido, ReglasCatalogos.OrdenFleteroMinimo, ReglasCatalogos.OrdenFleteroMaximo);
-        cmbOrden.SelectedValue = ordenValido;
+        txtCodigo.Text = TextoCodigoAlta;
         txtNombre.Text = string.Empty;
         txtCelular.Text = string.Empty;
+        ActiveControl = txtNombre;
     }
 
     public void ConfigurarEdicion(FleteroListado dto)
@@ -190,10 +177,10 @@ public class FrmFleteroEdicion : FormBase
         _id = dto.Id;
         Text = "Editar Fletero";
         lblTitulo.Text = "Editar Fletero";
-        var ordenValido = Math.Clamp(dto.Orden, ReglasCatalogos.OrdenFleteroMinimo, ReglasCatalogos.OrdenFleteroMaximo);
-        cmbOrden.SelectedValue = ordenValido;
+        txtCodigo.Text = dto.Codigo.ToString(System.Globalization.CultureInfo.InvariantCulture);
         txtNombre.Text = dto.Nombre;
         txtCelular.Text = dto.Celular ?? string.Empty;
+        ActiveControl = txtNombre;
     }
 
     private Task GuardarAsync()
@@ -202,17 +189,16 @@ public class FrmFleteroEdicion : FormBase
         {
             try
             {
-                var orden = cmbOrden.SelectedValue is int o ? o : 1;
                 var celular = txtCelular.Text?.Trim() ?? string.Empty;
 
                 if (_esEdicion)
                 {
-                    await _servicioFleteros.EditarAsync(new EditarFletero(_id, orden, txtNombre.Text, celular));
+                    await _servicioFleteros.EditarAsync(new EditarFletero(_id, txtNombre.Text, celular));
                     IdGuardado = _id;
                 }
                 else
                 {
-                    IdGuardado = await _servicioFleteros.CrearAsync(new CrearFletero(orden, txtNombre.Text, celular));
+                    IdGuardado = await _servicioFleteros.CrearAsync(new CrearFletero(txtNombre.Text, celular));
                 }
 
                 DialogResult = DialogResult.OK;
@@ -224,7 +210,7 @@ public class FrmFleteroEdicion : FormBase
         }, btnGuardar);
     }
 
-    internal ComboBox CmbOrden => cmbOrden;
+    internal TextBox TxtCodigo => txtCodigo;
     internal TextBox TxtNombre => txtNombre;
     internal TextBox TxtCelular => txtCelular;
     internal Task GuardarParaTestAsync() => GuardarAsync();

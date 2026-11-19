@@ -37,7 +37,7 @@ public class ServicioPesajesConcurrenciaTests : IClassFixture<SqliteArchivoFixtu
         int clienteId;
         await using (var ctx = await _fixture.ContextFactory.CreateDbContextAsync())
         {
-            var g = new GanaderoBuilder().ConMarca("CC").ConNombre("GANADERO CONCURRENTE").Build();
+            var g = new GanaderoBuilder().ConCodigo("CC").ConNombre("GANADERO CONCURRENTE").Build();
             var c = new ClienteBuilder().ConCodigo(888).ConNombre("CLIENTE CONCURRENTE").Build();
             ctx.Ganaderos.Add(g);
             ctx.Clientes.Add(c);
@@ -59,7 +59,7 @@ public class ServicioPesajesConcurrenciaTests : IClassFixture<SqliteArchivoFixtu
                 false)
         };
         var tiempo = new FakeTimeProvider(new DateTimeOffset(2026, 9, 27, 10, 0, 0, TimeSpan.FromHours(-4)));
-        var servicio = new ServicioPesajes(uowFactory, sesion, balanza, tiempo, NullLogger<ServicioPesajes>.Instance);
+        var servicio = new ServicioPesajes(uowFactory, sesion, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso(), tiempo, NullLogger<ServicioPesajes>.Instance);
 
         var dto = new RegistrarPesaje(
             ganaderoId,

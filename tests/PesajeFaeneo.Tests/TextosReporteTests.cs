@@ -18,7 +18,7 @@ public class TextosReporteTests
             NumeroBoleta: boleta,
             FechaHoraLocal: new DateTime(2026, 10, 1, 14, 30, 0, DateTimeKind.Unspecified),
             Secuencia: 1,
-            MarcaGanadero: "CAB",
+            CodigoGanadero: "CAB",
             NombreGanadero: "GANADERO",
             CodigoCliente: 101,
             NombreCliente: "CLIENTE",

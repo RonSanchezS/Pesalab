@@ -19,16 +19,18 @@ public static class TextosReporte
         TipoReporte.PorGanadero => "Pesajes por ganadero",
         TipoReporte.PorCliente => "Pesajes por cliente",
         TipoReporte.Anuladas => "Boletas anuladas",
+        TipoReporte.PorRaza => "Pesajes por raza",
         _ => tipo.ToString()
     };
 
-    public static string Titulo(TipoReporte tipo) => tipo switch
+    public static string Titulo(TipoReporte tipo, string? raza = null) => tipo switch
     {
         TipoReporte.PesajesDelDia => "Reporte de Pesajes del Día",
         TipoReporte.PesajesEntreFechas => "Reporte de Pesajes Fecha a Fecha",
         TipoReporte.PorGanadero => "Reporte por Ganadero",
         TipoReporte.PorCliente => "Reporte por Cliente Fecha a Fecha",
         TipoReporte.Anuladas => "Reporte de Boletas Anuladas",
+        TipoReporte.PorRaza => "Pesajes por raza: " + (raza ?? string.Empty),
         _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Tipo de reporte desconocido.")
     };
 
@@ -42,10 +44,11 @@ public static class TextosReporte
         return "De fecha: " + desde.ToString("dd/MM/yyyy", TextosBoleta.Cultura) + " a " + hasta.ToString("dd/MM/yyyy", TextosBoleta.Cultura);
     }
 
-    public static string Subtitulo(TipoReporte tipo, DateOnly desde, DateOnly hasta, string? ganadero, string? cliente) => tipo switch
+    public static string Subtitulo(TipoReporte tipo, DateOnly desde, DateOnly hasta, string? ganadero, string? cliente, string? raza = null) => tipo switch
     {
         TipoReporte.PorGanadero => Rango(desde, hasta) + " — Ganadero: " + (ganadero ?? string.Empty),
         TipoReporte.PorCliente => Rango(desde, hasta) + " — Cliente: " + (cliente ?? string.Empty),
+        TipoReporte.PorRaza => Rango(desde, hasta) + " — Raza: " + (raza ?? string.Empty),
         TipoReporte.Anuladas => Rango(desde, hasta) + " (fecha de emisión de la boleta)",
         _ => Rango(desde, hasta)
     };
@@ -83,8 +86,11 @@ public static class TextosReporte
     public static string CantidadReses(TotalesReporte t) =>
         "Cantidad Reses: " + Reses(t.Reses);
 
-    public static string DetalleBoletas(TotalesReporte t) =>
-        "Boletas: " + Entero(t.Boletas) + " (res completa: " + Entero(t.ResesCompletas) + " · media res: " + Entero(t.MediasReses) + ")";
+    // F11 (D9): sin desposte visible no se desglosa por tipo.
+    public static string DetalleBoletas(TotalesReporte t, bool mostrarDesposte = true) =>
+        mostrarDesposte
+            ? "Boletas: " + Entero(t.Boletas) + " (res completa: " + Entero(t.ResesCompletas) + " · media res: " + Entero(t.MediasReses) + ")"
+            : "Boletas: " + Entero(t.Boletas);
 
     public static string BoletasAnuladas(TotalesReporte t) =>
         "Boletas anuladas: " + Entero(t.Boletas);
@@ -105,6 +111,7 @@ public static class TextosReporte
             TipoReporte.PesajesEntreFechas => "Pesajes",
             TipoReporte.PorGanadero => "Ganadero_" + (r.ClaveFiltro ?? string.Empty),
             TipoReporte.PorCliente => "Cliente_" + (r.ClaveFiltro ?? string.Empty),
+            TipoReporte.PorRaza => "Raza_" + (r.ClaveFiltro ?? string.Empty),
             TipoReporte.Anuladas => "Anuladas",
             _ => r.Tipo.ToString()
         };

@@ -8,7 +8,6 @@ public class ServicioClientesFalso : IServicioClientes
 {
     public List<ClienteListado> Clientes { get; } = new();
     public List<ElementoBusqueda> ElementosBusqueda { get; } = new();
-    public int SiguienteCodigoSugerido { get; set; } = 100;
     public Func<CrearCliente, Task<int>>? AlCrearRapidoAsync { get; set; }
     public int IdCreadoRapido { get; set; } = 1;
 
@@ -20,9 +19,6 @@ public class ServicioClientesFalso : IServicioClientes
 
     public Task<IReadOnlyList<ElementoBusqueda>> ListarParaBusquedaAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<ElementoBusqueda>>(ElementosBusqueda.ToList());
-
-    public Task<int> SugerirSiguienteCodigoAsync(CancellationToken cancellationToken = default) =>
-        Task.FromResult(SiguienteCodigoSugerido);
 
     public Task<int> CrearAsync(CrearCliente dto, CancellationToken cancellationToken = default) =>
         throw new NotImplementedException();

@@ -1,0 +1,40 @@
+{
+  "muestra-01-login": [
+    {
+      "control": "txtUsuario",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Escriba su usuario"
+    },
+    {
+      "control": "txtPassword",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Escriba su contraseña"
+    },
+    {
+      "control": "btnIngresar",
+      "numero": 3,
+      "tipo": "circulo",
+      "leyenda": "Pulse Ingresar"
+    }
+  ],
+  "muestra-02-ancha": [
+    {
+      "control": "btnGrabar",
+      "numero": 1,
+      "tipo": "recuadro",
+      "posicion": "arriba-derecha"
+    },
+    {
+      "area": [
+        0,
+        0,
+        120,
+        30
+      ],
+      "numero": 2,
+      "tipo": "recuadro"
+    }
+  ]
+}

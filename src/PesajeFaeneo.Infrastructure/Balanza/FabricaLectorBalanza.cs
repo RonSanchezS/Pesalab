@@ -26,6 +26,17 @@ internal sealed class FabricaLectorBalanza : IFabricaLectorBalanza
     {
         ArgumentNullException.ThrowIfNull(configuracion);
 
+#if CAPTURAS_MANUAL
+        // Solo build de capturas para los manuales: la balanza serie es el lector de demostración (nunca un puerto real).
+        if (configuracion.TipoConexion == TipoConexion.Serial)
+        {
+            return new Demo.LectorBalanzaDemo(
+                DescripcionConexion.Crear(configuracion),
+                _timeProvider,
+                _loggerFactory.CreateLogger<Demo.LectorBalanzaDemo>());
+        }
+#endif
+
         return configuracion.TipoConexion switch
         {
             TipoConexion.Serial => new LectorSerial(configuracion, _loggerFactory.CreateLogger<LectorSerial>()),

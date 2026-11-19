@@ -38,7 +38,7 @@ public class ServicioGanaderos : IServicioGanaderos
         var ganaderos = await uow.Ganaderos.ListarAsync(incluirInactivos, cancellationToken);
 
         return ganaderos
-            .Select(g => new GanaderoListado(g.Id, g.Marca, g.Nombre, g.Activo))
+            .Select(g => new GanaderoListado(g.Id, g.Codigo, g.Nombre, g.Activo))
             .ToList()
             .AsReadOnly();
     }
@@ -54,7 +54,7 @@ public class ServicioGanaderos : IServicioGanaderos
             throw new EntidadNoEncontradaException("Ganadero", id);
         }
 
-        return new GanaderoListado(ganadero.Id, ganadero.Marca, ganadero.Nombre, ganadero.Activo);
+        return new GanaderoListado(ganadero.Id, ganadero.Codigo, ganadero.Nombre, ganadero.Activo);
     }
 
     public async Task<IReadOnlyList<ElementoBusqueda>> ListarParaBusquedaAsync(CancellationToken cancellationToken = default)
@@ -65,7 +65,7 @@ public class ServicioGanaderos : IServicioGanaderos
         var ganaderos = await uow.Ganaderos.ListarAsync(incluirInactivos: false, cancellationToken);
 
         return ganaderos
-            .Select(g => new ElementoBusqueda(g.Id, g.Marca, g.Nombre, null, g.Activo))
+            .Select(g => new ElementoBusqueda(g.Id, g.Codigo, g.Nombre, null, g.Activo))
             .ToList()
             .AsReadOnly();
     }
@@ -88,42 +88,36 @@ public class ServicioGanaderos : IServicioGanaderos
     {
         var sesion = _sesionActual.ExigirSesion();
 
-        var marca = ValidadorCatalogos.NormalizarMarca(dto.Marca);
         var nombre = ValidadorCatalogos.NormalizarMayusculas(dto.Nombre);
 
-        var errores = ValidadorCatalogos.ValidarGanadero(marca, nombre);
+        var errores = ValidadorCatalogos.ValidarGanadero(nombre);
         if (errores.Count > 0)
         {
             throw new ValidacionException(errores);
         }
 
         await using var uow = await _uowFactory.CrearAsync(cancellationToken);
-        var existente = await uow.Ganaderos.ObtenerPorMarcaAsync(marca, cancellationToken);
-        if (existente != null)
-        {
-            if (existente.Activo)
-            {
-                throw new ValidacionException(CamposCatalogo.Marca, $"Ya existe un ganadero con la marca '{marca}'.");
-            }
-
-            var mensajeInactivo = altaRapida
-                ? $"La marca '{marca}' pertenece a un ganadero desactivado ({existente.Nombre}). Pida a un supervisor que lo reactive."
-                : $"La marca '{marca}' pertenece a un ganadero desactivado ({existente.Nombre}). Reactívelo en lugar de crear uno nuevo.";
-
-            throw new ValidacionException(CamposCatalogo.Marca, mensajeInactivo);
-        }
 
         var entidad = new Ganadero
         {
-            Marca = marca,
             Nombre = nombre,
             Activo = true,
             CreadoEn = _timeProvider.GetUtcNow().UtcDateTime
         };
 
         await using var tx = await uow.IniciarTransaccionAsync(cancellationToken);
-        uow.Ganaderos.Agregar(entidad);
-        await uow.GuardarCambiosAsync(cancellationToken);
+        await AsignadorCodigos.GuardarNuevoAsync(uow, async ct =>
+        {
+            // F10 (O6): código correlativo automático (mayor numérico existente + 1; los alfanuméricos heredados se ignoran).
+            var maximo = await uow.Ganaderos.ObtenerCodigoNumericoMaximoAsync(ct);
+            if (maximo >= ReglasCatalogos.CodigoGanaderoNumericoMaximo)
+            {
+                throw new ReglaNegocioException("GAN_CODIGO_AGOTADO", $"Se alcanzó el último código de ganadero disponible ({ReglasCatalogos.CodigoGanaderoNumericoMaximo}).");
+            }
+
+            entidad.Codigo = (maximo + 1).ToString(CultureInfo.InvariantCulture);
+            uow.Ganaderos.Agregar(entidad);
+        }, cancellationToken);
 
         var motivo = altaRapida ? "Alta rápida desde pesaje" : "Alta de ganadero";
         var auditoria = FabricaAuditoria.Crear(
@@ -141,11 +135,11 @@ public class ServicioGanaderos : IServicioGanaderos
 
         if (altaRapida)
         {
-            _logger.LogInformation("Ganadero creado por alta rápida con Id {Id}, Marca '{Marca}' por usuario {Usuario}", entidad.Id, marca, sesion.NombreUsuario);
+            _logger.LogInformation("Ganadero creado por alta rápida con Id {Id}, Código '{Codigo}' por usuario {Usuario}", entidad.Id, entidad.Codigo, sesion.NombreUsuario);
         }
         else
         {
-            _logger.LogInformation("Ganadero creado con Id {Id}, Marca '{Marca}' por usuario {Usuario}", entidad.Id, marca, sesion.NombreUsuario);
+            _logger.LogInformation("Ganadero creado con Id {Id}, Código '{Codigo}' por usuario {Usuario}", entidad.Id, entidad.Codigo, sesion.NombreUsuario);
         }
 
         return entidad.Id;
@@ -157,10 +151,9 @@ public class ServicioGanaderos : IServicioGanaderos
         _sesionActual.ExigirPermiso(Permiso.GestionarCatalogos);
         var sesion = _sesionActual.ExigirSesion();
 
-        var marca = ValidadorCatalogos.NormalizarMarca(dto.Marca);
         var nombre = ValidadorCatalogos.NormalizarMayusculas(dto.Nombre);
 
-        var errores = ValidadorCatalogos.ValidarGanadero(marca, nombre);
+        var errores = ValidadorCatalogos.ValidarGanadero(nombre);
         if (errores.Count > 0)
         {
             throw new ValidacionException(errores);
@@ -175,25 +168,7 @@ public class ServicioGanaderos : IServicioGanaderos
 
         var antes = FabricaAuditoria.CrearSnapshot(ganadero);
 
-        if (!string.Equals(ganadero.Marca, marca, StringComparison.Ordinal))
-        {
-            if (await uow.Ganaderos.TienePesajesAsync(ganadero.Id, cancellationToken))
-            {
-                throw new ReglaNegocioException("GAN_MARCA_EN_USO", "No se puede cambiar la marca de un ganadero que ya tiene pesajes registrados.");
-            }
-
-            var otro = await uow.Ganaderos.ObtenerPorMarcaAsync(marca, cancellationToken);
-            if (otro != null && otro.Id != dto.Id)
-            {
-                if (otro.Activo)
-                {
-                    throw new ValidacionException(CamposCatalogo.Marca, $"Ya existe un ganadero con la marca '{marca}'.");
-                }
-                throw new ValidacionException(CamposCatalogo.Marca, $"La marca '{marca}' pertenece a un ganadero desactivado ({otro.Nombre}). Reactívelo en lugar de crear uno nuevo.");
-            }
-        }
-
-        ganadero.Marca = marca;
+        // El código no se edita (F10, O6): solo el nombre.
         ganadero.Nombre = nombre;
 
         var despues = FabricaAuditoria.CrearSnapshot(ganadero);
@@ -215,7 +190,7 @@ public class ServicioGanaderos : IServicioGanaderos
         uow.Auditoria.Registrar(auditoria);
         await uow.GuardarCambiosAsync(cancellationToken);
 
-        _logger.LogInformation("Ganadero modificado Id {Id}, Marca '{Marca}' por usuario {Usuario}", ganadero.Id, ganadero.Marca, sesion.NombreUsuario);
+        _logger.LogInformation("Ganadero modificado Id {Id}, Código '{Codigo}' por usuario {Usuario}", ganadero.Id, ganadero.Codigo, sesion.NombreUsuario);
     }
 
     public async Task CambiarEstadoAsync(int id, bool activo, CancellationToken cancellationToken = default)
@@ -253,6 +228,6 @@ public class ServicioGanaderos : IServicioGanaderos
         uow.Auditoria.Registrar(auditoria);
         await uow.GuardarCambiosAsync(cancellationToken);
 
-        _logger.LogInformation("Ganadero {Motivo} Id {Id}, Marca '{Marca}' por usuario {Usuario}", motivo, ganadero.Id, ganadero.Marca, sesion.NombreUsuario);
+        _logger.LogInformation("Ganadero {Motivo} Id {Id}, Código '{Codigo}' por usuario {Usuario}", motivo, ganadero.Id, ganadero.Codigo, sesion.NombreUsuario);
     }
 }

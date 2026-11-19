@@ -43,6 +43,7 @@ public class ServicioPuestaEnMarcha : IServicioPuestaEnMarcha
         TipoConexion tipo;
         int fleteros;
         int usuarios;
+        ModoDesposte? modoDesposte;
 
         await using (var uow = await _uowFactory.CrearAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -53,6 +54,7 @@ public class ServicioPuestaEnMarcha : IServicioPuestaEnMarcha
 
             completa = p.ConfiguracionInicialCompleta;
             nombreEmpresa = p.NombreEmpresa;
+            modoDesposte = p.ModoDesposte;
             tipo = b.TipoConexion;
             usuarios = lista.Count(u => u.Rol != Rol.Administrador);
         }
@@ -66,7 +68,8 @@ public class ServicioPuestaEnMarcha : IServicioPuestaEnMarcha
             tipo,
             impresion,
             fleteros,
-            usuarios);
+            usuarios,
+            modoDesposte);
     }
 
     public async Task MarcarCompletaAsync(bool confirmaSimulador, CancellationToken cancellationToken = default)
@@ -86,6 +89,11 @@ public class ServicioPuestaEnMarcha : IServicioPuestaEnMarcha
         if (!ReglasPuestaEnMarcha.EmpresaConfigurada(p.NombreEmpresa))
         {
             throw new ValidacionException(CamposPuestaEnMarcha.Empresa, "Configure los datos de la empresa antes de finalizar.");
+        }
+
+        if (p.ModoDesposte is null)
+        {
+            throw new ValidacionException(CamposPuestaEnMarcha.TipoPesaje, "Elija el tipo de pesaje antes de finalizar.");
         }
 
         var conSimulador = b.TipoConexion == TipoConexion.Simulador;

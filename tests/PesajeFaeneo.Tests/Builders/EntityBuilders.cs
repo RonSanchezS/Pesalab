@@ -59,19 +59,19 @@ public class UsuarioBuilder
 
 public class GanaderoBuilder
 {
-    private string _marca = "AH";
+    private string _codigo = "AH";
     private string _nombre = "GANADERO EJEMPLO";
     private bool _activo = true;
     private DateTime _fechaHora = FechaPruebaPorDefecto.Valor;
 
-    public GanaderoBuilder ConMarca(string marca) { _marca = marca; return this; }
+    public GanaderoBuilder ConCodigo(string codigo) { _codigo = codigo; return this; }
     public GanaderoBuilder ConNombre(string nombre) { _nombre = nombre; return this; }
     public GanaderoBuilder Inactivo() { _activo = false; return this; }
     public GanaderoBuilder ConFechaHora(DateTime fechaHora) { _fechaHora = fechaHora; return this; }
 
     public Ganadero Build() => new()
     {
-        Marca = _marca,
+        Codigo = _codigo,
         Nombre = _nombre,
         Activo = _activo,
         CreadoEn = _fechaHora

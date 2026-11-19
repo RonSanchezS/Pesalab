@@ -8,7 +8,7 @@ namespace PesajeFaeneo.Infrastructure.Common;
 /// </summary>
 public static class InfoVersion
 {
-    public const string Producto = "Sistema de Pesaje para Faeneo";
+    public const string Producto = "Capataz";
 
     public static string Version { get; } = typeof(InfoVersion).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
 

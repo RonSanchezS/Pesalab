@@ -118,7 +118,7 @@ public class ServicioGestionPesajesTests
     private static async Task<(int GanaderoId, int ClienteId)> SembrarGanaderoYClienteAsync(BaseDatosEnMemoria db)
     {
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
-        var ganadero = new GanaderoBuilder().ConMarca("AH").ConNombre("GANADERO TEST").Build();
+        var ganadero = new GanaderoBuilder().ConCodigo("AH").ConNombre("GANADERO TEST").Build();
         var cliente = new ClienteBuilder().ConCodigo(100).ConNombre("CLIENTE TEST").Build();
         ctx.Ganaderos.Add(ganadero);
         ctx.Clientes.Add(cliente);
@@ -262,7 +262,7 @@ public class ServicioGestionPesajesTests
         int g2, c2;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var gan2 = new GanaderoBuilder().ConMarca("B2").ConNombre("GAN 2").Build();
+            var gan2 = new GanaderoBuilder().ConCodigo("B2").ConNombre("GAN 2").Build();
             var cli2 = new ClienteBuilder().ConCodigo(200).ConNombre("CLI 2").Build();
             ctx.Ganaderos.Add(gan2);
             ctx.Clientes.Add(cli2);
@@ -374,8 +374,8 @@ public class ServicioGestionPesajesTests
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
             ctx.Ganaderos.AddRange(
-                new GanaderoBuilder().ConMarca("ACT").ConNombre("GAN ACT").Build(),
-                new GanaderoBuilder().ConMarca("INA").ConNombre("GAN INA").Inactivo().Build()
+                new GanaderoBuilder().ConCodigo("ACT").ConNombre("GAN ACT").Build(),
+                new GanaderoBuilder().ConCodigo("INA").ConNombre("GAN INA").Inactivo().Build()
             );
             ctx.Clientes.AddRange(
                 new ClienteBuilder().ConCodigo(10).ConNombre("CLI ACT").Build(),
@@ -487,7 +487,7 @@ public class ServicioGestionPesajesTests
     }
 
     [Fact]
-    public async Task EditarAsync_CambiarGanaderoYCliente_PersisteYSnapshotTraeMarcaYNombreNuevos()
+    public async Task EditarAsync_CambiarGanaderoYCliente_PersisteYSnapshotTraeCodigoYNombreNuevos()
     {
         await using var db = await BaseDatosEnMemoria.CrearAsync();
         var (g1, c1) = await SembrarGanaderoYClienteAsync(db);
@@ -497,7 +497,7 @@ public class ServicioGestionPesajesTests
         int g2, c2;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var gan2 = new GanaderoBuilder().ConMarca("BB").ConNombre("GANADERO NUEVO").Build();
+            var gan2 = new GanaderoBuilder().ConCodigo("BB").ConNombre("GANADERO NUEVO").Build();
             var cli2 = new ClienteBuilder().ConCodigo(222).ConNombre("CLIENTE NUEVO").Build();
             ctx.Ganaderos.Add(gan2);
             ctx.Clientes.Add(cli2);
@@ -547,12 +547,12 @@ public class ServicioGestionPesajesTests
             var antes = JsonSerializer.Deserialize<PesajeAuditoria>(aud.DatosAntesJson!, JsonOptions);
             var despues = JsonSerializer.Deserialize<PesajeAuditoria>(aud.DatosDespuesJson!, JsonOptions);
 
-            Assert.Equal("AH", antes!.MarcaGanadero);
+            Assert.Equal("AH", antes!.CodigoGanadero);
             Assert.Equal("GANADERO TEST", antes.NombreGanadero);
             Assert.Equal(100, antes.CodigoCliente);
             Assert.Equal("CLIENTE TEST", antes.NombreCliente);
 
-            Assert.Equal("BB", despues!.MarcaGanadero);
+            Assert.Equal("BB", despues!.CodigoGanadero);
             Assert.Equal("GANADERO NUEVO", despues.NombreGanadero);
             Assert.Equal(222, despues.CodigoCliente);
             Assert.Equal("CLIENTE NUEVO", despues.NombreCliente);
@@ -570,7 +570,7 @@ public class ServicioGestionPesajesTests
         int gInactivo;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var ganInactivo = new GanaderoBuilder().ConMarca("INAC").ConNombre("INACTIVO").Inactivo().Build();
+            var ganInactivo = new GanaderoBuilder().ConCodigo("INAC").ConNombre("INACTIVO").Inactivo().Build();
             ctx.Ganaderos.Add(ganInactivo);
             await ctx.SaveChangesAsync();
             gInactivo = ganInactivo.Id;
@@ -607,7 +607,7 @@ public class ServicioGestionPesajesTests
         int gInactivo, pesajeId;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var ganInactivo = new GanaderoBuilder().ConMarca("OLD").ConNombre("VIEJO").Inactivo().Build();
+            var ganInactivo = new GanaderoBuilder().ConCodigo("OLD").ConNombre("VIEJO").Inactivo().Build();
             ctx.Ganaderos.Add(ganInactivo);
             await ctx.SaveChangesAsync();
             gInactivo = ganInactivo.Id;
@@ -1149,6 +1149,7 @@ public class ServicioGestionPesajesTests
             db.UnidadDeTrabajoFactory,
             sesion,
             new PesajeFaeneo.Tests.Utilidades.Balanza.ServicioBalanzaFalso(),
+            new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso(),
             tiempo,
             NullLogger<ServicioPesajes>.Instance);
         var secSugerida = await servicioPesajes.SugerirSecuenciaAsync(gId);

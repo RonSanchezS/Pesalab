@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.Extensions.Logging;
 using PesajeFaeneo.Application.Abstracciones.Persistencia;
 using PesajeFaeneo.Application.Auditoria;
+using PesajeFaeneo.Application.Catalogos.Busqueda;
 using PesajeFaeneo.Application.Catalogos.Dtos;
 using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Domain.Entities;
@@ -37,7 +38,7 @@ public class ServicioFleteros : IServicioFleteros
         var fleteros = await uow.Fleteros.ListarAsync(incluirInactivos, cancellationToken);
 
         return fleteros
-            .Select(f => new FleteroListado(f.Id, f.Orden, f.Nombre, f.Celular, f.Activo))
+            .Select(f => new FleteroListado(f.Id, f.Codigo, f.Nombre, f.Celular, f.Activo))
             .ToList()
             .AsReadOnly();
     }
@@ -53,7 +54,7 @@ public class ServicioFleteros : IServicioFleteros
             throw new EntidadNoEncontradaException("Fletero", id);
         }
 
-        return new FleteroListado(fletero.Id, fletero.Orden, fletero.Nombre, fletero.Celular, fletero.Activo);
+        return new FleteroListado(fletero.Id, fletero.Codigo, fletero.Nombre, fletero.Celular, fletero.Activo);
     }
 
     public async Task<IReadOnlyList<FleteroListado>> ListarActivosAsync(CancellationToken cancellationToken = default)
@@ -64,8 +65,22 @@ public class ServicioFleteros : IServicioFleteros
         var fleteros = await uow.Fleteros.ListarAsync(incluirInactivos: false, cancellationToken);
 
         return fleteros
-            .OrderBy(f => f.Orden)
-            .Select(f => new FleteroListado(f.Id, f.Orden, f.Nombre, f.Celular, f.Activo))
+            .OrderBy(f => f.Codigo)
+            .Select(f => new FleteroListado(f.Id, f.Codigo, f.Nombre, f.Celular, f.Activo))
+            .ToList()
+            .AsReadOnly();
+    }
+
+    /// <summary>Fleteros activos para el selector del pesaje (búsqueda por código o nombre); cualquier usuario con sesión.</summary>
+    public async Task<IReadOnlyList<ElementoBusqueda>> ListarParaBusquedaAsync(CancellationToken cancellationToken = default)
+    {
+        _sesionActual.ExigirSesion();
+
+        await using var uow = await _uowFactory.CrearAsync(cancellationToken);
+        var fleteros = await uow.Fleteros.ListarAsync(incluirInactivos: false, cancellationToken);
+
+        return fleteros
+            .Select(f => new ElementoBusqueda(f.Id, f.Codigo.ToString(CultureInfo.InvariantCulture), f.Nombre, f.Celular, f.Activo))
             .ToList()
             .AsReadOnly();
     }
@@ -79,27 +94,16 @@ public class ServicioFleteros : IServicioFleteros
         var nombre = ValidadorCatalogos.NormalizarMayusculas(dto.Nombre);
         var celular = ValidadorCatalogos.NormalizarTexto(dto.Celular);
 
-        var errores = ValidadorCatalogos.ValidarFletero(dto.Orden, nombre, celular);
+        var errores = ValidadorCatalogos.ValidarFletero(nombre, celular);
         if (errores.Count > 0)
         {
             throw new ValidacionException(errores);
         }
 
         await using var uow = await _uowFactory.CrearAsync(cancellationToken);
-        if (await uow.Fleteros.ContarActivosAsync(cancellationToken) >= ReglasCatalogos.MaximoFleterosActivos)
-        {
-            throw new ReglaNegocioException("FLE_MAXIMO", "Ya hay 4 fleteros activos. Desactive uno antes de agregar otro.");
-        }
-
-        var ocupado = await uow.Fleteros.ObtenerActivoPorOrdenAsync(dto.Orden, cancellationToken);
-        if (ocupado != null)
-        {
-            throw new ValidacionException(CamposCatalogo.Orden, $"El orden F{dto.Orden} ya está asignado a {ocupado.Nombre}.");
-        }
 
         var entidad = new Fletero
         {
-            Orden = dto.Orden,
             Nombre = nombre,
             Celular = celular,
             Activo = true,
@@ -107,8 +111,12 @@ public class ServicioFleteros : IServicioFleteros
         };
 
         await using var tx = await uow.IniciarTransaccionAsync(cancellationToken);
-        uow.Fleteros.Agregar(entidad);
-        await uow.GuardarCambiosAsync(cancellationToken);
+        await AsignadorCodigos.GuardarNuevoAsync(uow, async ct =>
+        {
+            // F10 (O5/O6): sin límite de fleteros; código correlativo automático (mayor existente + 1).
+            entidad.Codigo = (await uow.Fleteros.ObtenerCodigoMaximoAsync(ct) ?? 0) + 1;
+            uow.Fleteros.Agregar(entidad);
+        }, cancellationToken);
 
         var auditoria = FabricaAuditoria.Crear(
             _timeProvider,
@@ -123,7 +131,7 @@ public class ServicioFleteros : IServicioFleteros
         await uow.GuardarCambiosAsync(cancellationToken);
         await tx.ConfirmarAsync(cancellationToken);
 
-        _logger.LogInformation("Fletero creado con Id {Id}, Orden F{Orden} por usuario {Usuario}", entidad.Id, dto.Orden, sesion.NombreUsuario);
+        _logger.LogInformation("Fletero creado con Id {Id}, Código {Codigo} por usuario {Usuario}", entidad.Id, entidad.Codigo, sesion.NombreUsuario);
         return entidad.Id;
     }
 
@@ -136,7 +144,7 @@ public class ServicioFleteros : IServicioFleteros
         var nombre = ValidadorCatalogos.NormalizarMayusculas(dto.Nombre);
         var celular = ValidadorCatalogos.NormalizarTexto(dto.Celular);
 
-        var errores = ValidadorCatalogos.ValidarFletero(dto.Orden, nombre, celular);
+        var errores = ValidadorCatalogos.ValidarFletero(nombre, celular);
         if (errores.Count > 0)
         {
             throw new ValidacionException(errores);
@@ -151,16 +159,7 @@ public class ServicioFleteros : IServicioFleteros
 
         var antes = FabricaAuditoria.CrearSnapshot(fletero);
 
-        if (fletero.Activo && fletero.Orden != dto.Orden)
-        {
-            var ocupado = await uow.Fleteros.ObtenerActivoPorOrdenAsync(dto.Orden, cancellationToken);
-            if (ocupado != null && ocupado.Id != dto.Id)
-            {
-                throw new ValidacionException(CamposCatalogo.Orden, $"El orden F{dto.Orden} ya está asignado a {ocupado.Nombre}.");
-            }
-        }
-
-        fletero.Orden = dto.Orden;
+        // El código no se edita (F10, O6): solo nombre y celular.
         fletero.Nombre = nombre;
         fletero.Celular = celular;
 
@@ -183,7 +182,7 @@ public class ServicioFleteros : IServicioFleteros
         uow.Auditoria.Registrar(auditoria);
         await uow.GuardarCambiosAsync(cancellationToken);
 
-        _logger.LogInformation("Fletero modificado Id {Id}, Orden F{Orden} por usuario {Usuario}", fletero.Id, fletero.Orden, sesion.NombreUsuario);
+        _logger.LogInformation("Fletero modificado Id {Id}, Código {Codigo} por usuario {Usuario}", fletero.Id, fletero.Codigo, sesion.NombreUsuario);
     }
 
     public async Task CambiarEstadoAsync(int id, bool activo, CancellationToken cancellationToken = default)
@@ -201,15 +200,6 @@ public class ServicioFleteros : IServicioFleteros
         if (fletero.Activo == activo)
         {
             return;
-        }
-
-        if (activo)
-        {
-            var ocupado = await uow.Fleteros.ObtenerActivoPorOrdenAsync(fletero.Orden, cancellationToken);
-            if (ocupado != null && ocupado.Id != id)
-            {
-                throw new ReglaNegocioException("FLE_ORDEN_OCUPADO", $"No se puede activar: el orden F{fletero.Orden} está ocupado por {ocupado.Nombre}. Cambie su orden antes de activarlo.");
-            }
         }
 
         var antes = FabricaAuditoria.CrearSnapshot(fletero);
@@ -230,6 +220,6 @@ public class ServicioFleteros : IServicioFleteros
         uow.Auditoria.Registrar(auditoria);
         await uow.GuardarCambiosAsync(cancellationToken);
 
-        _logger.LogInformation("Fletero {Motivo} Id {Id}, Orden F{Orden} por usuario {Usuario}", motivo, fletero.Id, fletero.Orden, sesion.NombreUsuario);
+        _logger.LogInformation("Fletero {Motivo} Id {Id}, Código {Codigo} por usuario {Usuario}", motivo, fletero.Id, fletero.Codigo, sesion.NombreUsuario);
     }
 }

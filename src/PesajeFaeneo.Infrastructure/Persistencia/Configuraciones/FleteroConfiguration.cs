@@ -10,17 +10,18 @@ public class FleteroConfiguration : IEntityTypeConfiguration<Fletero>
     {
         builder.ToTable("Fleteros", t =>
         {
-            t.HasCheckConstraint("CK_Fleteros_Orden", "Orden BETWEEN 1 AND 4");
+            // F10 (O5/O6): sin límite de fleteros; el código es correlativo y automático.
+            t.HasCheckConstraint("CK_Fleteros_Codigo", "Codigo >= 1");
         });
 
         builder.HasKey(f => f.Id);
 
-        builder.Property(f => f.Orden)
+        builder.Property(f => f.Codigo)
             .IsRequired();
 
-        builder.HasIndex(f => f.Orden)
-            .IsUnique()
-            .HasFilter("Activo = 1");
+        // Único entre todos (activos e inactivos): el código no se reutiliza.
+        builder.HasIndex(f => f.Codigo)
+            .IsUnique();
 
         builder.Property(f => f.Nombre)
             .IsRequired()

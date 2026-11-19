@@ -6,7 +6,7 @@ namespace PesajeFaeneo.Application.Catalogos;
 public static class ValidadorCatalogos
 {
     private static readonly Regex EspaciosRegex = new(@"\s+", RegexOptions.Compiled | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(250));
-    private static readonly Regex MarcaRegex = new(ReglasCatalogos.PatronMarca, RegexOptions.Compiled | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(250));
+    private static readonly Regex CodigoGanaderoRegex = new(ReglasCatalogos.PatronCodigoGanadero, RegexOptions.Compiled | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(250));
     private static readonly Regex LetraRegex = new(@"\p{L}", RegexOptions.Compiled | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(250));
     private static readonly Regex CelularRegex = new(ReglasCatalogos.PatronCelular, RegexOptions.Compiled | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(250));
 
@@ -23,39 +23,50 @@ public static class ValidadorCatalogos
         return NormalizarTexto(valor).ToUpperInvariant();
     }
 
-    public static string NormalizarMarca(string? valor)
+    /// <summary>Código de ganadero en mayúsculas y sin espacios (solo lo usa la importación del sistema legado).</summary>
+    public static string NormalizarCodigoGanadero(string? valor)
     {
         var mayus = NormalizarMayusculas(valor);
         return mayus.Replace(" ", string.Empty);
     }
 
-    public static IReadOnlyList<ErrorValidacion> ValidarGanadero(string marcaNormalizada, string nombreNormalizado)
+    /// <summary>Alta/edición manual de un ganadero: solo el nombre (el código lo asigna el sistema, F10 O6).</summary>
+    public static IReadOnlyList<ErrorValidacion> ValidarGanadero(string nombreNormalizado)
     {
         var errores = new List<ErrorValidacion>();
-
-        if (string.IsNullOrEmpty(marcaNormalizada) ||
-            marcaNormalizada.Length > ReglasCatalogos.LongitudMaximaMarca ||
-            !MarcaRegex.IsMatch(marcaNormalizada))
-        {
-            errores.Add(new ErrorValidacion(
-                CamposCatalogo.Marca,
-                "Ingrese la marca: 1 a 5 caracteres (letras, números o & . / -), sin espacios."));
-        }
-
-        if (string.IsNullOrEmpty(nombreNormalizado) ||
-            nombreNormalizado.Length < ReglasCatalogos.LongitudMinimaNombre ||
-            nombreNormalizado.Length > ReglasCatalogos.LongitudMaximaNombre ||
-            !LetraRegex.IsMatch(nombreNormalizado))
-        {
-            errores.Add(new ErrorValidacion(
-                CamposCatalogo.Nombre,
-                "Ingrese el nombre (3 a 100 caracteres)."));
-        }
-
+        ValidarNombre(nombreNormalizado, errores);
         return errores.AsReadOnly();
     }
 
-    public static IReadOnlyList<ErrorValidacion> ValidarCliente(int codigo, string nombreNormalizado, string direccionNormalizada)
+    /// <summary>Importación del sistema legado: el código viene del archivo (alfanumérico de 1 a 5 caracteres).</summary>
+    public static IReadOnlyList<ErrorValidacion> ValidarGanaderoImportado(string codigoNormalizado, string nombreNormalizado)
+    {
+        var errores = new List<ErrorValidacion>();
+
+        if (string.IsNullOrEmpty(codigoNormalizado) ||
+            codigoNormalizado.Length > ReglasCatalogos.LongitudMaximaCodigoGanadero ||
+            !CodigoGanaderoRegex.IsMatch(codigoNormalizado))
+        {
+            errores.Add(new ErrorValidacion(
+                CamposCatalogo.Codigo,
+                "Ingrese el código: 1 a 5 caracteres (letras, números o & . / -), sin espacios."));
+        }
+
+        ValidarNombre(nombreNormalizado, errores);
+        return errores.AsReadOnly();
+    }
+
+    /// <summary>Alta/edición manual de un cliente: nombre y dirección (el código lo asigna el sistema).</summary>
+    public static IReadOnlyList<ErrorValidacion> ValidarCliente(string nombreNormalizado, string direccionNormalizada)
+    {
+        var errores = new List<ErrorValidacion>();
+        ValidarNombre(nombreNormalizado, errores);
+        ValidarDireccion(direccionNormalizada, errores);
+        return errores.AsReadOnly();
+    }
+
+    /// <summary>Importación del sistema legado: el código numérico viene del archivo.</summary>
+    public static IReadOnlyList<ErrorValidacion> ValidarClienteImportado(int codigo, string nombreNormalizado, string direccionNormalizada)
     {
         var errores = new List<ErrorValidacion>();
 
@@ -66,46 +77,17 @@ public static class ValidadorCatalogos
                 "El código debe ser un número entre 1 y 999999."));
         }
 
-        if (string.IsNullOrEmpty(nombreNormalizado) ||
-            nombreNormalizado.Length < ReglasCatalogos.LongitudMinimaNombre ||
-            nombreNormalizado.Length > ReglasCatalogos.LongitudMaximaNombre ||
-            !LetraRegex.IsMatch(nombreNormalizado))
-        {
-            errores.Add(new ErrorValidacion(
-                CamposCatalogo.Nombre,
-                "Ingrese el nombre (3 a 100 caracteres)."));
-        }
-
-        if (direccionNormalizada.Length > ReglasCatalogos.LongitudMaximaDireccion)
-        {
-            errores.Add(new ErrorValidacion(
-                CamposCatalogo.Direccion,
-                "La dirección no puede superar 150 caracteres."));
-        }
-
+        ValidarNombre(nombreNormalizado, errores);
+        ValidarDireccion(direccionNormalizada, errores);
         return errores.AsReadOnly();
     }
 
-    public static IReadOnlyList<ErrorValidacion> ValidarFletero(int orden, string nombreNormalizado, string celularNormalizado)
+    /// <summary>Alta/edición de un fletero: nombre y celular (el código lo asigna el sistema; sin límite de fleteros).</summary>
+    public static IReadOnlyList<ErrorValidacion> ValidarFletero(string nombreNormalizado, string celularNormalizado)
     {
         var errores = new List<ErrorValidacion>();
 
-        if (orden < ReglasCatalogos.OrdenFleteroMinimo || orden > ReglasCatalogos.OrdenFleteroMaximo)
-        {
-            errores.Add(new ErrorValidacion(
-                CamposCatalogo.Orden,
-                "Seleccione un orden entre F1 y F4."));
-        }
-
-        if (string.IsNullOrEmpty(nombreNormalizado) ||
-            nombreNormalizado.Length < ReglasCatalogos.LongitudMinimaNombre ||
-            nombreNormalizado.Length > ReglasCatalogos.LongitudMaximaNombre ||
-            !LetraRegex.IsMatch(nombreNormalizado))
-        {
-            errores.Add(new ErrorValidacion(
-                CamposCatalogo.Nombre,
-                "Ingrese el nombre (3 a 100 caracteres)."));
-        }
+        ValidarNombre(nombreNormalizado, errores);
 
         var digitos = celularNormalizado?.Count(char.IsDigit) ?? 0;
         if (string.IsNullOrEmpty(celularNormalizado) ||
@@ -120,5 +102,28 @@ public static class ValidadorCatalogos
         }
 
         return errores.AsReadOnly();
+    }
+
+    private static void ValidarNombre(string nombreNormalizado, List<ErrorValidacion> errores)
+    {
+        if (string.IsNullOrEmpty(nombreNormalizado) ||
+            nombreNormalizado.Length < ReglasCatalogos.LongitudMinimaNombre ||
+            nombreNormalizado.Length > ReglasCatalogos.LongitudMaximaNombre ||
+            !LetraRegex.IsMatch(nombreNormalizado))
+        {
+            errores.Add(new ErrorValidacion(
+                CamposCatalogo.Nombre,
+                "Ingrese el nombre (3 a 100 caracteres)."));
+        }
+    }
+
+    private static void ValidarDireccion(string direccionNormalizada, List<ErrorValidacion> errores)
+    {
+        if (direccionNormalizada.Length > ReglasCatalogos.LongitudMaximaDireccion)
+        {
+            errores.Add(new ErrorValidacion(
+                CamposCatalogo.Direccion,
+                "La dirección no puede superar 150 caracteres."));
+        }
     }
 }

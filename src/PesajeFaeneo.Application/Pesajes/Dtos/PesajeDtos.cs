@@ -13,7 +13,8 @@ public sealed record RegistrarPesaje(
     decimal PesoIzquierdo,
     decimal PesoDerecho,
     string? Observacion,
-    bool CapturadoConSimulador);
+    bool CapturadoConSimulador,
+    int? FleteroId = null);
 
 public sealed record PesajeRegistrado(
     int Id,
@@ -30,7 +31,7 @@ public sealed record PesajeResumen(
     int Id,
     long NumeroBoleta,
     DateTime FechaHoraUtc,
-    string Marca,
+    string Codigo,
     string NombreGanadero,
     int Secuencia,
     string NombreCliente,
@@ -39,4 +40,5 @@ public sealed record PesajeResumen(
     decimal PesoDerecho,
     decimal PesoTotal,
     EstadoPesaje Estado,
-    OrigenPeso Origen);
+    OrigenPeso Origen,
+    string? NombreFletero = null);

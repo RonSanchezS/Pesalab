@@ -6,6 +6,7 @@ using PesajeFaeneo.Application.Utilitarios.Importacion.Dtos;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Domain.Enums;
 using PesajeFaeneo.Domain.Excepciones;
+using PesajeFaeneo.Domain.Reglas;
 using PesajeFaeneo.Infrastructure.Persistencia;
 using AuditoriaEntidad = PesajeFaeneo.Domain.Entities.Auditoria;
 
@@ -30,8 +31,8 @@ public sealed class RepositorioImportacion : IRepositorioImportacion
 
         var ganaderos = await ctx.Ganaderos
             .AsNoTracking()
-            .Select(g => new { g.Marca, g.Id })
-            .ToDictionaryAsync(g => g.Marca.ToUpperInvariant(), g => g.Id, StringComparer.Ordinal, cancellationToken)
+            .Select(g => new { g.Codigo, g.Id })
+            .ToDictionaryAsync(g => g.Codigo.ToUpperInvariant(), g => g.Id, StringComparer.Ordinal, cancellationToken)
             .ConfigureAwait(false);
 
         var clientes = await ctx.Clientes
@@ -46,7 +47,13 @@ public sealed class RepositorioImportacion : IRepositorioImportacion
             .ToDictionaryAsync(p => p.NumeroBoleta, p => p.OrigenPeso, cancellationToken)
             .ConfigureAwait(false);
 
-        return new ClavesExistentes(ganaderos, clientes, pesajes);
+        var modo = await ctx.ParametrosSistema
+            .AsNoTracking()
+            .Select(p => p.ModoDesposte)
+            .SingleAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return new ClavesExistentes(ganaderos, clientes, pesajes, ReglasDesposte.Efectivo(modo));
     }
 
     public async Task<int> EscribirAsync(
@@ -73,7 +80,7 @@ public sealed class RepositorioImportacion : IRepositorioImportacion
                     ctx,
                     plan.Ganaderos.Select(g => new Ganadero
                     {
-                        Marca = g.Marca,
+                        Codigo = g.Codigo,
                         Nombre = g.Nombre,
                         Activo = g.Activo,
                         CreadoEn = ahoraUtc

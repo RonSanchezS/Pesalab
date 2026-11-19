@@ -14,7 +14,7 @@ public class FrmClienteEdicion : FormBase
 
     internal Label lblTitulo = null!;
     internal Label lblCodigo = null!;
-    internal NumericUpDown numCodigo = null!;
+    internal TextBox txtCodigo = null!;
     internal Label lblNombre = null!;
     internal TextBox txtNombre = null!;
     internal Label lblDireccion = null!;
@@ -33,7 +33,7 @@ public class FrmClienteEdicion : FormBase
 
         _controlesPorCampo = new Dictionary<string, Control>
         {
-            { CamposCatalogo.Codigo, numCodigo },
+            { CamposCatalogo.Codigo, txtCodigo },
             { CamposCatalogo.Nombre, txtNombre },
             { CamposCatalogo.Direccion, txtDireccion }
         };
@@ -84,14 +84,14 @@ public class FrmClienteEdicion : FormBase
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleRight
         };
-        numCodigo = new NumericUpDown
+        txtCodigo = new TextBox
         {
             Dock = DockStyle.Fill,
-            Minimum = ReglasCatalogos.CodigoClienteMinimo,
-            Maximum = ReglasCatalogos.CodigoClienteMaximo
+            ReadOnly = true,
+            TabStop = false
         };
         mainLayout.Controls.Add(lblCodigo, 0, 1);
-        mainLayout.Controls.Add(numCodigo, 1, 1);
+        mainLayout.Controls.Add(txtCodigo, 1, 1);
 
         lblNombre = new Label
         {
@@ -157,16 +157,19 @@ public class FrmClienteEdicion : FormBase
         ResumeLayout(false);
     }
 
-    public void ConfigurarAlta(int codigoSugerido)
+    internal const string TextoCodigoAlta = "(se asigna al guardar)";
+
+    public void ConfigurarAlta()
     {
         _esEdicion = false;
         _esAltaRapida = false;
         _id = 0;
         Text = "Nuevo Cliente";
         lblTitulo.Text = "Nuevo Cliente";
-        numCodigo.Value = Math.Clamp(codigoSugerido, ReglasCatalogos.CodigoClienteMinimo, ReglasCatalogos.CodigoClienteMaximo);
+        txtCodigo.Text = TextoCodigoAlta;
         txtNombre.Text = string.Empty;
         txtDireccion.Text = string.Empty;
+        ActiveControl = txtNombre;
     }
 
     public void ConfigurarEdicion(ClienteListado dto)
@@ -177,29 +180,21 @@ public class FrmClienteEdicion : FormBase
         _id = dto.Id;
         Text = "Editar Cliente";
         lblTitulo.Text = "Editar Cliente";
-        numCodigo.Value = Math.Clamp(dto.Codigo, ReglasCatalogos.CodigoClienteMinimo, ReglasCatalogos.CodigoClienteMaximo);
+        txtCodigo.Text = dto.Codigo.ToString(System.Globalization.CultureInfo.InvariantCulture);
         txtNombre.Text = dto.Nombre;
         txtDireccion.Text = dto.Direccion;
+        ActiveControl = txtNombre;
     }
 
-    public void ConfigurarAltaRapida(int codigoSugerido, string textoBuscado)
+    public void ConfigurarAltaRapida(string textoBuscado)
     {
-        ConfigurarAlta(codigoSugerido);
+        ConfigurarAlta();
         _esAltaRapida = true;
         Text = "Alta rápida de cliente";
         lblTitulo.Text = "Alta rápida de cliente";
-        var t = (textoBuscado ?? string.Empty).Trim();
-        if (int.TryParse(t, out var cod) && cod >= ReglasCatalogos.CodigoClienteMinimo && cod <= ReglasCatalogos.CodigoClienteMaximo)
-        {
-            numCodigo.Value = cod;
-            ActiveControl = txtNombre;
-        }
-        else
-        {
-            numCodigo.Value = Math.Clamp(codigoSugerido, ReglasCatalogos.CodigoClienteMinimo, ReglasCatalogos.CodigoClienteMaximo);
-            txtNombre.Text = ValidadorCatalogos.NormalizarMayusculas(t);
-            ActiveControl = txtNombre;
-        }
+        // El texto que se estaba buscando pasa a ser el nombre; el código lo asigna el sistema.
+        txtNombre.Text = ValidadorCatalogos.NormalizarMayusculas(textoBuscado ?? string.Empty);
+        ActiveControl = txtNombre;
     }
 
     private Task GuardarAsync()
@@ -210,16 +205,16 @@ public class FrmClienteEdicion : FormBase
             {
                 if (_esEdicion)
                 {
-                    await _servicioClientes.EditarAsync(new EditarCliente(_id, (int)numCodigo.Value, txtNombre.Text, txtDireccion.Text));
+                    await _servicioClientes.EditarAsync(new EditarCliente(_id, txtNombre.Text, txtDireccion.Text));
                     IdGuardado = _id;
                 }
                 else if (_esAltaRapida)
                 {
-                    IdGuardado = await _servicioClientes.CrearRapidoAsync(new CrearCliente((int)numCodigo.Value, txtNombre.Text, txtDireccion.Text));
+                    IdGuardado = await _servicioClientes.CrearRapidoAsync(new CrearCliente(txtNombre.Text, txtDireccion.Text));
                 }
                 else
                 {
-                    IdGuardado = await _servicioClientes.CrearAsync(new CrearCliente((int)numCodigo.Value, txtNombre.Text, txtDireccion.Text));
+                    IdGuardado = await _servicioClientes.CrearAsync(new CrearCliente(txtNombre.Text, txtDireccion.Text));
                 }
 
                 DialogResult = DialogResult.OK;
@@ -231,7 +226,7 @@ public class FrmClienteEdicion : FormBase
         }, btnGuardar);
     }
 
-    internal NumericUpDown NumCodigo => numCodigo;
+    internal TextBox TxtCodigo => txtCodigo;
     internal TextBox TxtNombre => txtNombre;
     internal TextBox TxtDireccion => txtDireccion;
     internal Task GuardarParaTestAsync() => GuardarAsync();

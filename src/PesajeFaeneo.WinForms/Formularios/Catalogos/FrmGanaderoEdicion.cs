@@ -13,8 +13,8 @@ public class FrmGanaderoEdicion : FormBase
     private int _id;
 
     internal Label lblTitulo = null!;
-    internal Label lblMarca = null!;
-    internal TextBox txtMarca = null!;
+    internal Label lblCodigo = null!;
+    internal TextBox txtCodigo = null!;
     internal Label lblNombre = null!;
     internal TextBox txtNombre = null!;
     internal Button btnGuardar = null!;
@@ -31,7 +31,7 @@ public class FrmGanaderoEdicion : FormBase
 
         _controlesPorCampo = new Dictionary<string, Control>
         {
-            { CamposCatalogo.Marca, txtMarca },
+            { CamposCatalogo.Codigo, txtCodigo },
             { CamposCatalogo.Nombre, txtNombre }
         };
     }
@@ -74,20 +74,21 @@ public class FrmGanaderoEdicion : FormBase
         mainLayout.SetColumnSpan(lblTitulo, 2);
         mainLayout.Controls.Add(lblTitulo, 0, 0);
 
-        lblMarca = new Label
+        // F10 (O6): el código lo asigna el sistema; se muestra pero no se puede escribir.
+        lblCodigo = new Label
         {
-            Text = "Marca:",
+            Text = "Código:",
             Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleRight
         };
-        txtMarca = new TextBox
+        txtCodigo = new TextBox
         {
             Dock = DockStyle.Fill,
-            MaxLength = ReglasCatalogos.LongitudMaximaMarca,
-            CharacterCasing = CharacterCasing.Upper
+            ReadOnly = true,
+            TabStop = false
         };
-        mainLayout.Controls.Add(lblMarca, 0, 1);
-        mainLayout.Controls.Add(txtMarca, 1, 1);
+        mainLayout.Controls.Add(lblCodigo, 0, 1);
+        mainLayout.Controls.Add(txtCodigo, 1, 1);
 
         lblNombre = new Label
         {
@@ -138,6 +139,8 @@ public class FrmGanaderoEdicion : FormBase
         ResumeLayout(false);
     }
 
+    internal const string TextoCodigoAlta = "(se asigna al guardar)";
+
     public void ConfigurarAlta()
     {
         _esEdicion = false;
@@ -145,8 +148,9 @@ public class FrmGanaderoEdicion : FormBase
         _id = 0;
         Text = "Nuevo Ganadero";
         lblTitulo.Text = "Nuevo Ganadero";
-        txtMarca.Text = string.Empty;
+        txtCodigo.Text = TextoCodigoAlta;
         txtNombre.Text = string.Empty;
+        ActiveControl = txtNombre;
     }
 
     public void ConfigurarEdicion(GanaderoListado dto)
@@ -157,8 +161,9 @@ public class FrmGanaderoEdicion : FormBase
         _id = dto.Id;
         Text = "Editar Ganadero";
         lblTitulo.Text = "Editar Ganadero";
-        txtMarca.Text = dto.Marca;
+        txtCodigo.Text = dto.Codigo;
         txtNombre.Text = dto.Nombre;
+        ActiveControl = txtNombre;
     }
 
     public void ConfigurarAltaRapida(string textoBuscado)
@@ -167,17 +172,9 @@ public class FrmGanaderoEdicion : FormBase
         _esAltaRapida = true;
         Text = "Alta rápida de ganadero";
         lblTitulo.Text = "Alta rápida de ganadero";
-        var t = ValidadorCatalogos.NormalizarMarca(textoBuscado ?? string.Empty);
-        if (System.Text.RegularExpressions.Regex.IsMatch(t, ReglasCatalogos.PatronMarca))
-        {
-            txtMarca.Text = t;
-            ActiveControl = txtNombre;
-        }
-        else
-        {
-            txtNombre.Text = ValidadorCatalogos.NormalizarMayusculas(textoBuscado ?? string.Empty);
-            ActiveControl = txtMarca;
-        }
+        // El texto que se estaba buscando pasa a ser el nombre; el código lo asigna el sistema.
+        txtNombre.Text = ValidadorCatalogos.NormalizarMayusculas(textoBuscado ?? string.Empty);
+        ActiveControl = txtNombre;
     }
 
     private Task GuardarAsync()
@@ -188,16 +185,16 @@ public class FrmGanaderoEdicion : FormBase
             {
                 if (_esEdicion)
                 {
-                    await _servicioGanaderos.EditarAsync(new EditarGanadero(_id, txtMarca.Text, txtNombre.Text));
+                    await _servicioGanaderos.EditarAsync(new EditarGanadero(_id, txtNombre.Text));
                     IdGuardado = _id;
                 }
                 else if (_esAltaRapida)
                 {
-                    IdGuardado = await _servicioGanaderos.CrearRapidoAsync(new CrearGanadero(txtMarca.Text, txtNombre.Text));
+                    IdGuardado = await _servicioGanaderos.CrearRapidoAsync(new CrearGanadero(txtNombre.Text));
                 }
                 else
                 {
-                    IdGuardado = await _servicioGanaderos.CrearAsync(new CrearGanadero(txtMarca.Text, txtNombre.Text));
+                    IdGuardado = await _servicioGanaderos.CrearAsync(new CrearGanadero(txtNombre.Text));
                 }
 
                 DialogResult = DialogResult.OK;
@@ -209,7 +206,7 @@ public class FrmGanaderoEdicion : FormBase
         }, btnGuardar);
     }
 
-    internal TextBox TxtMarca => txtMarca;
+    internal TextBox TxtCodigo => txtCodigo;
     internal TextBox TxtNombre => txtNombre;
     internal Task GuardarParaTestAsync() => GuardarAsync();
 }

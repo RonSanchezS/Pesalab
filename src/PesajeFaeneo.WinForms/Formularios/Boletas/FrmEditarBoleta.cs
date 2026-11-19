@@ -8,6 +8,7 @@ using PesajeFaeneo.Domain.Excepciones;
 using PesajeFaeneo.Domain.Reglas;
 using PesajeFaeneo.WinForms.Controles;
 using PesajeFaeneo.WinForms.Formularios;
+using PesajeFaeneo.WinForms.Presentacion.Pesaje;
 
 namespace PesajeFaeneo.WinForms.Formularios.Boletas;
 
@@ -35,6 +36,7 @@ public class FrmEditarBoleta : FormBase
     internal ControlBusquedaCatalogo ctlGanadero = null!;
     internal NumericUpDown numSecuencia = null!;
     internal ControlBusquedaCatalogo ctlCliente = null!;
+    internal ControlBusquedaCatalogo ctlFletero = null!;
     internal TextBox txtDireccion = null!;
     internal TextBox txtColorRaza = null!;
     internal ComboBox cmbSexo = null!;
@@ -188,13 +190,17 @@ public class FrmEditarBoleta : FormBase
         var lblCli = new Label { Location = new Point(16, y + 4), Size = new Size(lblWidth, 20), Text = "Cliente (*):" };
         ctlCliente = new ControlBusquedaCatalogo { Location = new Point(inputX, y), Size = new Size(inputWidth, 26), TabIndex = 2, Placeholder = "Buscar cliente..." };
         y += spacing;
-
-        var lblDir = new Label { Location = new Point(16, y + 4), Size = new Size(lblWidth, 20), Text = "Dirección (*):" };
-        txtDireccion = new TextBox { Location = new Point(inputX, y), Size = new Size(inputWidth, 22), MaxLength = 150, TabIndex = 3 };
+        var lblFle = new Label { Location = new Point(16, y + 4), Size = new Size(lblWidth, 20), Text = "Fletero:" };
+        ctlFletero = new ControlBusquedaCatalogo { Location = new Point(inputX, y), Size = new Size(inputWidth, 26), TabIndex = 3, Placeholder = "Sin fletero (opcional)" };
         y += spacing;
 
-        var lblColor = new Label { Location = new Point(16, y + 4), Size = new Size(lblWidth, 20), Text = "Color / raza (*):" };
-        txtColorRaza = new TextBox { Location = new Point(inputX, y), Size = new Size(200, 22), MaxLength = 30, TabIndex = 4 };
+
+        var lblDir = new Label { Location = new Point(16, y + 4), Size = new Size(lblWidth, 20), Text = "Dirección:" };
+        txtDireccion = new TextBox { Location = new Point(inputX, y), Size = new Size(inputWidth, 22), MaxLength = 150, TabIndex = 4 };
+        y += spacing;
+
+        var lblColor = new Label { Location = new Point(16, y + 4), Size = new Size(lblWidth, 20), Text = "Color / raza:" };
+        txtColorRaza = new TextBox { Location = new Point(inputX, y), Size = new Size(200, 22), MaxLength = 30, TabIndex = 5 };
 
         var lblSex = new Label { Location = new Point(370, y + 4), Size = new Size(60, 20), Text = "Sexo (*):" };
         cmbSexo = new ComboBox
@@ -202,7 +208,7 @@ public class FrmEditarBoleta : FormBase
             Location = new Point(430, y),
             Size = new Size(190, 22),
             DropDownStyle = ComboBoxStyle.DropDownList,
-            TabIndex = 5,
+            TabIndex = 6,
             DisplayMember = "Texto",
             ValueMember = "Valor"
         };
@@ -211,12 +217,12 @@ public class FrmEditarBoleta : FormBase
         cmbSexo.SelectedIndex = 0;
         y += spacing;
 
-        var lblObs = new Label { Location = new Point(16, y + 4), Size = new Size(lblWidth, 20), Text = "Observación (*):" };
-        txtObservacion = new TextBox { Location = new Point(inputX, y), Size = new Size(inputWidth, 22), MaxLength = 250, TabIndex = 6 };
+        var lblObs = new Label { Location = new Point(16, y + 4), Size = new Size(lblWidth, 20), Text = "Observación:" };
+        txtObservacion = new TextBox { Location = new Point(inputX, y), Size = new Size(inputWidth, 22), MaxLength = 250, TabIndex = 7 };
         y += spacing;
 
         var lblMotivo = new Label { Location = new Point(16, y + 4), Size = new Size(lblWidth, 20), Text = "Motivo del cambio:" };
-        txtMotivo = new TextBox { Location = new Point(inputX, y), Size = new Size(inputWidth, 22), MaxLength = 100, TabIndex = 7 };
+        txtMotivo = new TextBox { Location = new Point(inputX, y), Size = new Size(inputWidth, 22), MaxLength = 100, TabIndex = 8 };
         var lblMotivoPista = new Label { Location = new Point(inputX, y + 24), Size = new Size(inputWidth, 16), ForeColor = Color.Gray, Font = new Font(Font.FontFamily, 7.5f), Text = "Opcional. Breve explicación para el registro de auditoría." };
         y += spacing + 12;
 
@@ -234,7 +240,7 @@ public class FrmEditarBoleta : FormBase
             Location = new Point(400, y),
             Size = new Size(110, 32),
             Text = "&Guardar (F12)",
-            TabIndex = 8
+            TabIndex = 9
         };
         btnGuardar.Click += async (_, _) => await GuardarAsync();
 
@@ -243,7 +249,7 @@ public class FrmEditarBoleta : FormBase
             Location = new Point(518, y),
             Size = new Size(102, 32),
             Text = "Cancelar (Esc)",
-            TabIndex = 9,
+            TabIndex = 10,
             DialogResult = DialogResult.Cancel
         };
 
@@ -256,6 +262,7 @@ public class FrmEditarBoleta : FormBase
             lblGan, ctlGanadero,
             lblSec, numSecuencia,
             lblCli, ctlCliente,
+            lblFle, ctlFletero,
             lblDir, txtDireccion,
             lblColor, txtColorRaza,
             lblSex, cmbSexo,
@@ -266,6 +273,7 @@ public class FrmEditarBoleta : FormBase
 
         _controlesPorCampo[CamposPesaje.Ganadero] = ctlGanadero;
         _controlesPorCampo[CamposPesaje.Cliente] = ctlCliente;
+        _controlesPorCampo[CamposPesaje.Fletero] = ctlFletero;
         _controlesPorCampo[CamposPesaje.Direccion] = txtDireccion;
         _controlesPorCampo[CamposPesaje.Secuencia] = numSecuencia;
         _controlesPorCampo[CamposPesaje.ColorRaza] = txtColorRaza;
@@ -283,6 +291,7 @@ public class FrmEditarBoleta : FormBase
         lblTitulo.Text = $"Boleta N° {dto.NumeroBoleta}";
         lblFechaHora.Text = $"Fecha: {TextosBoleta.FechaHora(dto.FechaHoraLocal)}";
         lblDesposte.Text = $"Desposte: {TextosBoleta.Desposte(dto.TipoDesposte)}";
+        lblDesposte.Visible = dto.MostrarDesposte;   // F11 (D6)
         txtPesoIzquierdo.Text = $"Izq: {TextosBoleta.Peso(dto.PesoIzquierdo)}";
         txtPesoDerecho.Text = $"Der: {TextosBoleta.Peso(dto.PesoDerecho)}";
         txtPesoTotal.Text = $"Total: {TextosBoleta.Peso(dto.PesoTotal)}";
@@ -311,6 +320,16 @@ public class FrmEditarBoleta : FormBase
 
         ctlCliente.EstablecerElementos(dto.Clientes);
         ctlCliente.Seleccionar(dto.ClienteId);
+
+        ctlFletero.EstablecerElementos(dto.Fleteros ?? Array.Empty<PesajeFaeneo.Application.Catalogos.Busqueda.ElementoBusqueda>());
+        if (dto.FleteroId is int fleteroId)
+        {
+            ctlFletero.Seleccionar(fleteroId);
+        }
+        else
+        {
+            ctlFletero.Limpiar();
+        }
 
         txtDireccion.Text = dto.Direccion;
         txtColorRaza.Text = dto.ColorRaza;
@@ -347,6 +366,15 @@ public class FrmEditarBoleta : FormBase
     {
         if (_dto is null) return;
 
+        // F12 (E1): un fletero escrito y no elegido se perdería en silencio (FleteroId = null).
+        if (ctlFletero.TextoSinElegir)
+        {
+            _errorProvider.Clear();
+            _errorProvider.SetError(ctlFletero, EvaluadorPantallaPesaje.MensajeFleteroSinElegir);
+            ctlFletero.CajaTexto.Focus();
+            return;
+        }
+
         char sexo = 'M';
         if (cmbSexo.SelectedItem is SexoOpcion opcion)
         {
@@ -362,6 +390,7 @@ public class FrmEditarBoleta : FormBase
             VersionEsperada: _dto.Version,
             GanaderoId: ctlGanadero.Seleccion?.Id ?? 0,
             ClienteId: ctlCliente.Seleccion?.Id ?? 0,
+            FleteroId: ctlFletero.Seleccion?.Id,
             Direccion: txtDireccion.Text,
             Secuencia: (int)numSecuencia.Value,
             ColorRaza: txtColorRaza.Text,

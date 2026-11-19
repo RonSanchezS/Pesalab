@@ -28,41 +28,20 @@ public class MigracionF2Tests
             var migrator = context.GetService<IMigrator>();
             await migrator.MigrateAsync("20260924161919_F1_BloqueoUsuario");
 
-            // 2. Insertar usuario, ganadero con Ñ, cliente 110 y pesaje
-            var usuario = new Usuario
-            {
-                NombreUsuario = "operador_migracion",
-                NombreCompleto = "Operador Migración",
-                Rol = Rol.Operador,
-                Hash = "hash_dummy",
-                Salt = "salt_dummy",
-                Activo = true,
-                CreadoEn = DateTime.UtcNow
-            };
-            var ganadero = new Ganadero
-            {
-                Marca = "ÑA",
-                Nombre = "PEÑA",
-                Activo = true,
-                CreadoEn = DateTime.UtcNow
-            };
-            var cliente = new Cliente
-            {
-                Codigo = 110,
-                Nombre = "CLIENTE 110",
-                Direccion = "DIRECCION 110",
-                Activo = true,
-                CreadoEn = DateTime.UtcNow
-            };
+            // 2. Insertar usuario, ganadero con Ñ, cliente 110 y pesaje. SQL crudo: el modelo actual ya no coincide con el
+            //    esquema de F1 (p. ej. la columna Ganaderos.Marca pasó a Codigo en F10).
+            await context.Database.ExecuteSqlRawAsync(@"
+                INSERT INTO Usuarios (Id, NombreUsuario, Hash, Salt, Rol, NombreCompleto, Activo, DebeCambiarPassword, IntentosFallidos, CreadoEn)
+                VALUES (1, 'operador_migracion', 'hash_dummy', 'salt_dummy', 3, 'Operador Migración', 1, 0, 0, '2026-09-20 12:00:00');
 
-            context.Usuarios.Add(usuario);
-            context.Ganaderos.Add(ganadero);
-            context.Clientes.Add(cliente);
-            await context.SaveChangesAsync();
+                INSERT INTO Ganaderos (Id, Marca, Nombre, Activo, CreadoEn)
+                VALUES (1, 'ÑA', 'PEÑA', 1, '2026-09-20 12:00:00');
 
-            await context.Database.ExecuteSqlInterpolatedAsync($@"
+                INSERT INTO Clientes (Id, Codigo, Nombre, Direccion, Activo, CreadoEn)
+                VALUES (1, 110, 'CLIENTE 110', 'DIRECCION 110', 1, '2026-09-20 12:00:00');
+
                 INSERT INTO Pesajes (NumeroBoleta, FechaHora, GanaderoId, ClienteId, Direccion, Secuencia, ColorRaza, Sexo, TipoDesposte, PesoIzquierdo, PesoDerecho, PesoTotal, Observacion, Estado, UsuarioId, CreadoEn)
-                VALUES (5001, '2026-09-20 12:00:00', {ganadero.Id}, {cliente.Id}, 'FRIAL EJEMPLO', 1, 'BLANCO', 'M', 1, 106.0, 0.0, 106.0, 'SIN NOVEDAD', 1, {usuario.Id}, '2026-09-20 12:00:00');
+                VALUES (5001, '2026-09-20 12:00:00', 1, 1, 'FRIAL EJEMPLO', 1, 'BLANCO', 'M', 1, 106.0, 0.0, 106.0, 'SIN NOVEDAD', 1, 1, '2026-09-20 12:00:00');
             ");
         }
 
@@ -73,7 +52,7 @@ public class MigracionF2Tests
             await migrator.MigrateAsync();
 
             // 4. Verificar datos intactos
-            var ganaderoRecuperado = await context.Ganaderos.SingleOrDefaultAsync(g => g.Marca == "ÑA");
+            var ganaderoRecuperado = await context.Ganaderos.SingleOrDefaultAsync(g => g.Codigo == "ÑA");
             Assert.NotNull(ganaderoRecuperado);
             Assert.Equal("PEÑA", ganaderoRecuperado.Nombre);
 
@@ -105,7 +84,7 @@ public class MigracionF2Tests
             // Verificar que collation NOCASE sobrevivió (insertar "NA" y luego "na" debe fallar)
             var ganaderoNA = new Ganadero
             {
-                Marca = "NA",
+                Codigo = "NA",
                 Nombre = "GANADERO NA",
                 Activo = true,
                 CreadoEn = DateTime.UtcNow
@@ -115,7 +94,7 @@ public class MigracionF2Tests
 
             var ganaderoNaMinuscula = new Ganadero
             {
-                Marca = "na",
+                Codigo = "na",
                 Nombre = "GANADERO NA MINUSCULA",
                 Activo = true,
                 CreadoEn = DateTime.UtcNow

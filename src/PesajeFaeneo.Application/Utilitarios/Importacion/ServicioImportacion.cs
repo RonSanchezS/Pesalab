@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using PesajeFaeneo.Application.Auditoria;
+using PesajeFaeneo.Application.Licencias;
 using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Application.Utilitarios.Backup;
 using PesajeFaeneo.Application.Utilitarios.Backup.Dtos;
@@ -18,6 +19,7 @@ public sealed class ServicioImportacion : IServicioImportacion
     private readonly IRepositorioImportacion _repositorio;
     private readonly IMotorBackup _motor;
     private readonly ISesionActual _sesion;
+    private readonly IServicioLicencia _licencia;
     private readonly TimeProvider _tiempo;
     private readonly ILogger<ServicioImportacion> _logger;
 
@@ -26,6 +28,7 @@ public sealed class ServicioImportacion : IServicioImportacion
         IRepositorioImportacion repositorio,
         IMotorBackup motor,
         ISesionActual sesion,
+        IServicioLicencia licencia,
         TimeProvider tiempo,
         ILogger<ServicioImportacion> logger)
     {
@@ -33,6 +36,7 @@ public sealed class ServicioImportacion : IServicioImportacion
         _repositorio = repositorio ?? throw new ArgumentNullException(nameof(repositorio));
         _motor = motor ?? throw new ArgumentNullException(nameof(motor));
         _sesion = sesion ?? throw new ArgumentNullException(nameof(sesion));
+        _licencia = licencia ?? throw new ArgumentNullException(nameof(licencia));
         _tiempo = tiempo ?? throw new ArgumentNullException(nameof(tiempo));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -60,6 +64,9 @@ public sealed class ServicioImportacion : IServicioImportacion
         ArgumentNullException.ThrowIfNull(solicitud);
         _sesion.ExigirPermiso(Permiso.ImportarLegado);
         var sesion = _sesion.ExigirSesion();
+
+        // F13 (D4): importar y simular se bloquean en modo consulta, antes de leer el origen y de abrir la transacción.
+        _licencia.ExigirOperacion();
 
         var (tabla, plan, huella) = await PrepararInternoAsync(solicitud, cancellationToken).ConfigureAwait(false);
         var ahora = _tiempo.GetUtcNow().UtcDateTime;
@@ -94,6 +101,9 @@ public sealed class ServicioImportacion : IServicioImportacion
         ArgumentNullException.ThrowIfNull(solicitud);
         _sesion.ExigirPermiso(Permiso.ImportarLegado);
         var sesion = _sesion.ExigirSesion();
+
+        // F13 (D4): ver SimularAsync.
+        _licencia.ExigirOperacion();
 
         var (tabla, plan, huella) = await PrepararInternoAsync(solicitud, cancellationToken).ConfigureAwait(false);
 

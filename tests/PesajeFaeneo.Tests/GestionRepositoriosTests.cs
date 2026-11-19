@@ -17,7 +17,7 @@ public class GestionRepositoriosTests
     {
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
 
-        var g = new GanaderoBuilder().ConMarca("GH").ConNombre("Ganadero Repos").Build();
+        var g = new GanaderoBuilder().ConCodigo("GH").ConNombre("Ganadero Repos").Build();
         var c = new ClienteBuilder().ConCodigo(777).ConNombre("Cliente Repos").Build();
         var u = new UsuarioBuilder().ConNombreUsuario("operador_repo").ConNombreCompleto("Operador Repo").Build();
 
@@ -152,7 +152,7 @@ public class GestionRepositoriosTests
         int g2, c2;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var gan2 = new GanaderoBuilder().ConMarca("G2").ConNombre("Ganadero 2").Build();
+            var gan2 = new GanaderoBuilder().ConCodigo("G2").ConNombre("Ganadero 2").Build();
             var cli2 = new ClienteBuilder().ConCodigo(888).ConNombre("Cliente 2").Build();
             ctx.Ganaderos.Add(gan2);
             ctx.Clientes.Add(cli2);
@@ -425,7 +425,7 @@ public class GestionRepositoriosTests
         int g2;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var gan2 = new GanaderoBuilder().ConMarca("G2B").ConNombre("Ganadero 2B").Build();
+            var gan2 = new GanaderoBuilder().ConCodigo("G2B").ConNombre("Ganadero 2B").Build();
             ctx.Ganaderos.Add(gan2);
             await ctx.SaveChangesAsync();
             g2 = gan2.Id;

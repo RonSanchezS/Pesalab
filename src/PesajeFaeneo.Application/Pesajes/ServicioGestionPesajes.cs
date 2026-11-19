@@ -50,7 +50,7 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
         var clientes = await uow.Clientes.ListarAsync(incluirInactivos: true, cancellationToken);
 
         var ganaderosMapeados = ganaderos
-            .Select(g => new ElementoBusqueda(g.Id, g.Marca, g.Nombre, null, g.Activo))
+            .Select(g => new ElementoBusqueda(g.Id, g.Codigo, g.Nombre, null, g.Activo))
             .ToList()
             .AsReadOnly();
 
@@ -106,7 +106,7 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
                 p.NumeroBoleta,
                 p.Version,
                 fechaLocal,
-                p.Ganadero?.Marca ?? string.Empty,
+                p.Ganadero?.Codigo ?? string.Empty,
                 p.Ganadero?.Nombre ?? string.Empty,
                 p.Secuencia,
                 p.Cliente?.Nombre ?? string.Empty,
@@ -116,10 +116,12 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
                 p.PesoTotal,
                 p.OrigenPeso,
                 p.Estado,
-                p.MotivoAnulacion));
+                p.MotivoAnulacion,
+                p.Fletero?.Nombre));
         }
 
-        return new ResultadoBusquedaBoletas(boletas.AsReadOnly(), truncado);
+        var parametros = await uow.Parametros.ObtenerAsync(cancellationToken);
+        return new ResultadoBusquedaBoletas(boletas.AsReadOnly(), truncado, ReglasDesposte.Efectivo(parametros.ModoDesposte));
     }
 
     public async Task<BoletaParaEdicion> ObtenerParaEdicionAsync(int pesajeId, CancellationToken cancellationToken = default)
@@ -150,14 +152,14 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
                 : usuario.NombreUsuario;
 
         var ganaderosActivos = (await uow.Ganaderos.ListarAsync(incluirInactivos: false, cancellationToken))
-            .Select(g => new ElementoBusqueda(g.Id, g.Marca, g.Nombre, null, g.Activo))
+            .Select(g => new ElementoBusqueda(g.Id, g.Codigo, g.Nombre, null, g.Activo))
             .ToList();
 
         if (p.Ganadero != null)
         {
             if (!ganaderosActivos.Any(g => g.Id == p.Ganadero.Id))
             {
-                ganaderosActivos.Add(new ElementoBusqueda(p.Ganadero.Id, p.Ganadero.Marca, p.Ganadero.Nombre, null, p.Ganadero.Activo));
+                ganaderosActivos.Add(new ElementoBusqueda(p.Ganadero.Id, p.Ganadero.Codigo, p.Ganadero.Nombre, null, p.Ganadero.Activo));
             }
         }
         else
@@ -165,7 +167,7 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
             var gActual = await uow.Ganaderos.ObtenerPorIdAsync(p.GanaderoId, cancellationToken);
             if (gActual != null && !ganaderosActivos.Any(g => g.Id == gActual.Id))
             {
-                ganaderosActivos.Add(new ElementoBusqueda(gActual.Id, gActual.Marca, gActual.Nombre, null, gActual.Activo));
+                ganaderosActivos.Add(new ElementoBusqueda(gActual.Id, gActual.Codigo, gActual.Nombre, null, gActual.Activo));
             }
         }
 
@@ -189,9 +191,24 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
             }
         }
 
+        // F10 (O5): el fletero también es un dato descriptivo editable (activos + el actual aunque esté inactivo).
+        var fleterosActivos = (await uow.Fleteros.ListarAsync(incluirInactivos: false, cancellationToken))
+            .Select(f => new ElementoBusqueda(f.Id, f.Codigo.ToString(CultureInfo.InvariantCulture), f.Nombre, f.Celular, f.Activo))
+            .ToList();
+
+        if (p.FleteroId is int fleteroActualId && !fleterosActivos.Any(f => f.Id == fleteroActualId))
+        {
+            var fActual = p.Fletero ?? await uow.Fleteros.ObtenerPorIdAsync(fleteroActualId, cancellationToken);
+            if (fActual != null)
+            {
+                fleterosActivos.Add(new ElementoBusqueda(fActual.Id, fActual.Codigo.ToString(CultureInfo.InvariantCulture), fActual.Nombre, fActual.Celular, fActual.Activo));
+            }
+        }
+
         var zona = _timeProvider.LocalTimeZone;
         var fechaUtc = DateTime.SpecifyKind(p.FechaHora, DateTimeKind.Utc);
         var fechaLocal = DateTime.SpecifyKind(TimeZoneInfo.ConvertTimeFromUtc(fechaUtc, zona), DateTimeKind.Unspecified);
+        var modo = ReglasDesposte.Efectivo((await uow.Parametros.ObtenerAsync(cancellationToken)).ModoDesposte);
 
         return new BoletaParaEdicion(
             p.Id,
@@ -212,7 +229,10 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
             p.OrigenPeso,
             nombreOperador,
             ganaderosActivos.AsReadOnly(),
-            clientesActivos.AsReadOnly());
+            clientesActivos.AsReadOnly(),
+            p.FleteroId,
+            fleterosActivos.AsReadOnly(),
+            ReglasDesposte.MostrarDesposte(modo, p.TipoDesposte));
     }
 
     public async Task<ResultadoEdicion> EditarAsync(EditarPesaje dto, CancellationToken cancellationToken = default)
@@ -249,7 +269,7 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
             throw new ConcurrenciaException("La boleta fue modificada por otro usuario o en otra ventana. Ciérrela y vuelva a abrirla.");
         }
 
-        var antes = FabricaAuditoria.CrearSnapshot(p, p.Ganadero, p.Cliente);
+        var antes = FabricaAuditoria.CrearSnapshot(p, p.Ganadero, p.Cliente, p.Fletero);
 
         Ganadero? ganaderoNuevo = null;
         if (normalizado.GanaderoId != p.GanaderoId)
@@ -273,6 +293,17 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
             clienteNuevo = c;
         }
 
+        Fletero? fleteroNuevo = null;
+        if (normalizado.FleteroId is int fleteroId && fleteroId != p.FleteroId)
+        {
+            var f = await uow.Fleteros.ObtenerPorIdAsync(fleteroId, cancellationToken);
+            if (f == null || !f.Activo)
+            {
+                throw new ValidacionException(CamposPesaje.Fletero, "El fletero seleccionado no existe o está desactivado.");
+            }
+            fleteroNuevo = f;
+        }
+
         p.GanaderoId = normalizado.GanaderoId;
         p.ClienteId = normalizado.ClienteId;
         p.Direccion = normalizado.Direccion ?? string.Empty;
@@ -280,8 +311,9 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
         p.ColorRaza = normalizado.ColorRaza ?? string.Empty;
         p.Sexo = normalizado.Sexo;
         p.Observacion = normalizado.Observacion ?? string.Empty;
+        p.FleteroId = normalizado.FleteroId;
 
-        var despues = FabricaAuditoria.CrearSnapshot(p, ganaderoNuevo ?? p.Ganadero, clienteNuevo ?? p.Cliente);
+        var despues = FabricaAuditoria.CrearSnapshot(p, ganaderoNuevo ?? p.Ganadero, clienteNuevo ?? p.Cliente, fleteroNuevo ?? (p.FleteroId is null ? null : p.Fletero));
 
         if (antes == despues)
         {
@@ -296,6 +328,7 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
         if (antes.ColorRaza != despues.ColorRaza) camposModificados.Add("Color/raza");
         if (antes.Sexo != despues.Sexo) camposModificados.Add("Sexo");
         if (antes.Observacion != despues.Observacion) camposModificados.Add("Observación");
+        if (antes.FleteroId != despues.FleteroId) camposModificados.Add("Fletero");
 
         p.ModificadoEn = _timeProvider.GetUtcNow().UtcDateTime;
 
@@ -357,7 +390,7 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
             throw new ConcurrenciaException("La boleta fue modificada por otro usuario o en otra ventana. Ciérrela y vuelva a abrirla.");
         }
 
-        var antes = FabricaAuditoria.CrearSnapshot(p, p.Ganadero, p.Cliente);
+        var antes = FabricaAuditoria.CrearSnapshot(p, p.Ganadero, p.Cliente, p.Fletero);
         var ahora = _timeProvider.GetUtcNow().UtcDateTime;
 
         p.Estado = EstadoPesaje.Anulado;
@@ -366,7 +399,7 @@ public class ServicioGestionPesajes : IServicioGestionPesajes
         p.AnuladoEn = ahora;
         p.ModificadoEn = ahora;
 
-        var despues = FabricaAuditoria.CrearSnapshot(p, p.Ganadero, p.Cliente);
+        var despues = FabricaAuditoria.CrearSnapshot(p, p.Ganadero, p.Cliente, p.Fletero);
 
         var aud = FabricaAuditoria.Crear(
             _timeProvider,

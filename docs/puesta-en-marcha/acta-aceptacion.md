@@ -1,4 +1,4 @@
-# Acta de aceptación — Sistema de Pesaje para Faeneo
+# Acta de aceptación — Capataz
 
 Esta acta se completa al terminar el checklist de aceptación en sitio (`checklist-uat.md`) y resume su resultado.
 
@@ -29,6 +29,10 @@ Cuente los casos de cada grupo del checklist según su columna Resultado (`OK`, 
 | Seguridad (UAT-SEG) | 3 | | | |
 | Balanza (UAT-BAL) | 4 | | | |
 | Pesaje (UAT-PES) | 6 | | | |
+| Observaciones del cliente F10 (UAT-F10) | 9 | | | |
+| Tipo de pesaje F11 (UAT-F11) | 6 | | | |
+| Correcciones 1.2.1 F12 (UAT-F12) | 6 | | | |
+| Licencias 1.3.0 F13 (UAT-F13) | 8 | | | |
 | Boleta (UAT-BOL) | 4 | | | |
 | Edición y anulación (UAT-EDI) | 2 | | | |
 | Reportes (UAT-REP) | 4 | | | |
@@ -36,7 +40,7 @@ Cuente los casos de cada grupo del checklist según su columna Resultado (`OK`, 
 | Actualización (UAT-ACT) | 2 | | | |
 | Desinstalación (UAT-DES) | 1 | | | |
 | Operación (UAT-OPE) | 2 | | | |
-| **Total** | **45** | | | |
+| **Total** | **74** | | | |
 
 ## Observaciones pendientes
 

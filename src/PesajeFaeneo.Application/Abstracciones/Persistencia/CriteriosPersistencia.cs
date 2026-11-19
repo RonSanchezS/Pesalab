@@ -23,4 +23,5 @@ public sealed record CriteriosReporte(
     DateTime HastaUtc,                // EXCLUSIVO
     EstadoPesaje Estado,
     int? GanaderoId,
-    int? ClienteId);
+    int? ClienteId,
+    string? ColorRaza = null);        // F10 (O8): ya normalizada (Trim + mayúsculas); null = sin filtro

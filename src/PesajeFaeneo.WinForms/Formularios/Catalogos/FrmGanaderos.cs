@@ -21,7 +21,7 @@ public class FrmGanaderos : FormBase
 
     private sealed record GanaderoFila(
         int Id,
-        string Marca,
+        string Codigo,
         string Nombre,
         bool Activo)
     {
@@ -81,7 +81,7 @@ public class FrmGanaderos : FormBase
         busqueda = new ControlBusquedaCatalogo
         {
             Dock = DockStyle.Fill,
-            Placeholder = "Buscar por marca o nombre..."
+            Placeholder = "Buscar por código o nombre..."
         };
         busqueda.ElementoSeleccionado += (_, e) =>
         {
@@ -117,9 +117,9 @@ public class FrmGanaderos : FormBase
 
         dgvGanaderos.Columns.Add(new DataGridViewTextBoxColumn
         {
-            Name = "ColMarca",
-            HeaderText = "Marca",
-            DataPropertyName = nameof(GanaderoFila.Marca),
+            Name = "ColCodigo",
+            HeaderText = "Código",
+            DataPropertyName = nameof(GanaderoFila.Codigo),
             Width = 80
         });
 
@@ -247,7 +247,7 @@ public class FrmGanaderos : FormBase
 
         var listaFilas = ganaderos.Select(g => new GanaderoFila(
             g.Id,
-            g.Marca,
+            g.Codigo,
             g.Nombre,
             g.Activo)).ToList();
 
@@ -255,7 +255,7 @@ public class FrmGanaderos : FormBase
 
         var elementosBusqueda = ganaderos
             .Where(g => g.Activo)
-            .Select(g => new ElementoBusqueda(g.Id, g.Marca, g.Nombre, null, g.Activo))
+            .Select(g => new ElementoBusqueda(g.Id, g.Codigo, g.Nombre, null, g.Activo))
             .ToList();
         busqueda.EstablecerElementos(elementosBusqueda);
 
@@ -318,7 +318,7 @@ public class FrmGanaderos : FormBase
         var accion = fila.Activo ? "desactivar" : "activar";
         var confirmacion = MessageBox.Show(
             this,
-            $"¿Está seguro de que desea {accion} al ganadero '{fila.Marca} — {fila.Nombre}'?",
+            $"¿Está seguro de que desea {accion} al ganadero '{fila.Codigo} — {fila.Nombre}'?",
             "Confirmación",
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question);

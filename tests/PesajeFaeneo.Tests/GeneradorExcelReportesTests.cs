@@ -60,16 +60,17 @@ public class GeneradorExcelReportesTests : IDisposable
         Assert.Equal("N° boleta", ws.Cell(6, 2).GetString());
         Assert.Equal("Fecha", ws.Cell(6, 3).GetString());
         Assert.Equal("N° res (secuencia)", ws.Cell(6, 4).GetString());
-        Assert.Equal("Marca", ws.Cell(6, 5).GetString());
+        Assert.Equal("Código", ws.Cell(6, 5).GetString());
         Assert.Equal("Ganadero", ws.Cell(6, 6).GetString());
         Assert.Equal("Cliente (código)", ws.Cell(6, 7).GetString());
         Assert.Equal("Nombre del cliente", ws.Cell(6, 8).GetString());
-        Assert.Equal("Dirección", ws.Cell(6, 9).GetString());
-        Assert.Equal("Izq. (kg)", ws.Cell(6, 10).GetString());
-        Assert.Equal("Der. (kg)", ws.Cell(6, 11).GetString());
-        Assert.Equal("Total neto (kg)", ws.Cell(6, 12).GetString());
-        Assert.Equal("Tipo corte", ws.Cell(6, 13).GetString());
-        Assert.Equal("Origen", ws.Cell(6, 14).GetString());
+        Assert.Equal("Fletero", ws.Cell(6, 9).GetString());
+        Assert.Equal("Dirección", ws.Cell(6, 10).GetString());
+        Assert.Equal("Izq. (kg)", ws.Cell(6, 11).GetString());
+        Assert.Equal("Der. (kg)", ws.Cell(6, 12).GetString());
+        Assert.Equal("Total neto (kg)", ws.Cell(6, 13).GetString());
+        Assert.Equal("Tipo corte", ws.Cell(6, 14).GetString());
+        Assert.Equal("Origen", ws.Cell(6, 15).GetString());
 
         // Fila 7: datos tipados
         Assert.Equal(XLDataType.Number, ws.Cell(7, 1).DataType);
@@ -79,27 +80,27 @@ public class GeneradorExcelReportesTests : IDisposable
         Assert.Equal(XLDataType.DateTime, ws.Cell(7, 3).DataType);
         Assert.Equal(XLDataType.Number, ws.Cell(7, 4).DataType);
         Assert.Equal(1, ws.Cell(7, 4).GetValue<int>());
-        Assert.Equal(XLDataType.Number, ws.Cell(7, 10).DataType);
         Assert.Equal(XLDataType.Number, ws.Cell(7, 11).DataType);
         Assert.Equal(XLDataType.Number, ws.Cell(7, 12).DataType);
-        Assert.False(ws.Cell(7, 12).HasFormula);
+        Assert.Equal(XLDataType.Number, ws.Cell(7, 13).DataType);
+        Assert.False(ws.Cell(7, 13).HasFormula);
 
         // Formatos de celdas
-        Assert.Equal("#,##0.0", ws.Cell(7, 10).Style.NumberFormat.Format);
-        Assert.Equal("#,##0.0", ws.Cell(7, 12).Style.NumberFormat.Format);
+        Assert.Equal("#,##0.0", ws.Cell(7, 11).Style.NumberFormat.Format);
+        Assert.Equal("#,##0.0", ws.Cell(7, 13).Style.NumberFormat.Format);
 
         // Totales: u = 6 + 5 = 11; última fila = 11 + 5 = 16
         int u = 11;
         Assert.Equal("Total peso neto (kg)", ws.Cell(u + 2, 1).GetString());
-        Assert.Equal(reporte.Totales.TotalNetoKg, ws.Cell(u + 2, 12).GetValue<decimal>());
-        Assert.Equal("#,##0.0", ws.Cell(u + 2, 12).Style.NumberFormat.Format);
+        Assert.Equal(reporte.Totales.TotalNetoKg, ws.Cell(u + 2, 13).GetValue<decimal>());
+        Assert.Equal("#,##0.0", ws.Cell(u + 2, 13).Style.NumberFormat.Format);
 
         Assert.Equal("Cantidad de reses", ws.Cell(u + 3, 1).GetString());
-        Assert.Equal(reporte.Totales.Reses, ws.Cell(u + 3, 12).GetValue<decimal>());
-        Assert.Equal("#,##0.0", ws.Cell(u + 3, 12).Style.NumberFormat.Format);
+        Assert.Equal(reporte.Totales.Reses, ws.Cell(u + 3, 13).GetValue<decimal>());
+        Assert.Equal("#,##0.0", ws.Cell(u + 3, 13).Style.NumberFormat.Format);
 
         Assert.Equal("Boletas", ws.Cell(u + 4, 1).GetString());
-        Assert.Equal(5, ws.Cell(u + 4, 12).GetValue<int>());
+        Assert.Equal(5, ws.Cell(u + 4, 13).GetValue<int>());
 
         Assert.Equal("Res completa / media res", ws.Cell(u + 5, 1).GetString());
         Assert.Equal(u + 5, ws.LastRowUsed()!.RowNumber());
@@ -123,7 +124,7 @@ public class GeneradorExcelReportesTests : IDisposable
         Assert.Equal("Item", ws.Cell(6, 1).GetString());
         Assert.Equal("N° boleta", ws.Cell(6, 2).GetString());
         Assert.Equal("Fecha", ws.Cell(6, 3).GetString());
-        Assert.Equal("Marca", ws.Cell(6, 4).GetString());
+        Assert.Equal("Código", ws.Cell(6, 4).GetString());
         Assert.Equal("Ganadero", ws.Cell(6, 5).GetString());
         Assert.Equal("Cliente (código)", ws.Cell(6, 6).GetString());
         Assert.Equal("Nombre del cliente", ws.Cell(6, 7).GetString());
@@ -171,7 +172,7 @@ public class GeneradorExcelReportesTests : IDisposable
         // u = 7 -> última fila u + 5 = 12
         Assert.Equal(12, ws.LastRowUsed()!.RowNumber());
         Assert.Equal("Total peso neto (kg)", ws.Cell(9, 1).GetString());
-        Assert.Equal(0.0m, ws.Cell(9, 12).GetValue<decimal>());
+        Assert.Equal(0.0m, ws.Cell(9, 13).GetValue<decimal>());
     }
 
     [Fact]
@@ -207,7 +208,7 @@ public class GeneradorExcelReportesTests : IDisposable
         using var wb = new XLWorkbook(stream);
         var ws = wb.Worksheet("Pesajes");
 
-        var celdaDireccion = ws.Cell(7, 9);
+        var celdaDireccion = ws.Cell(7, 10);
         Assert.False(celdaDireccion.HasFormula);
         Assert.Equal("=1+1", celdaDireccion.GetString());
     }
@@ -299,10 +300,10 @@ public class GeneradorExcelReportesTests : IDisposable
         var ws = wb.Worksheet("Pesajes");
 
         int u = 6 + 11;
-        Assert.Equal(2038.0m, ws.Cell(u + 2, 12).GetValue<decimal>());
-        Assert.Equal(9.5m, ws.Cell(u + 3, 12).GetValue<decimal>());
-        Assert.Equal(11, ws.Cell(u + 4, 12).GetValue<int>());
-        Assert.Equal("8 / 3", ws.Cell(u + 5, 12).GetString());
+        Assert.Equal(2038.0m, ws.Cell(u + 2, 13).GetValue<decimal>());
+        Assert.Equal(9.5m, ws.Cell(u + 3, 13).GetValue<decimal>());
+        Assert.Equal(11, ws.Cell(u + 4, 13).GetValue<int>());
+        Assert.Equal("8 / 3", ws.Cell(u + 5, 13).GetString());
     }
 
     [Fact]
@@ -313,10 +314,10 @@ public class GeneradorExcelReportesTests : IDisposable
         using var wb = await GenerarLibroAsync(ConFilas(baseReporte, new List<FilaReporte> { fila }));
         var ws = wb.Worksheet("Pesajes");
 
-        Assert.Equal(109.3m, ws.Cell(7, 10).GetValue<decimal>());
-        Assert.Equal(106.7m, ws.Cell(7, 11).GetValue<decimal>());
-        Assert.Equal(216.0m, ws.Cell(7, 12).GetValue<decimal>());
-        Assert.Equal(216.0m, ws.Cell(7 + 1 + 1, 12).GetValue<decimal>());   // total neto en la fila u + 2
+        Assert.Equal(109.3m, ws.Cell(7, 11).GetValue<decimal>());
+        Assert.Equal(106.7m, ws.Cell(7, 12).GetValue<decimal>());
+        Assert.Equal(216.0m, ws.Cell(7, 13).GetValue<decimal>());
+        Assert.Equal(216.0m, ws.Cell(7 + 1 + 1, 13).GetValue<decimal>());   // total neto en la fila u + 2
         Assert.Equal("dd/MM/yyyy HH:mm", ws.Cell(7, 3).Style.DateFormat.Format);
         Assert.Equal(fila.FechaHoraLocal, ws.Cell(7, 3).GetDateTime());
     }
@@ -341,7 +342,7 @@ public class GeneradorExcelReportesTests : IDisposable
     {
         const string hiperenlace = "=HYPERLINK(\"http://x\")";
         using var wbNormal = await GenerarLibroAsync(DatosReporteDePrueba.Crear(TipoReporte.PesajesEntreFechas, 1, direccion: hiperenlace));
-        var dir = wbNormal.Worksheet("Pesajes").Cell(7, 9);
+        var dir = wbNormal.Worksheet("Pesajes").Cell(7, 10);
         Assert.False(dir.HasFormula);
         Assert.Equal(hiperenlace, dir.GetString());
 
@@ -357,8 +358,8 @@ public class GeneradorExcelReportesTests : IDisposable
         using var wb = await GenerarLibroAsync(DatosReporteDePrueba.Crear(TipoReporte.PesajesEntreFechas, 3, simuladas: 1));
         var ws = wb.Worksheet("Pesajes");
 
-        Assert.Equal("SIMULADO", ws.Cell(7, 14).GetString());
-        Assert.Equal("BALANZA", ws.Cell(8, 14).GetString());
+        Assert.Equal("SIMULADO", ws.Cell(7, 15).GetString());
+        Assert.Equal("BALANZA", ws.Cell(8, 15).GetString());
         Assert.Equal(XLDataType.Number, ws.Cell(7, 2).DataType);
         Assert.Equal(1001, ws.Cell(7, 2).GetValue<long>());
     }
@@ -371,8 +372,8 @@ public class GeneradorExcelReportesTests : IDisposable
         var ws = wb.Worksheet("Pesajes");
 
         Assert.Equal(6 + 20_000 + 5, ws.LastRowUsed()!.RowNumber());
-        Assert.Equal(reporte.Totales.TotalNetoKg, ws.Cell(6 + 20_000 + 2, 12).GetValue<decimal>());
-        Assert.False(ws.Cell(6 + 20_000 + 2, 12).HasFormula);
+        Assert.Equal(reporte.Totales.TotalNetoKg, ws.Cell(6 + 20_000 + 2, 13).GetValue<decimal>());
+        Assert.False(ws.Cell(6 + 20_000 + 2, 13).HasFormula);
     }
 
     [Theory]

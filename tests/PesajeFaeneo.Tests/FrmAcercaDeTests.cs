@@ -14,7 +14,7 @@ public class FrmAcercaDeTests
         {
             var rutaTemp = Path.Combine(Path.GetTempPath(), "PesajeFaeneo-Test-" + Guid.NewGuid().ToString("N"));
             var appPaths = new AppPaths(rutaTemp);
-            using var form = new FrmAcercaDe(appPaths);
+            using var form = new FrmAcercaDe(appPaths, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             Assert.Contains("Versión: " + InfoVersion.Version, form.TextoSoporte);
             Assert.Contains("Carpeta de datos: " + appPaths.BaseDir, form.TextoSoporte);
@@ -28,7 +28,7 @@ public class FrmAcercaDeTests
         {
             var rutaTemp = Path.Combine(Path.GetTempPath(), "PesajeFaeneo-Test-" + Guid.NewGuid().ToString("N"));
             var appPaths = new AppPaths(rutaTemp);
-            using var form = new FrmAcercaDe(appPaths);
+            using var form = new FrmAcercaDe(appPaths, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
             form.Show();
 
             string? textoCopiado = null;

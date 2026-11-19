@@ -12,7 +12,7 @@ public class SugeridorMapeoTests
         var cols = new[] { "MARCA", "NOMBRE", "PESO", "FECHA", "ACTIVO" };
         var mapeo = SugeridorMapeo.Sugerir(TipoImportacion.Ganaderos, cols);
 
-        Assert.Equal(0, mapeo[CamposImportacion.Marca]);
+        Assert.Equal(0, mapeo[CamposImportacion.Codigo]);
         Assert.Equal(1, mapeo[CamposImportacion.Nombre]);
         Assert.Equal(4, mapeo[CamposImportacion.Activo]);
     }
@@ -45,7 +45,7 @@ public class SugeridorMapeoTests
         Assert.Equal(1, mapeo[CamposImportacion.NumeroBoleta]);
         Assert.Equal(2, mapeo[CamposImportacion.Fecha]);
         Assert.Null(mapeo[CamposImportacion.Hora]);
-        Assert.Equal(4, mapeo[CamposImportacion.MarcaGanadero]);
+        Assert.Equal(4, mapeo[CamposImportacion.CodigoGanadero]);
         Assert.Equal(5, mapeo[CamposImportacion.CodigoCliente]);
         Assert.Equal(3, mapeo[CamposImportacion.Secuencia]);
         Assert.Equal(6, mapeo[CamposImportacion.Direccion]);
@@ -66,11 +66,11 @@ public class SugeridorMapeoTests
         var cols = new[] { "MARCA", "MARCA_2" };
         var mapeo = SugeridorMapeo.Sugerir(TipoImportacion.Pesajes, cols);
 
-        Assert.Equal(0, mapeo[CamposImportacion.MarcaGanadero]);
+        Assert.Equal(0, mapeo[CamposImportacion.CodigoGanadero]);
         // Ningún otro campo debe tener el índice 0 ni el 1 si no coincide
         foreach (var (campo, idx) in mapeo)
         {
-            if (campo != CamposImportacion.MarcaGanadero)
+            if (campo != CamposImportacion.CodigoGanadero)
             {
                 Assert.NotEqual(0, idx);
             }

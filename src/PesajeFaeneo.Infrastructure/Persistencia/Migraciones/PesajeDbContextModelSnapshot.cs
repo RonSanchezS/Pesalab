@@ -231,6 +231,9 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Codigo")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CreadoEn")
                         .HasColumnType("TEXT");
 
@@ -240,18 +243,14 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                         .HasColumnType("TEXT")
                         .UseCollation("NOCASE");
 
-                    b.Property<int>("Orden")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("Orden")
-                        .IsUnique()
-                        .HasFilter("Activo = 1");
+                    b.HasIndex("Codigo")
+                        .IsUnique();
 
                     b.ToTable("Fleteros", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Fleteros_Orden", "Orden BETWEEN 1 AND 4");
+                            t.HasCheckConstraint("CK_Fleteros_Codigo", "Codigo >= 1");
                         });
                 });
 
@@ -266,14 +265,14 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true);
 
-                    b.Property<DateTime>("CreadoEn")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Marca")
+                    b.Property<string>("Codigo")
                         .IsRequired()
                         .HasMaxLength(5)
                         .HasColumnType("TEXT")
                         .UseCollation("NOCASE");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -283,12 +282,12 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Marca")
+                    b.HasIndex("Codigo")
                         .IsUnique();
 
                     b.ToTable("Ganaderos", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Ganaderos_Marca", "length(Marca) BETWEEN 1 AND 5");
+                            t.HasCheckConstraint("CK_Ganaderos_Codigo", "length(Codigo) BETWEEN 1 AND 5");
                         });
                 });
 
@@ -316,6 +315,9 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
 
                     b.Property<DateTime>("ModificadoEn")
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModoDesposte")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("NombreEmpresa")
                         .IsRequired()
@@ -350,6 +352,8 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.ToTable("ParametrosSistema", null, t =>
                         {
                             t.HasCheckConstraint("CK_ParametrosSistema_Id", "Id = 1");
+
+                            t.HasCheckConstraint("CK_ParametrosSistema_ModoDesposte", "ModoDesposte IS NULL OR ModoDesposte IN (1, 2, 3)");
 
                             t.HasCheckConstraint("CK_ParametrosSistema_SiguienteNumeroBoleta", "SiguienteNumeroBoleta >= 1");
                         });
@@ -405,6 +409,9 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.Property<DateTime>("FechaHora")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("FleteroId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("GanaderoId")
                         .HasColumnType("INTEGER");
 
@@ -456,6 +463,8 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.HasIndex("AnuladoPorId");
 
                     b.HasIndex("FechaHora");
+
+                    b.HasIndex("FleteroId");
 
                     b.HasIndex("NumeroBoleta")
                         .IsUnique();
@@ -588,6 +597,11 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PesajeFaeneo.Domain.Entities.Fletero", "Fletero")
+                        .WithMany()
+                        .HasForeignKey("FleteroId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("PesajeFaeneo.Domain.Entities.Ganadero", "Ganadero")
                         .WithMany("Pesajes")
                         .HasForeignKey("GanaderoId")
@@ -603,6 +617,8 @@ namespace PesajeFaeneo.Infrastructure.Persistencia.Migraciones
                     b.Navigation("AnuladoPor");
 
                     b.Navigation("Cliente");
+
+                    b.Navigation("Fletero");
 
                     b.Navigation("Ganadero");
 

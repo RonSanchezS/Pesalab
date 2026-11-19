@@ -1,0 +1,870 @@
+{
+  "comun-01-login": [
+    {
+      "control": "txtUsuario",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Escriba su usuario",
+      "posicion": "derecha"
+    },
+    {
+      "control": "txtPassword",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Escriba su contraseña",
+      "posicion": "derecha"
+    },
+    {
+      "control": "btnIngresar",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Ingresar"
+    }
+  ],
+  "comun-02-login-error": [
+    {
+      "control": "lblMensaje",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Mensaje de datos incorrectos"
+    }
+  ],
+  "comun-03-cambio-password-obligatorio": [
+    {
+      "control": "txtActual",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Contraseña actual",
+      "posicion": "derecha"
+    },
+    {
+      "control": "txtNueva",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Nueva contraseña",
+      "posicion": "derecha"
+    },
+    {
+      "control": "txtConfirmacion",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Repita la nueva contraseña",
+      "posicion": "derecha"
+    },
+    {
+      "control": "btnAceptar",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Aceptar"
+    }
+  ],
+  "comun-30-cambiar-password": [
+    {
+      "control": "txtActual",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Contraseña actual",
+      "posicion": "derecha"
+    },
+    {
+      "control": "txtNueva",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Nueva contraseña",
+      "posicion": "derecha"
+    },
+    {
+      "control": "txtConfirmacion",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Repita la nueva contraseña",
+      "posicion": "derecha"
+    },
+    {
+      "control": "btnAceptar",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Aceptar"
+    }
+  ],
+  "op-04-menu-sesion": [
+    {
+      "area": [
+        118,
+        57,
+        210,
+        17
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Cambiar contraseña…",
+      "posicion": "derecha"
+    },
+    {
+      "area": [
+        118,
+        79,
+        210,
+        17
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Cerrar sesión",
+      "posicion": "derecha"
+    },
+    {
+      "area": [
+        118,
+        106,
+        210,
+        17
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Salir",
+      "posicion": "derecha"
+    }
+  ],
+  "op-01-inicio": [
+    {
+      "area": [
+        8,
+        34,
+        208,
+        19
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Menús",
+      "posicion": "derecha"
+    },
+    {
+      "control": "tarjetaPesaje",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Control de peso"
+    },
+    {
+      "control": "tarjetaTicket",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Imprimir ticket"
+    },
+    {
+      "control": "tarjetaHistorial",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Historial de pesajes"
+    },
+    {
+      "area": [
+        0,
+        649,
+        1184,
+        23
+      ],
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Barra de estado"
+    }
+  ],
+  "comun-31-acerca-de": [
+    {
+      "control": "<BtnCopiar>k__BackingField",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Copiar para soporte"
+    }
+  ],
+  "comun-20-barra-estado-verde": [
+    {
+      "control": "lblStatusBalanza",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Balanza conectada y estable"
+    }
+  ],
+  "comun-21-barra-estado-sin-datos": [
+    {
+      "control": "lblStatusBalanza",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Balanza sin datos"
+    }
+  ],
+  "comun-22-barra-estado-error": [
+    {
+      "control": "lblStatusBalanza",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Error de conexión con la balanza"
+    }
+  ],
+  "op-10-pesaje-vacio": [
+    {
+      "control": "lblProximaBoleta",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Próxima boleta"
+    },
+    {
+      "control": "lblPesoVivo",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Peso en vivo"
+    },
+    {
+      "control": "lblGuia",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Línea de guía"
+    },
+    {
+      "area": [
+        13,
+        252,
+        525,
+        275
+      ],
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Datos del animal"
+    },
+    {
+      "area": [
+        571,
+        258,
+        420,
+        145
+      ],
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Pesos capturados y botones de captura"
+    },
+    {
+      "area": [
+        676,
+        419,
+        312,
+        92
+      ],
+      "numero": 6,
+      "tipo": "recuadro",
+      "leyenda": "Imprimir, cerrar y grabar"
+    }
+  ],
+  "op-11-pesaje-buscar-ganadero": [
+    {
+      "control": "ctlGanadero",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Escriba parte del nombre o el código",
+      "posicion": "derecha"
+    },
+    {
+      "area": [
+        142,
+        284,
+        393,
+        34
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Lista de coincidencias",
+      "posicion": "derecha"
+    }
+  ],
+  "op-11b-pesaje-ganadero-resaltado": [
+    {
+      "area": [
+        142,
+        285,
+        393,
+        17
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Línea resaltada: pulse Enter para elegirla",
+      "posicion": "derecha"
+    }
+  ],
+  "op-12-pesaje-ganadero-cliente": [
+    {
+      "control": "ctlGanadero",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Ganadero elegido",
+      "posicion": "derecha"
+    },
+    {
+      "control": "numSecuencia",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Secuencia sugerida"
+    },
+    {
+      "control": "lblInfoSecuencia",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Pesajes de hoy de este ganadero",
+      "posicion": "derecha"
+    },
+    {
+      "control": "ctlCliente",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Cliente elegido",
+      "posicion": "derecha"
+    },
+    {
+      "control": "txtDireccion",
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Dirección del cliente",
+      "posicion": "derecha"
+    }
+  ],
+  "op-13-pesaje-fletero-lista": [
+    {
+      "control": "ctlFletero",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Escriba parte del nombre o el código",
+      "posicion": "derecha"
+    },
+    {
+      "area": [
+        142,
+        410,
+        393,
+        17
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Línea del fletero: haga clic para elegirla",
+      "posicion": "derecha"
+    }
+  ],
+  "op-22-pesaje-media-res": [
+    {
+      "area": [
+        140,
+        412,
+        393,
+        21
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Color o raza",
+      "posicion": "derecha"
+    },
+    {
+      "control": "cmbSexo",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Sexo",
+      "posicion": "derecha"
+    },
+    {
+      "control": "cmbDesposte",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Tipo de desposte",
+      "posicion": "derecha"
+    },
+    {
+      "area": [
+        140,
+        501,
+        393,
+        21
+      ],
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Observación",
+      "posicion": "derecha"
+    }
+  ],
+  "op-14-pesaje-peso-estable": [
+    {
+      "control": "lblPesoVivo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Peso en vivo"
+    },
+    {
+      "control": "lblEstable",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "ESTABLE: ya se puede capturar"
+    },
+    {
+      "control": "btnCapturarIzquierdo",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Capturar izq. (F5)"
+    },
+    {
+      "control": "lblGuia",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Línea de guía"
+    }
+  ],
+  "op-15-pesaje-izquierdo-capturado": [
+    {
+      "control": "txtPesoIzquierdo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Peso del lado izquierdo capturado"
+    },
+    {
+      "control": "lblGuia",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "La guía pide retirar el peso"
+    },
+    {
+      "control": "btnBorrarPesaje",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Borrar pesaje (F8)"
+    }
+  ],
+  "op-16-pesaje-balanza-en-cero": [
+    {
+      "control": "lblPesoVivo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "El peso baja hacia cero"
+    },
+    {
+      "control": "lblGuia",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "La guía pide esperar un peso estable"
+    }
+  ],
+  "op-17-pesaje-listo-grabar": [
+    {
+      "control": "txtPesoIzquierdo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Lado izquierdo"
+    },
+    {
+      "control": "txtPesoDerecho",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Lado derecho"
+    },
+    {
+      "control": "txtPesoTotal",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Total"
+    },
+    {
+      "control": "btnGrabar",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Grabar (F12)"
+    },
+    {
+      "control": "lblGuia",
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Listo para grabar"
+    }
+  ],
+  "op-20-pesaje-borrado": [
+    {
+      "area": [
+        586,
+        311,
+        389,
+        32
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Los tres pesos quedan en blanco"
+    },
+    {
+      "control": "lblGuia",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "La guía vuelve a pedir los lados"
+    }
+  ],
+  "op-21-pesaje-grabado": [
+    {
+      "control": "lblGuia",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Boleta grabada"
+    },
+    {
+      "control": "lblProximaBoleta",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Próxima boleta"
+    },
+    {
+      "control": "btnImprimir",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Imprimir último (F9)"
+    }
+  ],
+  "op-23-pesaje-media-res-lista": [
+    {
+      "control": "txtPesoDerecho",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Lado capturado"
+    },
+    {
+      "control": "txtPesoTotal",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Total"
+    },
+    {
+      "control": "btnGrabar",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Grabar (F12)"
+    }
+  ],
+  "op-24-alta-rapida-ganadero": [
+    {
+      "control": "txtCodigo",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "El código lo asigna el sistema",
+      "posicion": "derecha"
+    },
+    {
+      "control": "txtNombre",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Nombre del ganadero",
+      "posicion": "derecha"
+    },
+    {
+      "control": "btnGuardar",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Guardar"
+    }
+  ],
+  "op-25-alta-rapida-cliente": [
+    {
+      "control": "txtNombre",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Nombre del cliente",
+      "posicion": "derecha"
+    },
+    {
+      "control": "txtDireccion",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Dirección (opcional)",
+      "posicion": "derecha"
+    },
+    {
+      "control": "btnGuardar",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Guardar"
+    }
+  ],
+  "op-30-historial-hoy": [
+    {
+      "control": "dtpDia",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Día a consultar"
+    },
+    {
+      "control": "btnActualizar",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Actualizar (F5)"
+    },
+    {
+      "area": [
+        0,
+        96,
+        1302,
+        200
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Boletas del día"
+    },
+    {
+      "control": "btnReimprimir",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Reimprimir (F9)"
+    }
+  ],
+  "op-31-historial-otro-dia": [
+    {
+      "control": "dtpDia",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Fecha elegida"
+    },
+    {
+      "control": "btnHoy",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Volver a hoy"
+    }
+  ],
+  "op-32-historial-anuladas": [
+    {
+      "area": [
+        0,
+        270,
+        1302,
+        25
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Boleta anulada, en gris"
+    },
+    {
+      "control": "lblResumen",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Resumen con vigentes y anuladas"
+    }
+  ],
+  "op-40-reimprimir-boleta": [
+    {
+      "control": "numBoleta",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Número de boleta"
+    },
+    {
+      "control": "btnBuscar",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Buscar (Enter)"
+    },
+    {
+      "control": "lblImpresiones",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Veces que se imprimió"
+    },
+    {
+      "control": "btnVistaPrevia",
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Vista previa (F4)"
+    },
+    {
+      "control": "btnImprimir",
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Imprimir (F9)"
+    }
+  ],
+  "op-41-vista-previa-media-carta": [
+    {
+      "area": [
+        614,
+        80,
+        222,
+        84
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Número de boleta"
+    },
+    {
+      "area": [
+        326,
+        170,
+        226,
+        17
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Leyenda de reimpresión"
+    },
+    {
+      "area": [
+        42,
+        200,
+        795,
+        128
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Datos del pesaje"
+    },
+    {
+      "area": [
+        42,
+        338,
+        795,
+        80
+      ],
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Pesos"
+    },
+    {
+      "area": [
+        42,
+        473,
+        796,
+        92
+      ],
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Firmas"
+    }
+  ],
+  "op-42-vista-previa-ticket": [
+    {
+      "area": [
+        163,
+        172,
+        192,
+        38
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Número de boleta",
+      "posicion": "derecha"
+    },
+    {
+      "area": [
+        163,
+        210,
+        192,
+        16
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Leyenda de reimpresión",
+      "posicion": "derecha"
+    },
+    {
+      "area": [
+        163,
+        232,
+        192,
+        122
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Datos del pesaje",
+      "posicion": "derecha"
+    },
+    {
+      "area": [
+        163,
+        359,
+        192,
+        50
+      ],
+      "numero": 4,
+      "tipo": "recuadro",
+      "leyenda": "Pesos",
+      "posicion": "derecha"
+    },
+    {
+      "area": [
+        163,
+        480,
+        192,
+        106
+      ],
+      "numero": 5,
+      "tipo": "recuadro",
+      "leyenda": "Firmas",
+      "posicion": "derecha"
+    }
+  ],
+  "op-05-cerrar-sesion-confirmacion": [
+    {
+      "area": [
+        141,
+        119,
+        75,
+        23
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Pulse Sí"
+    }
+  ],
+  "op-04-menu-sesion-detalle": [
+    {
+      "area": [
+        115,
+        29,
+        214,
+        22
+      ],
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Cambiar contraseña…",
+      "posicion": "izquierda"
+    },
+    {
+      "area": [
+        115,
+        51,
+        214,
+        22
+      ],
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "Cerrar sesión",
+      "posicion": "izquierda"
+    },
+    {
+      "area": [
+        115,
+        79,
+        214,
+        22
+      ],
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Salir",
+      "posicion": "izquierda"
+    }
+  ],
+  "op-13b-pesaje-fletero-sin-elegir": [
+    {
+      "control": "ctlFletero",
+      "numero": 1,
+      "tipo": "recuadro",
+      "leyenda": "Texto escrito en Fletero sin elegir de la lista",
+      "posicion": "derecha"
+    },
+    {
+      "control": "lblGuia",
+      "numero": 2,
+      "tipo": "recuadro",
+      "leyenda": "La guía pide elegir el fletero o borrar el texto"
+    },
+    {
+      "control": "btnGrabar",
+      "numero": 3,
+      "tipo": "recuadro",
+      "leyenda": "Grabar (F12) en gris: no se puede grabar todavía"
+    }
+  ]
+}

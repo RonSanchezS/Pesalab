@@ -71,7 +71,7 @@ public class SqliteBackupServiceTests
             Assert.Equal(TipoBackup.Manual, manifiesto.Tipo);
             Assert.Equal(5, manifiesto.Pesajes);
             Assert.Equal(5L, manifiesto.UltimoNumeroBoleta);
-            Assert.Equal("20260930142130_F6_VersionPesaje", manifiesto.UltimaMigracion);
+            Assert.Equal("20261008185354_F11_ModoDesposte", manifiesto.UltimaMigracion);
         }
         finally
         {
@@ -106,7 +106,7 @@ public class SqliteBackupServiceTests
         // Insertar y confirmar ZZ
         using (var cmd = conn.CreateCommand())
         {
-            cmd.CommandText = "INSERT INTO Ganaderos (Marca, Nombre, Activo, CreadoEn) VALUES ('ZZ', 'GANADERO ZZ', 1, '2026-10-01 10:00:00');";
+            cmd.CommandText = "INSERT INTO Ganaderos (Codigo, Nombre, Activo, CreadoEn) VALUES ('ZZ', 'GANADERO ZZ', 1, '2026-10-01 10:00:00');";
             cmd.ExecuteNonQuery();
         }
 
@@ -115,7 +115,7 @@ public class SqliteBackupServiceTests
         using (var cmd = conn.CreateCommand())
         {
             cmd.Transaction = tx;
-            cmd.CommandText = "INSERT INTO Ganaderos (Marca, Nombre, Activo, CreadoEn) VALUES ('YY', 'GANADERO YY', 1, '2026-10-01 10:00:00');";
+            cmd.CommandText = "INSERT INTO Ganaderos (Codigo, Nombre, Activo, CreadoEn) VALUES ('YY', 'GANADERO YY', 1, '2026-10-01 10:00:00');";
             cmd.ExecuteNonQuery();
         }
 
@@ -137,10 +137,10 @@ public class SqliteBackupServiceTests
             connExtraida.Open();
             using var cmd = connExtraida.CreateCommand();
 
-            cmd.CommandText = "SELECT count(*) FROM Ganaderos WHERE Marca = 'ZZ';";
+            cmd.CommandText = "SELECT count(*) FROM Ganaderos WHERE Codigo = 'ZZ';";
             Assert.Equal(1L, Convert.ToInt64(cmd.ExecuteScalar()));
 
-            cmd.CommandText = "SELECT count(*) FROM Ganaderos WHERE Marca = 'YY';";
+            cmd.CommandText = "SELECT count(*) FROM Ganaderos WHERE Codigo = 'YY';";
             Assert.Equal(0L, Convert.ToInt64(cmd.ExecuteScalar()));
         }
         finally

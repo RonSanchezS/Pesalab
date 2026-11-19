@@ -83,7 +83,7 @@ public static class DatosGestionDePrueba
             NumeroBoleta: numeroBoleta,
             Version: version,
             FechaHoraLocal: fechaHoraLocal ?? new DateTime(2026, 9, 27, 10, 0, 0, DateTimeKind.Unspecified),
-            Marca: marca,
+            Codigo: marca,
             NombreGanadero: nombreGanadero,
             Secuencia: secuencia,
             NombreCliente: nombreCliente,

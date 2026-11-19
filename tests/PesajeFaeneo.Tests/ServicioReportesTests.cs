@@ -64,7 +64,7 @@ public class ServicioReportesTests
     {
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
 
-        var g = new GanaderoBuilder().ConMarca("G1").ConNombre("Ganadero Base").Build();
+        var g = new GanaderoBuilder().ConCodigo("G1").ConNombre("Ganadero Base").Build();
         var c = new ClienteBuilder().ConCodigo(101).ConNombre("Cliente Base").Build();
         var u = new UsuarioBuilder().ConNombreUsuario("operador_rep").ConNombreCompleto("Operador Reportes").Build();
 
@@ -349,7 +349,7 @@ public class ServicioReportesTests
         int gInactivoId, cId, uId;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var g = new GanaderoBuilder().ConMarca("GINA").ConNombre("Ganadero Inactivo").Inactivo().Build();
+            var g = new GanaderoBuilder().ConCodigo("GINA").ConNombre("Ganadero Inactivo").Inactivo().Build();
             var c = new ClienteBuilder().ConCodigo(301).ConNombre("Cliente G").Build();
             var u = new UsuarioBuilder().ConNombreUsuario("user_g").Build();
             ctx.Ganaderos.Add(g);
@@ -361,7 +361,7 @@ public class ServicioReportesTests
             uId = u.Id;
 
             // Boleta de OTRO ganadero en el mismo rango: el filtro debe dejarla fuera.
-            var gOtro = new GanaderoBuilder().ConMarca("GOTR").ConNombre("Otro Ganadero").Build();
+            var gOtro = new GanaderoBuilder().ConCodigo("GOTR").ConNombre("Otro Ganadero").Build();
             ctx.Ganaderos.Add(gOtro);
             await ctx.SaveChangesAsync();
 
@@ -400,7 +400,7 @@ public class ServicioReportesTests
         int gId, cInactivoId, uId;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var g = new GanaderoBuilder().ConMarca("GC").ConNombre("Ganadero C").Build();
+            var g = new GanaderoBuilder().ConCodigo("GC").ConNombre("Ganadero C").Build();
             var c = new ClienteBuilder().ConCodigo(505).ConNombre("Cliente Inactivo").Inactivo().Build();
             var u = new UsuarioBuilder().ConNombreUsuario("user_c").Build();
             ctx.Ganaderos.Add(g);
@@ -453,7 +453,7 @@ public class ServicioReportesTests
         int g2, c2;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var g = new GanaderoBuilder().ConMarca("G2").ConNombre("Ganadero 2").Build();
+            var g = new GanaderoBuilder().ConCodigo("G2").ConNombre("Ganadero 2").Build();
             var c = new ClienteBuilder().ConCodigo(202).ConNombre("Cliente 2").Build();
             ctx.Ganaderos.Add(g);
             ctx.Clientes.Add(c);
@@ -839,7 +839,7 @@ public class ServicioReportesTests
 
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            ctx.Ganaderos.Add(new GanaderoBuilder().ConMarca("ACT1").Inactivo().Build());
+            ctx.Ganaderos.Add(new GanaderoBuilder().ConCodigo("ACT1").Inactivo().Build());
             ctx.Clientes.Add(new ClienteBuilder().ConCodigo(901).Inactivo().Build());
             await ctx.SaveChangesAsync();
         }

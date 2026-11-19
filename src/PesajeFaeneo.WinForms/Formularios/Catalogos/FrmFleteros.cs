@@ -18,12 +18,12 @@ public class FrmFleteros : FormBase
 
     private sealed record FleteroFila(
         int Id,
-        int Orden,
+        int Codigo,
         string Nombre,
         string? Celular,
         bool Activo)
     {
-        public string OrdenTexto => Activo ? $"F{Orden}" : "—";
+        public string CodigoTexto => Codigo.ToString(System.Globalization.CultureInfo.InvariantCulture);
         public string CelularTexto => Celular ?? string.Empty;
         public string ActivoTexto => Activo ? "Sí" : "No";
     }
@@ -97,9 +97,9 @@ public class FrmFleteros : FormBase
 
         dgvFleteros.Columns.Add(new DataGridViewTextBoxColumn
         {
-            Name = "ColOrden",
-            HeaderText = "Orden",
-            DataPropertyName = nameof(FleteroFila.OrdenTexto),
+            Name = "ColCodigo",
+            HeaderText = "Código",
+            DataPropertyName = nameof(FleteroFila.CodigoTexto),
             Width = 80
         });
 
@@ -235,7 +235,7 @@ public class FrmFleteros : FormBase
 
         var listaFilas = fleteros.Select(f => new FleteroFila(
             f.Id,
-            f.Orden,
+            f.Codigo,
             f.Nombre,
             f.Celular,
             f.Activo)).ToList();
@@ -267,23 +267,8 @@ public class FrmFleteros : FormBase
     {
         await EjecutarAsync(async () =>
         {
-            var fleterosActivos = (await _servicioFleteros.ListarAsync(incluirInactivos: false)).ToList();
-            var ordenesUsadas = fleterosActivos.Select(f => f.Orden).ToHashSet();
-            var primerOrdenLibre = Enumerable.Range(1, 4).FirstOrDefault(o => !ordenesUsadas.Contains(o));
-
-            if (primerOrdenLibre == 0 || fleterosActivos.Count >= 4)
-            {
-                MessageBox.Show(
-                    this,
-                    "Ya hay 4 fleteros activos. Desactive uno antes de agregar otro.",
-                    "Límite alcanzado",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                return;
-            }
-
             using var frm = _formFactory.Crear<FrmFleteroEdicion>();
-            frm.ConfigurarAlta(primerOrdenLibre);
+            frm.ConfigurarAlta();
             if (frm.ShowDialog(this) == DialogResult.OK)
             {
                 await CargarAsync(frm.IdGuardado);
@@ -314,7 +299,7 @@ public class FrmFleteros : FormBase
         if (fila == null) return;
 
         var accion = fila.Activo ? "desactivar" : "activar";
-        var identificador = fila.Activo ? $"F{fila.Orden}" : "—";
+        var identificador = fila.CodigoTexto;
         var confirmacion = MessageBox.Show(
             this,
             $"¿Está seguro de que desea {accion} al fletero '{identificador} — {fila.Nombre}'?",

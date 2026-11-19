@@ -26,6 +26,7 @@ public class FrmBuscarBoletas : FormBase
 
     private int _versionBusqueda;
     private FiltroBoletas? _ultimoFiltro;
+    private ModoDesposte _modoDesposte = ModoDesposte.Ambos;
 
     // Filtros
     internal DateTimePicker dtpDesde = null!;
@@ -258,10 +259,11 @@ public class FrmBuscarBoletas : FormBase
         {
             new DataGridViewTextBoxColumn { Name = "colNumero", HeaderText = "N°", Width = 80, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } },
             new DataGridViewTextBoxColumn { Name = "colFechaHora", HeaderText = "Fecha y hora", Width = 135 },
-            new DataGridViewTextBoxColumn { Name = "colMarca", HeaderText = "Marca", Width = 70 },
+            new DataGridViewTextBoxColumn { Name = "colCodigo", HeaderText = "Código", Width = 70 },
             new DataGridViewTextBoxColumn { Name = "colGanadero", HeaderText = "Ganadero", Width = 150 },
             new DataGridViewTextBoxColumn { Name = "colSecuencia", HeaderText = "Sec.", Width = 55, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } },
             new DataGridViewTextBoxColumn { Name = "colCliente", HeaderText = "Cliente", Width = 160 },
+            new DataGridViewTextBoxColumn { Name = "colFletero", HeaderText = "Fletero", Width = 140 },
             new DataGridViewTextBoxColumn { Name = "colDesposte", HeaderText = "Desposte", Width = 110 },
             new DataGridViewTextBoxColumn { Name = "colIzq", HeaderText = "Izq.", Width = 80, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } },
             new DataGridViewTextBoxColumn { Name = "colDer", HeaderText = "Der.", Width = 80, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleRight } },
@@ -347,6 +349,11 @@ public class FrmBuscarBoletas : FormBase
         }
 
         _ultimoFiltro = filtroEfectivo;
+        _modoDesposte = resultado.ModoDesposte;
+
+        // F11 (D6): la columna se oculta si todas las boletas son del único tipo que pesa la empresa.
+        dgvResultados.Columns["colDesposte"]!.Visible =
+            ReglasDesposte.MostrarDesposte(resultado.ModoDesposte, resultado.Boletas.Select(b => b.TipoDesposte));
 
         dgvResultados.Rows.Clear();
         int filaAReseleccionar = -1;
@@ -365,10 +372,11 @@ public class FrmBuscarBoletas : FormBase
             int index = dgvResultados.Rows.Add(
                 b.NumeroBoleta.ToString(),
                 TextosBoleta.FechaHora(b.FechaHoraLocal),
-                b.Marca,
+                b.Codigo,
                 b.NombreGanadero,
                 b.Secuencia.ToString(),
                 b.NombreCliente,
+                b.NombreFletero ?? string.Empty,
                 TextosBoleta.Desposte(b.TipoDesposte),
                 TextosBoleta.Peso(b.PesoIzquierdo),
                 TextosBoleta.Peso(b.PesoDerecho),
@@ -501,7 +509,7 @@ public class FrmBuscarBoletas : FormBase
         Ejecutar(() =>
         {
             using var frm = _formFactory.Crear<FrmAnularBoleta>();
-            frm.Configurar(fila);
+            frm.Configurar(fila, _modoDesposte);
             r = MostrarDialogo(frm);
         });
 

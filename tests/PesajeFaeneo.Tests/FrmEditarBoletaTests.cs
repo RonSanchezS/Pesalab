@@ -100,6 +100,35 @@ public class FrmEditarBoletaTests
     }
 
     [Fact]
+    public void Guardar_FleteroEscritoSinElegir_MarcaErrorYNoLlamaServicio()
+    {
+        // F12 (E1): antes se guardaba sin fletero y sin aviso.
+        HiloSta.Ejecutar(() =>
+        {
+            var falso = new ServicioGestionPesajesFalso();
+            falso.ResultadoEditar = new ResultadoEdicion(true, new[] { "Dirección" });
+
+            using var form = new FrmEditarBoleta(falso);
+            form.Configurar(DatosGestionDePrueba.CrearBoletaParaEdicion());
+
+            form.txtDireccion.Text = "NUEVA DIRECCION 456";
+            form.ctlFletero.CajaTexto.Text = "FLETERO QUE NO EXISTE";
+
+            form.GuardarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Empty(falso.EdicionesRecibidas);
+            Assert.NotEqual(DialogResult.OK, form.DialogResult);
+            Assert.Equal("Elija el fletero de la lista o borre el texto.", form._errorProvider.GetError(form.ctlFletero));
+
+            form.ctlFletero.Limpiar();
+            form.GuardarParaTestAsync().GetAwaiter().GetResult();
+
+            var recibido = Assert.Single(falso.EdicionesRecibidas);
+            Assert.Null(recibido.FleteroId);
+        });
+    }
+
+    [Fact]
     public void Guardar_ValidacionException_MuestraErrorProviderYNoCierra()
     {
         HiloSta.Ejecutar(() =>

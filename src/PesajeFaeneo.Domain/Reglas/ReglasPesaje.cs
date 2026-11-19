@@ -8,6 +8,7 @@ public static class CamposPesaje
 {
     public const string Ganadero = "Ganadero";
     public const string Cliente = "Cliente";
+    public const string Fletero = "Fletero";
     public const string Direccion = "Direccion";
     public const string Secuencia = "Secuencia";
     public const string ColorRaza = "ColorRaza";
@@ -33,6 +34,8 @@ public static class ReglasPesaje
     public const char SexoMacho = 'M';
     public const char SexoHembra = 'H';
     public const int PesajesDelDiaMaximo = 50;
+    /// <summary>Tope de filas del historial de pesajes de un día (F10); si se alcanza, la pantalla avisa.</summary>
+    public const int HistorialMaximo = 500;
 
     public static decimal Redondear(decimal pesoKg) =>
         Math.Round(pesoKg, 1, MidpointRounding.AwayFromZero);

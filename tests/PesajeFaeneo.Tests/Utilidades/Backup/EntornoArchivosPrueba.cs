@@ -48,7 +48,7 @@ public sealed class EntornoArchivosPrueba : IAsyncDisposable
         return new EntornoArchivosPrueba(dir, appPaths, contextFactory, tiempo);
     }
 
-    public async Task<int> SembrarAsync(int pesajes, string marca = "AB")
+    public async Task<int> SembrarAsync(int pesajes, string codigo = "AB")
     {
         await using var ctx = await ContextFactory.CreateDbContextAsync();
 
@@ -58,12 +58,12 @@ public sealed class EntornoArchivosPrueba : IAsyncDisposable
             .Build();
         ctx.Usuarios.Add(admin);
 
-        var ganadero = await ctx.Ganaderos.FirstOrDefaultAsync(g => g.Marca == marca);
+        var ganadero = await ctx.Ganaderos.FirstOrDefaultAsync(g => g.Codigo == codigo);
         if (ganadero is null)
         {
             ganadero = new Ganadero
             {
-                Marca = marca,
+                Codigo = codigo,
                 Nombre = "GANADERO TEST",
                 Activo = true,
                 CreadoEn = Tiempo.GetUtcNow().UtcDateTime

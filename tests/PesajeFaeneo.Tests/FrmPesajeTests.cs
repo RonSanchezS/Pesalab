@@ -30,6 +30,7 @@ public class FrmPesajeTests
         public ServicioPesajesFalso ServicioPesajes { get; } = new();
         public ServicioGanaderosFalso ServicioGanaderos { get; } = new();
         public ServicioClientesFalso ServicioClientes { get; } = new();
+        public ServicioFleterosFalso ServicioFleteros { get; } = new();
         public ServicioParametrosFalso ServicioParametros { get; } = new();
         public ServicioBalanzaFalso ServicioBalanza { get; } = new();
         public SimuladorBalanzaFalso SimuladorBalanza { get; } = new();
@@ -61,6 +62,7 @@ public class FrmPesajeTests
                 ServicioPesajes,
                 ServicioGanaderos,
                 ServicioClientes,
+                ServicioFleteros,
                 ServicioParametros,
                 ServicioBalanza,
                 SimuladorBalanza,
@@ -109,21 +111,6 @@ public class FrmPesajeTests
             var ctx = new ContextoPruebaFrmPesaje();
             ctx.ServicioParametros.Parametros = new ParametrosDto(
                 "EMPRESA", "DIR", "TEL", "CIU", "RS", "800", "OBS INICIAL", null, null, 42, 41, ctx.Reloj.GetUtcNow().UtcDateTime);
-            ctx.ServicioPesajes.PesajesDelDia.Add(new PesajeResumen(
-                Id: 1,
-                NumeroBoleta: 41,
-                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
-                Marca: "AH",
-                NombreGanadero: "JUAN PEREZ",
-                Secuencia: 1,
-                NombreCliente: "CARLOS LOPEZ",
-                TipoDesposte: TipoDesposte.ResCompleta,
-                PesoIzquierdo: 120m,
-                PesoDerecho: 130m,
-                PesoTotal: 250m,
-                Estado: EstadoPesaje.Vigente,
-                Origen: OrigenPeso.Balanza));
-
             using var form = ctx.CrearFormulario();
             form.ConfirmarCierre = false;
 
@@ -131,8 +118,6 @@ public class FrmPesajeTests
 
             Assert.Equal("OBS INICIAL", form.txtObservacion.Text);
             Assert.Contains("42", form.lblProximaBoleta.Text);
-            Assert.Single(form.dgvHoy.Rows);
-            Assert.Equal(41L, (long)form.dgvHoy.Rows[0].Cells[0].Value);
         });
     }
 
@@ -368,7 +353,7 @@ public class FrmPesajeTests
             Assert.Equal(10, form.ctlCliente.Seleccion?.Id);
             Assert.Contains("Boleta N° 99 grabada", form.lblGuia.Text);
             Assert.True(ctx.ServicioPesajes.VecesSugerirLlamado >= 2);
-            Assert.True(ctx.ServicioPesajes.VecesListarDelDiaLlamado >= 2);
+            Assert.Equal(0, ctx.ServicioPesajes.VecesListarDelDiaLlamado); // el historial ya no vive en esta pantalla
         });
     }
 
@@ -552,7 +537,7 @@ public class FrmPesajeTests
 
             ctx.ServicioGanaderos.AlCrearRapidoAsync = dto =>
             {
-                ctx.ServicioGanaderos.ElementosBusqueda.Add(new ElementoBusqueda(77, dto.Marca, dto.Nombre, null));
+                ctx.ServicioGanaderos.ElementosBusqueda.Add(new ElementoBusqueda(77, "1", dto.Nombre, null));
                 return Task.FromResult(77);
             };
 
@@ -560,7 +545,6 @@ public class FrmPesajeTests
             {
                 if (f is FrmGanaderoEdicion ge)
                 {
-                    ge.TxtMarca.Text = "ZZ";
                     ge.TxtNombre.Text = "NUEVO GANADERO";
                     ge.GuardarParaTestAsync().GetAwaiter().GetResult();
                     return DialogResult.OK;
@@ -574,12 +558,12 @@ public class FrmPesajeTests
             System.Windows.Forms.Application.DoEvents();
 
             Assert.Equal(77, form.ctlGanadero.Seleccion?.Id);
-            Assert.Contains("ZZ", form.ctlGanadero.Seleccion?.Codigo);
+            Assert.Equal("NUEVO GANADERO", form.ctlGanadero.Seleccion?.Descripcion);
         });
     }
 
     [Fact]
-    public void AltaRapidaCliente_SugiereCodigoRecargaListaYSeleccionaNuevoCliente()
+    public void AltaRapidaCliente_RecargaListaYSeleccionaNuevoCliente_SinPedirCodigo()
     {
         HiloSta.Ejecutar(() =>
         {
@@ -588,10 +572,9 @@ public class FrmPesajeTests
             form.ConfirmarCierre = false;
             form.CargarParaTestAsync().GetAwaiter().GetResult();
 
-            ctx.ServicioClientes.SiguienteCodigoSugerido = 888;
             ctx.ServicioClientes.AlCrearRapidoAsync = dto =>
             {
-                ctx.ServicioClientes.ElementosBusqueda.Add(new ElementoBusqueda(88, dto.Codigo.ToString(), dto.Nombre, dto.Direccion));
+                ctx.ServicioClientes.ElementosBusqueda.Add(new ElementoBusqueda(88, "1", dto.Nombre, dto.Direccion));
                 return Task.FromResult(88);
             };
 
@@ -599,7 +582,8 @@ public class FrmPesajeTests
             {
                 if (f is FrmClienteEdicion ce)
                 {
-                    Assert.Equal(888, ce.NumCodigo.Value);
+                    Assert.Equal(FrmClienteEdicion.TextoCodigoAlta, ce.TxtCodigo.Text); // el código lo asigna el sistema
+                    Assert.Equal("CLIENTE NUEVO", ce.TxtNombre.Text);
                     ce.TxtNombre.Text = "CLIENTE ALTA RAPIDA";
                     ce.TxtDireccion.Text = "CALLE NUEVA 123";
                     ce.GuardarParaTestAsync().GetAwaiter().GetResult();
@@ -785,46 +769,93 @@ public class FrmPesajeTests
         });
     }
 
+    // Graba un pesaje de prueba (Id y número dados) con el flujo completo de la pantalla; deja el formulario con ese
+    // pesaje como "último grabado" (el que imprime F9).
+    private static void GrabarPesajeDePrueba(ContextoPruebaFrmPesaje ctx, FrmPesaje form, int id, long numeroBoleta)
+    {
+        form.ctlGanadero.Seleccionar(1);
+        form.ctlCliente.Seleccionar(10);
+
+        ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+            1, EstadoBalanza.Conectada, 120m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+        form.CapturarParaTest(LadoPesaje.Izquierdo);
+
+        ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+            2, EstadoBalanza.Conectada, 0m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+        form.SondearBalanzaParaTest();
+
+        ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+            3, EstadoBalanza.Conectada, 130m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+        form.CapturarParaTest(LadoPesaje.Derecho);
+
+        ctx.ServicioPesajes.ResultadoRegistrar = new PesajeRegistrado(
+            Id: id,
+            NumeroBoleta: numeroBoleta,
+            FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
+            PesoTotal: 250m,
+            Origen: OrigenPeso.Balanza);
+
+        form.GrabarParaTestAsync().GetAwaiter().GetResult();
+    }
+
     [Fact]
-    public void ImpresionManual_ConBoletasEnGrilla_ImprimeSeleccionada_GrillaVaciaDeshabilitaBoton()
+    public void Layout_SinGrillaDelDia_ElHistorialYaNoVivePeroLaPantallaNoSeRecorta()
     {
         HiloSta.Ejecutar(() =>
         {
             var ctx = new ContextoPruebaFrmPesaje();
-            ctx.ServicioPesajes.PesajesDelDia.Add(new PesajeResumen(
-                Id: 5,
-                NumeroBoleta: 102,
-                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
-                Marca: "AH",
-                NombreGanadero: "JUAN PEREZ",
-                Secuencia: 2,
-                NombreCliente: "CARLOS LOPEZ",
-                TipoDesposte: TipoDesposte.ResCompleta,
-                PesoIzquierdo: 120m,
-                PesoDerecho: 130m,
-                PesoTotal: 250m,
-                Estado: EstadoPesaje.Vigente,
-                Origen: OrigenPeso.Balanza));
-            ctx.ServicioPesajes.PesajesDelDia.Add(new PesajeResumen(
-                Id: 4,
-                NumeroBoleta: 101,
-                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
-                Marca: "AH",
-                NombreGanadero: "JUAN PEREZ",
-                Secuencia: 1,
-                NombreCliente: "CARLOS LOPEZ",
-                TipoDesposte: TipoDesposte.ResCompleta,
-                PesoIzquierdo: 110m,
-                PesoDerecho: 120m,
-                PesoTotal: 230m,
-                Estado: EstadoPesaje.Vigente,
-                Origen: OrigenPeso.Balanza));
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+            System.Windows.Forms.Application.DoEvents();
 
+            // O3: la grilla del día es ahora FrmHistorialPesajes; el registro no consulta el día.
+            Assert.Empty(form.Controls.Find("dgvHoy", true));
+            Assert.DoesNotContain(AplanarControles(form), c => c is DataGridView);
+            Assert.Equal(0, ctx.ServicioPesajes.VecesListarDelDiaLlamado);
+
+            // Los pesos y las acciones pasaron a la columna derecha, al lado de los datos.
+            Assert.True(form.btnGrabar.Parent!.PointToScreen(Point.Empty).X > form.ctlGanadero.PointToScreen(Point.Empty).X);
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
+
+    private static IEnumerable<Control> AplanarControles(Control raiz)
+    {
+        foreach (Control c in raiz.Controls)
+        {
+            yield return c;
+            foreach (var h in AplanarControles(c))
+            {
+                yield return h;
+            }
+        }
+    }
+
+    [Fact]
+    public void ImpresionManual_ImprimeElUltimoPesajeGrabado_SinGrabarNingunoDeshabilitaBoton()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
             using var form = ctx.CrearFormulario();
             form.ConfirmarCierre = false;
             form.CargarParaTestAsync().GetAwaiter().GetResult();
 
+            // Antes de grabar nada: F9 no hace nada.
             Assert.False(form.btnImprimir.TabStop);
+            Assert.Null(form.IdBoletaParaImprimirParaTest);
+            Assert.False(form.btnImprimir.Enabled);
+            form.ProcesarTeclaParaTest(Keys.F9);
+            System.Windows.Forms.Application.DoEvents();
+            Assert.Empty(ctx.ServicioImpresion.Solicitudes);
+
+            GrabarPesajeDePrueba(ctx, form, id: 5, numeroBoleta: 102);
+            ctx.ServicioImpresion.Solicitudes.Clear(); // descarta la impresión automática al grabar
+
             Assert.Equal(5, form.IdBoletaParaImprimirParaTest);
             Assert.True(form.btnImprimir.Enabled);
 
@@ -834,16 +865,9 @@ public class FrmPesajeTests
             Assert.Single(ctx.ServicioImpresion.Solicitudes);
             Assert.Equal((5, SolicitudImpresion.Manual), ctx.ServicioImpresion.Solicitudes[0]);
 
-            // Grilla vacía
-            var ctxVacio = new ContextoPruebaFrmPesaje();
-            using var formVacio = ctxVacio.CrearFormulario();
-            formVacio.ConfirmarCierre = false;
-            formVacio.CargarParaTestAsync().GetAwaiter().GetResult();
-
-            Assert.False(formVacio.btnImprimir.Enabled);
-            formVacio.ProcesarTeclaParaTest(Keys.F9);
-            System.Windows.Forms.Application.DoEvents();
-            Assert.Empty(ctxVacio.ServicioImpresion.Solicitudes);
+            // Un segundo pesaje pasa a ser "el último".
+            GrabarPesajeDePrueba(ctx, form, id: 6, numeroBoleta: 103);
+            Assert.Equal(6, form.IdBoletaParaImprimirParaTest);
         });
     }
 
@@ -853,27 +877,15 @@ public class FrmPesajeTests
         HiloSta.Ejecutar(() =>
         {
             var ctx = new ContextoPruebaFrmPesaje();
-            ctx.ServicioPesajes.PesajesDelDia.Add(new PesajeResumen(
-                Id: 1,
-                NumeroBoleta: 10,
-                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
-                Marca: "AH",
-                NombreGanadero: "JUAN PEREZ",
-                Secuencia: 1,
-                NombreCliente: "CARLOS LOPEZ",
-                TipoDesposte: TipoDesposte.ResCompleta,
-                PesoIzquierdo: 120m,
-                PesoDerecho: 130m,
-                PesoTotal: 250m,
-                Estado: EstadoPesaje.Vigente,
-                Origen: OrigenPeso.Balanza));
-
-            var tcs = new TaskCompletionSource<ResultadoImpresion>();
-            ctx.ServicioImpresion.TcsImpresion = tcs;
-
             using var form = ctx.CrearFormulario();
             form.ConfirmarCierre = false;
             form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            GrabarPesajeDePrueba(ctx, form, id: 1, numeroBoleta: 10);
+            ctx.ServicioImpresion.Solicitudes.Clear();
+
+            var tcs = new TaskCompletionSource<ResultadoImpresion>();
+            ctx.ServicioImpresion.TcsImpresion = tcs;
 
             // Dos F9 seguidos
             form.ProcesarTeclaParaTest(Keys.F9);
@@ -903,29 +915,290 @@ public class FrmPesajeTests
         HiloSta.Ejecutar(() =>
         {
             var ctx = new ContextoPruebaFrmPesaje();
-            ctx.ServicioPesajes.PesajesDelDia.Add(new PesajeResumen(
-                Id: 1,
-                NumeroBoleta: 10,
-                FechaHoraUtc: ctx.Reloj.GetUtcNow().UtcDateTime,
-                Marca: "AH",
-                NombreGanadero: "JUAN PEREZ",
-                Secuencia: 1,
-                NombreCliente: "CARLOS LOPEZ",
-                TipoDesposte: TipoDesposte.ResCompleta,
-                PesoIzquierdo: 120m,
-                PesoDerecho: 130m,
-                PesoTotal: 250m,
-                Estado: EstadoPesaje.Vigente,
-                Origen: OrigenPeso.Balanza));
-
             using var form = ctx.CrearFormulario();
             form.ConfirmarCierre = false;
             form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            GrabarPesajeDePrueba(ctx, form, id: 1, numeroBoleta: 10);
+            ctx.ServicioImpresion.Solicitudes.Clear();
 
             form.ProcesarTeclaParaTest(Keys.F9 | Keys.Control);
             System.Windows.Forms.Application.DoEvents();
 
             Assert.Empty(ctx.ServicioImpresion.Solicitudes);
+        });
+    }
+
+    // ---- F10 (O5): fletero opcional elegido al pesar ----
+
+    private static void CapturarDosLados(ContextoPruebaFrmPesaje ctx, FrmPesaje form)
+    {
+        ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+            1, EstadoBalanza.Conectada, 120m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+        form.CapturarParaTest(LadoPesaje.Izquierdo);
+
+        ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+            2, EstadoBalanza.Conectada, 0m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+        form.SondearBalanzaParaTest();
+
+        ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+            3, EstadoBalanza.Conectada, 130m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+        form.CapturarParaTest(LadoPesaje.Derecho);
+    }
+
+    [Fact]
+    public void Fletero_AlCargarSeLlenaLaListaConLosActivos_YLaGrabacionSinFleteroEnviaNulo()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioFleteros.ElementosBusqueda.Add(new ElementoBusqueda(5, "1", "FLETERO UNO", "70000001"));
+            ctx.ServicioFleteros.ElementosBusqueda.Add(new ElementoBusqueda(6, "12", "FLETERO DOCE", "70000012"));
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.True(ctx.ServicioFleteros.VecesListarParaBusqueda >= 1);
+            Assert.Null(form.ctlFletero.Seleccion); // opcional: arranca sin fletero
+            Assert.False(form.ctlFletero.PermitirAltaRapida);
+
+            form.ctlGanadero.Seleccionar(1);
+            form.ctlCliente.Seleccionar(10);
+            CapturarDosLados(ctx, form);
+            form.GrabarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Null(Assert.Single(ctx.ServicioPesajes.DtosRegistrados).FleteroId);
+        });
+    }
+
+    [Fact]
+    public void Fletero_ElegidoSeEnviaEnElDto_YSeLimpiaTrasGrabarMientrasGanaderoYClienteQuedan()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioFleteros.ElementosBusqueda.Add(new ElementoBusqueda(5, "1", "FLETERO UNO", "70000001"));
+            ctx.ServicioFleteros.ElementosBusqueda.Add(new ElementoBusqueda(6, "12", "FLETERO DOCE", "70000012"));
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            form.ctlGanadero.Seleccionar(1);
+            form.ctlCliente.Seleccionar(10);
+            form.ctlFletero.Seleccionar(6);
+            CapturarDosLados(ctx, form);
+            form.GrabarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Equal(6, Assert.Single(ctx.ServicioPesajes.DtosRegistrados).FleteroId);
+            Assert.Null(form.ctlFletero.Seleccion);
+            Assert.Equal(1, form.ctlGanadero.Seleccion?.Id);
+            Assert.Equal(10, form.ctlCliente.Seleccion?.Id);
+        });
+    }
+
+    [Fact]
+    public void Fletero_ErrorDeValidacion_SeMuestraEnElControlDelFletero()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioFleteros.ElementosBusqueda.Add(new ElementoBusqueda(5, "1", "FLETERO UNO", "70000001"));
+            ctx.ServicioPesajes.ExcepcionAlRegistrar = new ValidacionException(CamposPesaje.Fletero, "El fletero seleccionado no existe o está desactivado.");
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+            form.ctlGanadero.Seleccionar(1);
+            form.ctlCliente.Seleccionar(10);
+            form.ctlFletero.Seleccionar(5);
+            CapturarDosLados(ctx, form);
+
+            form.GrabarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Equal("El fletero seleccionado no existe o está desactivado.", form._errorProvider.GetError(form.ctlFletero));
+            Assert.Equal(5, form.ctlFletero.Seleccion?.Id); // se conserva para corregir
+        });
+    }
+
+    [Fact]
+    public void Fletero_OrdenDeTabulacion_VaTrasDireccionYAntesDelColorRaza_YElSimuladorSigueEnLaPantalla()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje(Rol.Administrador);
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.True(form.txtDireccion.TabIndex < form.ctlFletero.TabIndex);
+            Assert.True(form.ctlFletero.TabIndex < form.txtColorRaza.TabIndex);
+            Assert.True(form.ctlCliente.TabIndex < form.txtDireccion.TabIndex);
+
+            // El Enter desde la dirección baja al fletero (flujo por teclado).
+            form.txtDireccion.Focus();
+            form.ProcesarTeclaParaTest(Keys.Enter);
+            Assert.True(form.ctlFletero.ContainsFocus, "Enter en Dirección debe pasar al selector de fletero");
+
+            // El panel del simulador sigue disponible en esta pantalla (O3 solo quitó la grilla del día).
+            Assert.NotNull(form.grpSimulador);
+        });
+    }
+
+    // ---- F11: tipo de pesaje configurable ----
+
+    [Theory]
+    [InlineData(ModoDesposte.Ambos, true)]
+    [InlineData(ModoDesposte.SoloResCompleta, false)]
+    [InlineData(ModoDesposte.SoloMediaRes, false)]
+    public void ModoDesposte_ConUnSoloTipo_OcultaLaFilaDesposte(ModoDesposte modo, bool visible)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioParametros.Modo = modo;
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Equal(modo, form.ModoDesposteActual);
+            Assert.Equal(visible, form.cmbDesposte.Visible);
+            Assert.Equal(visible, form.lblDesposte.Visible);
+        });
+    }
+
+    [Fact]
+    public void ModoSoloResCompleta_ExigeLosDosLadosConRetornoACeroYGrabaResCompleta()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioParametros.Modo = ModoDesposte.SoloResCompleta;
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+            form.ctlGanadero.Seleccionar(1);
+            form.ctlCliente.Seleccionar(10);
+
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                1, EstadoBalanza.Conectada, 120m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.CapturarParaTest(LadoPesaje.Izquierdo);
+
+            // Sin volver a cero no se puede capturar el otro lado (regla de res completa intacta).
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                2, EstadoBalanza.Conectada, 130m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.SondearBalanzaParaTest();
+            Assert.False(form.btnCapturarDerecho.Enabled);
+            Assert.False(form.btnGrabar.Enabled);
+
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                3, EstadoBalanza.Conectada, 0m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.SondearBalanzaParaTest();
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                4, EstadoBalanza.Conectada, 130m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.CapturarParaTest(LadoPesaje.Derecho);
+
+            ctx.ServicioPesajes.ResultadoRegistrar = new PesajeRegistrado(1, 99, ctx.Reloj.GetUtcNow().UtcDateTime, 250m, OrigenPeso.Balanza);
+            form.GrabarParaTestAsync().GetAwaiter().GetResult();
+
+            var dto = Assert.Single(ctx.ServicioPesajes.DtosRegistrados);
+            Assert.Equal(TipoDesposte.ResCompleta, dto.TipoDesposte);
+            Assert.False(form.cmbDesposte.Visible);
+        });
+    }
+
+    [Fact]
+    public void ModoSoloMediaRes_UnLadoBasta_MensajeSinPrefijoYGrabaMediaRes()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioParametros.Modo = ModoDesposte.SoloMediaRes;
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+            form.ctlGanadero.Seleccionar(1);
+            form.ctlCliente.Seleccionar(10);
+
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                1, EstadoBalanza.Conectada, 115m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.SondearBalanzaParaTest();
+            Assert.Equal("Capture un lado (F5 o F6).", form.lblGuia.Text);
+
+            form.CapturarParaTest(LadoPesaje.Derecho);
+            Assert.True(form.btnGrabar.Enabled);
+
+            ctx.ServicioPesajes.ResultadoRegistrar = new PesajeRegistrado(1, 99, ctx.Reloj.GetUtcNow().UtcDateTime, 115m, OrigenPeso.Balanza);
+            form.GrabarParaTestAsync().GetAwaiter().GetResult();
+
+            var dto = Assert.Single(ctx.ServicioPesajes.DtosRegistrados);
+            Assert.Equal(TipoDesposte.MediaRes, dto.TipoDesposte);
+            Assert.Equal(0m, dto.PesoIzquierdo);
+            Assert.Equal(115m, dto.PesoDerecho);
+        });
+    }
+
+    [Theory]
+    [InlineData(ModoDesposte.SoloResCompleta)]
+    [InlineData(ModoDesposte.SoloMediaRes)]
+    public void Layout_SinLaFilaDesposte_SinRecortesNiConEscalado(ModoDesposte modo)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioParametros.Modo = modo;
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+            System.Windows.Forms.Application.DoEvents();
+
+            // La fila oculta colapsa: Observación queda inmediatamente debajo de Sexo.
+            Assert.True(form.txtObservacion.Top - form.cmbSexo.Bottom < form.cmbSexo.Height);
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
+        });
+    }
+    [Fact]
+    public void Grabar_FleteroSinElegirLoBloqueaYElBotonSeVeDeshabilitado()
+    {
+        // F12 (E1, E2): un fletero escrito y no elegido bloquea el grabado; Grabar deshabilitado ya no se ve verde.
+        HiloSta.Ejecutar(() =>
+        {
+            var ctx = new ContextoPruebaFrmPesaje();
+            ctx.ServicioParametros.Modo = ModoDesposte.SoloMediaRes;
+            using var form = ctx.CrearFormulario();
+            form.ConfirmarCierre = false;
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.False(form.btnGrabar.Enabled);
+            Assert.Equal(SystemColors.Control, form.btnGrabar.BackColor);
+            Assert.Equal(SystemColors.GrayText, form.btnGrabar.ForeColor);
+
+            form.ctlGanadero.Seleccionar(1);
+            form.ctlCliente.Seleccionar(10);
+            ctx.ServicioBalanza.Instantanea = new InstantaneaBalanza(
+                1, EstadoBalanza.Conectada, 115m, true, ctx.Reloj.GetUtcNow(), null, "Balanza", false);
+            form.SondearBalanzaParaTest();
+            form.CapturarParaTest(LadoPesaje.Derecho);
+
+            Assert.True(form.btnGrabar.Enabled);
+            Assert.Equal(Color.FromArgb(46, 139, 87), form.btnGrabar.BackColor);
+            Assert.Equal(Color.White, form.btnGrabar.ForeColor);
+
+            form.ctlFletero.CajaTexto.Text = "FLETERO QUE NO EXISTE";
+            Assert.False(form.btnGrabar.Enabled);
+            Assert.Equal(SystemColors.Control, form.btnGrabar.BackColor);
+            Assert.Equal("Elija el fletero de la lista o borre el texto.", form.lblGuia.Text);
+
+            form.ctlFletero.Limpiar();
+            form.SondearBalanzaParaTest();
+            Assert.True(form.btnGrabar.Enabled);
+            Assert.Equal("Listo para grabar (F12).", form.lblGuia.Text);
         });
     }
 }

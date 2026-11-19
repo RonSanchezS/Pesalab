@@ -17,6 +17,9 @@ public partial class ControlBusquedaCatalogo : UserControl
     public ElementoBusqueda? Seleccion { get; private set; }
     public bool PermitirAltaRapida { get; set; }
 
+    // F12 (E1): hay texto escrito que no quedó elegido (varias coincidencias o ninguna).
+    public bool TextoSinElegir => Seleccion is null && !string.IsNullOrWhiteSpace(_txtTexto.Text);
+
     [DefaultValue("")]
     public string Placeholder
     {

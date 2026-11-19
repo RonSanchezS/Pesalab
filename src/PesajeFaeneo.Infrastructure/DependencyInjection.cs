@@ -62,6 +62,24 @@ public static class DependencyInjection
 
         services.AddSingleton<Application.Utilitarios.Logs.ILectorArchivosLog, Utilitarios.Logs.LectorArchivosLog>();
 
+        // F13: licencias. En el build de capturas el almacén es en memoria (ya activado) y el servidor, de demostración.
+#if CAPTURAS_MANUAL
+        services.AddSingleton<Application.Licencias.IIdentificadorEquipo, Licencias.Demo.IdentificadorEquipoDemo>();
+        services.AddSingleton<Application.Licencias.IAlmacenLicenciaLocal, Licencias.Demo.AlmacenLicenciaMemoria>();
+        services.AddSingleton<Application.Licencias.IServidorLicencias, Licencias.Demo.ServidorLicenciasDemo>();
+#else
+        services.AddSingleton<Application.Licencias.IIdentificadorEquipo>(_ =>
+            OperatingSystem.IsWindows() ? new Licencias.IdentificadorEquipoWindows() : throw new PlatformNotSupportedException());
+        services.AddSingleton<Application.Licencias.IAlmacenLicenciaLocal>(_ =>
+            OperatingSystem.IsWindows() ? new Licencias.AlmacenLicenciaRegistro() : throw new PlatformNotSupportedException());
+        services.AddSingleton<Application.Licencias.IServidorLicencias, Licencias.ServidorLicenciasSupabase>();
+#endif
+
+#if CAPTURAS_MANUAL
+        // Solo build de capturas para los manuales: puertos COM de demostración en lugar de los del equipo.
+        services.AddSingleton<Application.Balanza.IEnumeradorPuertosSerie, Balanza.Demo.EnumeradorPuertosDemo>();
+#endif
+
         services.AddSingleton(TimeProvider.System);
 
         return services;

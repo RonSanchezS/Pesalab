@@ -11,6 +11,7 @@ public static class CamposParametros
     public const string ObservacionPorDefecto = "ObservacionPorDefecto";
     public const string SiguienteNumeroBoleta = "SiguienteNumeroBoleta";
     public const string Logo = "Logo";
+    public const string ModoDesposte = "ModoDesposte";
 }
 
 public static class ReglasParametros

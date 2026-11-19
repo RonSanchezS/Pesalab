@@ -373,6 +373,43 @@ public class FrmConfiguracionBalanzaTests
         });
     }
 
+    [Theory]
+    [InlineData(0, 0, "Se conectó, pero no llegó ninguna trama.")]
+    [InlineData(12, 0, "Conexión correcta: 0 de 12 tramas reconocidas. Estabilidad: no alcanzada. Revise el patrón de lectura.")]
+    [InlineData(10, 10, "Conexión correcta: 10 de 10 tramas reconocidas. Estabilidad: alcanzada.")]
+    public void ProbarConexion_ResultadoSegunTramasRecibidas(int recibidas, int validas, string inicioEsperado)
+    {
+        // F12 (E6): "Conexión correcta: 0 de 0" parecía un éxito; ahora avisa y orienta a la separación de tramas.
+        HiloSta.Ejecutar(() =>
+        {
+            var fakeBalanza = new ServicioBalanzaFalso
+            {
+                ResultadoPrueba = new ResultadoPruebaBalanza(true, null, recibidas, validas, validas > 0 ? 50m : null, validas > 0, false)
+            };
+
+            using var form = new FrmConfiguracionBalanza(new FalsoServicioConfiguracionBalanza(), fakeBalanza, new SimuladorBalanzaFalso());
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            var tarea = form.ProbarConexionParaTestAsync();
+            var sw = Stopwatch.StartNew();
+            while (!tarea.IsCompleted && sw.ElapsedMilliseconds < 5000)
+            {
+                System.Windows.Forms.Application.DoEvents();
+                Thread.Sleep(10);
+            }
+            tarea.GetAwaiter().GetResult();
+
+            Assert.StartsWith(inicioEsperado, form.lblEstadoPrueba.Text);
+            if (recibidas == 0)
+            {
+                Assert.Equal(FrmConfiguracionBalanza.MensajeSinTramas, form.lblEstadoPrueba.Text);
+                Assert.Contains("«Separación de tramas»", form.lblEstadoPrueba.Text);
+                VerificadorLayout.Verificar(form);
+            }
+        });
+    }
+
     [Fact]
     public void Cerrar_MientrasPruebaEnCurso_DifiereElCierre_YCierraSoloAlTerminarLaPrueba()
     {

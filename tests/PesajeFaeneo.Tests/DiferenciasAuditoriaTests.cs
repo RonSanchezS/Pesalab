@@ -211,7 +211,14 @@ public class DiferenciasAuditoriaTests
         Assert.Equal("N° de boleta", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "NumeroBoleta"));
         Assert.Equal("Fecha y hora", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "FechaHora"));
         Assert.Equal("Ganadero (id)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "GanaderoId"));
-        Assert.Equal("Ganadero (marca)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "MarcaGanadero"));
+        // F10 (O4): "marca" pasó a "código"; la clave histórica MarcaGanadero se sigue mostrando con la etiqueta nueva.
+        Assert.Equal("Ganadero (código)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "CodigoGanadero"));
+        Assert.Equal("Ganadero (código)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "MarcaGanadero"));
+        Assert.Equal("Fletero (id)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "FleteroId"));
+        Assert.Equal("Fletero (código)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "CodigoFletero"));
+        Assert.Equal("Fletero (nombre)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "NombreFletero"));
+        Assert.Equal("Codigo", DiferenciasAuditoria.EtiquetaCampo("Ganadero", "Marca")); // registros anteriores a F10
+        Assert.Equal("Codigo", DiferenciasAuditoria.EtiquetaCampo("Fletero", "Orden"));
         Assert.Equal("Ganadero (nombre)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "NombreGanadero"));
         Assert.Equal("Cliente (id)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "ClienteId"));
         Assert.Equal("Cliente (código)", DiferenciasAuditoria.EtiquetaCampo("Pesaje", "CodigoCliente"));
@@ -250,7 +257,7 @@ public class DiferenciasAuditoriaTests
             NumeroBoleta = 3001,
             FechaHora = tiempoFijo,
             GanaderoId = 10,
-            Ganadero = new Ganadero { Id = 10, Marca = "AH", Nombre = "GAN 1" },
+            Ganadero = new Ganadero { Id = 10, Codigo = "AH", Nombre = "GAN 1" },
             ClienteId = 20,
             Cliente = new Cliente { Id = 20, Codigo = 100, Nombre = "CLI 1" },
             Direccion = "CALLE 1",
@@ -274,7 +281,7 @@ public class DiferenciasAuditoriaTests
             NumeroBoleta = 3001,
             FechaHora = tiempoFijo,
             GanaderoId = 10,
-            Ganadero = new Ganadero { Id = 10, Marca = "AH", Nombre = "GAN 1" },
+            Ganadero = new Ganadero { Id = 10, Codigo = "AH", Nombre = "GAN 1" },
             ClienteId = 20,
             Cliente = new Cliente { Id = 20, Codigo = 100, Nombre = "CLI 1" },
             Direccion = "CALLE 2", // CAMBIADO

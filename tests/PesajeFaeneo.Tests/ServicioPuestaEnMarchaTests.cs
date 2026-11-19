@@ -43,14 +43,19 @@ public class ServicioPuestaEnMarchaTests
         return (servicio, sesion, almacen);
     }
 
-    private static async Task CambiarAsync(BaseDatosEnMemoria db, string? nombreEmpresa = null, TipoConexion? tipo = null)
+    // F11: salvo que se pida lo contrario, el tipo de pesaje queda definido (Ambos) para no mezclar el paso nuevo con
+    // los demás casos.
+    private static async Task CambiarAsync(
+        BaseDatosEnMemoria db, string? nombreEmpresa = null, TipoConexion? tipo = null, bool definirModo = true, ModoDesposte modo = ModoDesposte.Ambos)
     {
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
+        var p = await ctx.ParametrosSistema.SingleAsync();
         if (nombreEmpresa is not null)
         {
-            var p = await ctx.ParametrosSistema.SingleAsync();
             p.NombreEmpresa = nombreEmpresa;
         }
+
+        p.ModoDesposte = definirModo ? modo : null;
 
         if (tipo is not null)
         {
@@ -171,6 +176,34 @@ public class ServicioPuestaEnMarchaTests
     }
 
     [Fact]
+    public async Task MarcarCompleta_SinTipoDePesaje_LanzaValidacionYNoAudita()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _) = CrearServicio(db);
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
+        await CambiarAsync(db, nombreEmpresa: "FRIGORIFICO X", tipo: TipoConexion.Serial, definirModo: false);
+
+        var ex = await Assert.ThrowsAsync<ValidacionException>(() => servicio.MarcarCompletaAsync(false));
+
+        Assert.Contains(ex.Errores, e => e.Campo == CamposPuestaEnMarcha.TipoPesaje);
+        Assert.False((await servicio.ObtenerEstadoAsync()).Completa);
+        Assert.Equal(0, await ContarAuditoriasAsync(db));
+    }
+
+    [Theory]
+    [InlineData(false, null)]
+    [InlineData(true, ModoDesposte.SoloResCompleta)]
+    public async Task ObtenerEstado_IncluyeElTipoDePesaje(bool definir, ModoDesposte? esperado)
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _) = CrearServicio(db);
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
+        await CambiarAsync(db, definirModo: definir, modo: ModoDesposte.SoloResCompleta);
+
+        Assert.Equal(esperado, (await servicio.ObtenerEstadoAsync()).ModoDesposte);
+    }
+
+    [Fact]
     public async Task MarcarCompleta_DosVeces_AuditaUnaSolaVez()
     {
         await using var db = await BaseDatosEnMemoria.CrearAsync();
@@ -226,8 +259,20 @@ public class ServicioPuestaEnMarchaTests
     [InlineData(false, TipoConexion.Simulador, true, false)]
     public void PuedeFinalizar_Combinaciones(bool empresa, TipoConexion tipo, bool confirma, bool esperado)
     {
-        var estado = new EstadoPuestaEnMarcha(false, empresa, "X", tipo, false, 0, 0);
+        var estado = new EstadoPuestaEnMarcha(false, empresa, "X", tipo, false, 0, 0, ModoDesposte.Ambos);
 
         Assert.Equal(esperado, ReglasPuestaEnMarcha.PuedeFinalizar(estado, confirma));
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData(ModoDesposte.Ambos, true)]
+    [InlineData(ModoDesposte.SoloResCompleta, true)]
+    [InlineData(ModoDesposte.SoloMediaRes, true)]
+    public void PuedeFinalizar_ExigeTipoDePesajeDefinido(ModoDesposte? modo, bool esperado)
+    {
+        var estado = new EstadoPuestaEnMarcha(false, true, "X", TipoConexion.Serial, false, 0, 0, modo);
+
+        Assert.Equal(esperado, ReglasPuestaEnMarcha.PuedeFinalizar(estado, false));
     }
 }

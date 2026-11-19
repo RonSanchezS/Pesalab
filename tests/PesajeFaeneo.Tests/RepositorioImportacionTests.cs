@@ -55,8 +55,8 @@ public class RepositorioImportacionTests
 
             await using (var ctx = await factory.CreateDbContextAsync())
             {
-                var g1 = new Ganadero { Marca = "AB", Nombre = "GANADERO AB", Activo = true, CreadoEn = DateTime.UtcNow };
-                var g2 = new Ganadero { Marca = "cd", Nombre = "GANADERO CD", Activo = true, CreadoEn = DateTime.UtcNow };
+                var g1 = new Ganadero { Codigo = "AB", Nombre = "GANADERO AB", Activo = true, CreadoEn = DateTime.UtcNow };
+                var g2 = new Ganadero { Codigo = "cd", Nombre = "GANADERO CD", Activo = true, CreadoEn = DateTime.UtcNow };
                 ctx.Ganaderos.AddRange(g1, g2);
 
                 var c1 = new Cliente { Codigo = 10, Nombre = "CLIENTE 10", Direccion = "CALLE 1", Activo = true, CreadoEn = DateTime.UtcNow };
@@ -109,9 +109,9 @@ public class RepositorioImportacionTests
 
             var claves = await repo.ObtenerClavesAsync();
 
-            Assert.Equal(2, claves.GanaderosPorMarca.Count);
-            Assert.True(claves.GanaderosPorMarca.ContainsKey("AB"));
-            Assert.True(claves.GanaderosPorMarca.ContainsKey("CD"));
+            Assert.Equal(2, claves.GanaderosPorCodigo.Count);
+            Assert.True(claves.GanaderosPorCodigo.ContainsKey("AB"));
+            Assert.True(claves.GanaderosPorCodigo.ContainsKey("CD"));
 
             Assert.Single(claves.ClientesPorCodigo);
             Assert.True(claves.ClientesPorCodigo.ContainsKey(10));
@@ -164,11 +164,11 @@ public class RepositorioImportacionTests
 
             await using (var ctx = await factory.CreateDbContextAsync())
             {
-                var ganaderos = await ctx.Ganaderos.OrderBy(g => g.Marca).ToListAsync();
+                var ganaderos = await ctx.Ganaderos.OrderBy(g => g.Codigo).ToListAsync();
                 Assert.Equal(2, ganaderos.Count);
-                Assert.Equal("G1", ganaderos[0].Marca);
+                Assert.Equal("G1", ganaderos[0].Codigo);
                 Assert.Equal(ahoraUtc, ganaderos[0].CreadoEn);
-                Assert.Equal("G2", ganaderos[1].Marca);
+                Assert.Equal("G2", ganaderos[1].Codigo);
             }
         }
     }
@@ -187,7 +187,7 @@ public class RepositorioImportacionTests
             int adminId;
             await using (var ctx = await factory.CreateDbContextAsync())
             {
-                var g = new Ganadero { Marca = "GX", Nombre = "GANADERO GX", Activo = true, CreadoEn = ahoraUtc };
+                var g = new Ganadero { Codigo = "GX", Nombre = "GANADERO GX", Activo = true, CreadoEn = ahoraUtc };
                 var c = new Cliente { Codigo = 50, Nombre = "CLIENTE 50", Direccion = "AV CENTRAL", Activo = true, CreadoEn = ahoraUtc };
                 ctx.Ganaderos.Add(g);
                 ctx.Clientes.Add(c);
@@ -348,7 +348,7 @@ public class RepositorioImportacionTests
             int adminId;
             await using (var ctx = await factory.CreateDbContextAsync())
             {
-                var g = new Ganadero { Marca = "GL", Nombre = "GANADERO LOTES", Activo = true, CreadoEn = ahoraUtc };
+                var g = new Ganadero { Codigo = "GL", Nombre = "GANADERO LOTES", Activo = true, CreadoEn = ahoraUtc };
                 var c = new Cliente { Codigo = 99, Nombre = "CLIENTE LOTES", Direccion = "ZONA SUR", Activo = true, CreadoEn = ahoraUtc };
                 ctx.Ganaderos.Add(g);
                 ctx.Clientes.Add(c);
@@ -417,7 +417,7 @@ public class RepositorioImportacionTests
             int adminId;
             await using (var ctx = await factory.CreateDbContextAsync())
             {
-                var g = new Ganadero { Marca = "GERR", Nombre = "GANADERO ERROR", Activo = true, CreadoEn = ahoraUtc };
+                var g = new Ganadero { Codigo = "GERR", Nombre = "GANADERO ERROR", Activo = true, CreadoEn = ahoraUtc };
                 var c = new Cliente { Codigo = 77, Nombre = "CLIENTE ERROR", Direccion = "NORTE", Activo = true, CreadoEn = ahoraUtc };
                 ctx.Ganaderos.Add(g);
                 ctx.Clientes.Add(c);
@@ -452,7 +452,7 @@ public class RepositorioImportacionTests
 
             await using (var ctx = await factory.CreateDbContextAsync())
             {
-                Assert.Null(await ctx.Ganaderos.FirstOrDefaultAsync(g => g.Marca == "GNEW"));
+                Assert.Null(await ctx.Ganaderos.FirstOrDefaultAsync(g => g.Codigo == "GNEW"));
                 Assert.Equal(0, await ctx.Pesajes.CountAsync());
             }
         }

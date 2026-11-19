@@ -17,7 +17,7 @@ public class ImpresorBoletasGdiTests
             NumeroBoleta: 100,
             FechaHoraLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
             Empresa: new EmpresaBoleta("EMPRESA TEST", "CALLE 1", "CIUDAD", "70000000", "REG-1", "80000000", null),
-            MarcaGanadero: "AH",
+            CodigoGanadero: "AH",
             NombreGanadero: "GANADERO TEST",
             Secuencia: 1,
             CodigoCliente: 10,
@@ -34,7 +34,7 @@ public class ImpresorBoletasGdiTests
             Estado: EstadoPesaje.Vigente,
             MotivoAnulacion: null,
             NombreOperador: "OPERADOR TEST",
-            Fleteros: Array.Empty<FleteroBoleta>(),
+            Fletero: null,
             ImpresionesPrevias: 0,
             GeneradoEnLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
             EsMuestra: false);

@@ -13,7 +13,7 @@ public class PesajeVersionTests
     {
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
 
-        var g = new GanaderoBuilder().ConMarca("GV").ConNombre("Ganadero Version").Build();
+        var g = new GanaderoBuilder().ConCodigo("GV").ConNombre("Ganadero Version").Build();
         var c = new ClienteBuilder().ConCodigo(901).ConNombre("Cliente Version").Build();
         var u = new UsuarioBuilder().ConNombreUsuario("operador_v").ConNombreCompleto("Operador V").Build();
 

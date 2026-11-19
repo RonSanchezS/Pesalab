@@ -111,7 +111,7 @@ internal sealed class ControlCapturas
         return MotivoRechazoCaptura.Ninguno;
     }
 
-    public void BorrarPesos()
+    public void BorrarPesaje()
     {
         PesoIzquierdo = null;
         PesoDerecho = null;

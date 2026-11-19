@@ -7,6 +7,7 @@ public static class CamposPuestaEnMarcha
 {
     public const string Empresa = "Empresa";
     public const string Balanza = "Balanza";
+    public const string TipoPesaje = "TipoPesaje";
 }
 
 public static class ReglasPuestaEnMarcha
@@ -22,6 +23,7 @@ public static class ReglasPuestaEnMarcha
     {
         ArgumentNullException.ThrowIfNull(estado);
         return estado.EmpresaConfigurada &&
+               estado.ModoDesposte is not null &&
                (estado.TipoConexionBalanza != TipoConexion.Simulador || confirmaSimulador);
     }
 }

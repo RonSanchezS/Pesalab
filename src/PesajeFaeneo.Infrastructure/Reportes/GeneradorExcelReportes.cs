@@ -31,7 +31,10 @@ public sealed class GeneradorExcelReportes : IGeneradorExcelReportes
     {
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add(TextosReporte.NombreHoja(r.EsAnuladas));
-        int n = r.EsAnuladas ? 13 : 14;
+        var columnas = Columnas(r.EsAnuladas, r.MostrarDesposte);
+        int n = columnas.Count;
+        // Columna de los totales: la del total neto (no depende de que el desposte esté visible).
+        int colT = columnas.FindIndex(c => c.Clave == "Total") + 1;
 
         // Fila 1: Empresa
         ws.Cell(1, 1).Value = r.Empresa;
@@ -71,23 +74,9 @@ public sealed class GeneradorExcelReportes : IGeneradorExcelReportes
         // Fila 5: vacía
 
         // Fila 6: Títulos de columnas
-        string[] titulos = r.EsAnuladas
-            ?
-            [
-                "Item", "N° boleta", "Fecha", "Marca", "Ganadero",
-                "Cliente (código)", "Nombre del cliente", "Tipo corte", "Total neto (kg)",
-                "Anulada el", "Anulada por", "Motivo", "Origen"
-            ]
-            :
-            [
-                "Item", "N° boleta", "Fecha", "N° res (secuencia)", "Marca", "Ganadero",
-                "Cliente (código)", "Nombre del cliente", "Dirección", "Izq. (kg)", "Der. (kg)",
-                "Total neto (kg)", "Tipo corte", "Origen"
-            ];
-
         for (int c = 1; c <= n; c++)
         {
-            ws.Cell(6, c).Value = titulos[c - 1];
+            ws.Cell(6, c).Value = columnas[c - 1].Titulo;
         }
 
         var rangoTitulos = ws.Range(6, 1, 6, n);
@@ -109,53 +98,9 @@ public sealed class GeneradorExcelReportes : IGeneradorExcelReportes
             {
                 var f = r.Filas[i];
                 int filaIdx = 7 + i;
-
-                if (!r.EsAnuladas)
+                for (int c = 0; c < n; c++)
                 {
-                    ws.Cell(filaIdx, 1).Value = f.Item;
-                    ws.Cell(filaIdx, 2).Value = f.NumeroBoleta;
-                    ws.Cell(filaIdx, 3).Value = f.FechaHoraLocal;
-                    ws.Cell(filaIdx, 3).Style.DateFormat.Format = "dd/MM/yyyy HH:mm";
-                    ws.Cell(filaIdx, 4).Value = f.Secuencia;
-                    ws.Cell(filaIdx, 5).Value = f.MarcaGanadero;
-                    ws.Cell(filaIdx, 6).Value = f.NombreGanadero;
-                    ws.Cell(filaIdx, 7).Value = f.CodigoCliente;
-                    ws.Cell(filaIdx, 8).Value = f.NombreCliente;
-                    ws.Cell(filaIdx, 9).Value = f.Direccion;
-                    ws.Cell(filaIdx, 10).Value = f.PesoIzquierdo;
-                    ws.Cell(filaIdx, 10).Style.NumberFormat.Format = "#,##0.0";
-                    ws.Cell(filaIdx, 11).Value = f.PesoDerecho;
-                    ws.Cell(filaIdx, 11).Style.NumberFormat.Format = "#,##0.0";
-                    ws.Cell(filaIdx, 12).Value = f.PesoTotal;
-                    ws.Cell(filaIdx, 12).Style.NumberFormat.Format = "#,##0.0";
-                    ws.Cell(filaIdx, 13).Value = TextosBoleta.Desposte(f.TipoDesposte);
-                    ws.Cell(filaIdx, 14).Value = TextosReporte.Origen(f.Origen);
-                }
-                else
-                {
-                    ws.Cell(filaIdx, 1).Value = f.Item;
-                    ws.Cell(filaIdx, 2).Value = f.NumeroBoleta;
-                    ws.Cell(filaIdx, 3).Value = f.FechaHoraLocal;
-                    ws.Cell(filaIdx, 3).Style.DateFormat.Format = "dd/MM/yyyy HH:mm";
-                    ws.Cell(filaIdx, 4).Value = f.MarcaGanadero;
-                    ws.Cell(filaIdx, 5).Value = f.NombreGanadero;
-                    ws.Cell(filaIdx, 6).Value = f.CodigoCliente;
-                    ws.Cell(filaIdx, 7).Value = f.NombreCliente;
-                    ws.Cell(filaIdx, 8).Value = TextosBoleta.Desposte(f.TipoDesposte);
-                    ws.Cell(filaIdx, 9).Value = f.PesoTotal;
-                    ws.Cell(filaIdx, 9).Style.NumberFormat.Format = "#,##0.0";
-                    if (f.AnuladoEnLocal.HasValue)
-                    {
-                        ws.Cell(filaIdx, 10).Value = f.AnuladoEnLocal.Value;
-                        ws.Cell(filaIdx, 10).Style.DateFormat.Format = "dd/MM/yyyy HH:mm";
-                    }
-                    else
-                    {
-                        ws.Cell(filaIdx, 10).Value = "";
-                    }
-                    ws.Cell(filaIdx, 11).Value = f.AnuladoPor ?? "";
-                    ws.Cell(filaIdx, 12).Value = f.MotivoAnulacion ?? "";
-                    ws.Cell(filaIdx, 13).Value = TextosReporte.Origen(f.Origen);
+                    columnas[c].Escribir(ws.Cell(filaIdx, c + 1), f);
                 }
             }
             u = 6 + r.Filas.Count;
@@ -165,8 +110,6 @@ public sealed class GeneradorExcelReportes : IGeneradorExcelReportes
         int ultimaFilaUsada;
         if (!r.EsAnuladas)
         {
-            int colT = 12;
-
             // u + 2: Total peso neto (kg)
             ws.Cell(u + 2, 1).Value = "Total peso neto (kg)";
             ws.Cell(u + 2, 1).Style.Font.Bold = true;
@@ -187,18 +130,20 @@ public sealed class GeneradorExcelReportes : IGeneradorExcelReportes
             ws.Cell(u + 4, colT).Value = r.Totales.Boletas;
             ws.Cell(u + 4, colT).Style.Font.Bold = true;
 
-            // u + 5: Res completa / media res
-            ws.Cell(u + 5, 1).Value = "Res completa / media res";
-            ws.Cell(u + 5, 1).Style.Font.Bold = true;
-            ws.Cell(u + 5, colT).Value = $"{TextosReporte.Entero(r.Totales.ResesCompletas)} / {TextosReporte.Entero(r.Totales.MediasReses)}";
-            ws.Cell(u + 5, colT).Style.Font.Bold = true;
+            ultimaFilaUsada = u + 4;
 
-            ultimaFilaUsada = u + 5;
+            // u + 5: Res completa / media res (F11, D9: se omite si la empresa pesa un solo tipo y el reporte no mezcla tipos)
+            if (r.MostrarDesposte)
+            {
+                ws.Cell(u + 5, 1).Value = "Res completa / media res";
+                ws.Cell(u + 5, 1).Style.Font.Bold = true;
+                ws.Cell(u + 5, colT).Value = $"{TextosReporte.Entero(r.Totales.ResesCompletas)} / {TextosReporte.Entero(r.Totales.MediasReses)}";
+                ws.Cell(u + 5, colT).Style.Font.Bold = true;
+                ultimaFilaUsada = u + 5;
+            }
         }
         else
         {
-            int colT = 9;
-
             // u + 2: Boletas anuladas
             ws.Cell(u + 2, 1).Value = "Boletas anuladas";
             ws.Cell(u + 2, 1).Style.Font.Bold = true;
@@ -231,5 +176,80 @@ public sealed class GeneradorExcelReportes : IGeneradorExcelReportes
         ws.PageSetup.SetRowsToRepeatAtTop(6, 6);
 
         wb.SaveAs(destino);
+    }
+
+    private sealed record ColumnaExcel(string Clave, string Titulo, Action<IXLCell, FilaReporte> Escribir);
+
+    private static ColumnaExcel Texto(string clave, string titulo, Func<FilaReporte, string> valor) =>
+        new(clave, titulo, (celda, f) => celda.Value = valor(f));
+
+    private static ColumnaExcel Kg(string clave, string titulo, Func<FilaReporte, decimal> valor) =>
+        new(clave, titulo, (celda, f) =>
+        {
+            celda.Value = valor(f);
+            celda.Style.NumberFormat.Format = "#,##0.0";
+        });
+
+    private static ColumnaExcel FechaHora(string clave, string titulo, Func<FilaReporte, DateTime?> valor) =>
+        new(clave, titulo, (celda, f) =>
+        {
+            if (valor(f) is { } fecha)
+            {
+                celda.Value = fecha;
+                celda.Style.DateFormat.Format = "dd/MM/yyyy HH:mm";
+            }
+            else
+            {
+                celda.Value = "";
+            }
+        });
+
+    // F11 (D9): las posiciones salen de esta lista; la columna "Tipo corte" se omite cuando el desposte no se muestra.
+    private static List<ColumnaExcel> Columnas(bool anuladas, bool mostrarDesposte)
+    {
+        var desposte = Texto("Desposte", "Tipo corte", f => TextosBoleta.Desposte(f.TipoDesposte));
+
+        var columnas = anuladas
+            ? new List<ColumnaExcel>
+            {
+                new("Item", "Item", (c, f) => c.Value = f.Item),
+                new("Numero", "N° boleta", (c, f) => c.Value = f.NumeroBoleta),
+                FechaHora("Fecha", "Fecha", f => f.FechaHoraLocal),
+                Texto("Codigo", "Código", f => f.CodigoGanadero),
+                Texto("Ganadero", "Ganadero", f => f.NombreGanadero),
+                new("CodigoCliente", "Cliente (código)", (c, f) => c.Value = f.CodigoCliente),
+                Texto("Cliente", "Nombre del cliente", f => f.NombreCliente),
+                desposte,
+                Kg("Total", "Total neto (kg)", f => f.PesoTotal),
+                FechaHora("AnuladaEl", "Anulada el", f => f.AnuladoEnLocal),
+                Texto("AnuladaPor", "Anulada por", f => f.AnuladoPor ?? ""),
+                Texto("Motivo", "Motivo", f => f.MotivoAnulacion ?? ""),
+                Texto("Origen", "Origen", f => TextosReporte.Origen(f.Origen))
+            }
+            : new List<ColumnaExcel>
+            {
+                new("Item", "Item", (c, f) => c.Value = f.Item),
+                new("Numero", "N° boleta", (c, f) => c.Value = f.NumeroBoleta),
+                FechaHora("Fecha", "Fecha", f => f.FechaHoraLocal),
+                new("Secuencia", "N° res (secuencia)", (c, f) => c.Value = f.Secuencia),
+                Texto("Codigo", "Código", f => f.CodigoGanadero),
+                Texto("Ganadero", "Ganadero", f => f.NombreGanadero),
+                new("CodigoCliente", "Cliente (código)", (c, f) => c.Value = f.CodigoCliente),
+                Texto("Cliente", "Nombre del cliente", f => f.NombreCliente),
+                Texto("Fletero", "Fletero", f => f.NombreFletero),
+                Texto("Direccion", "Dirección", f => f.Direccion),
+                Kg("Izquierdo", "Izq. (kg)", f => f.PesoIzquierdo),
+                Kg("Derecho", "Der. (kg)", f => f.PesoDerecho),
+                Kg("Total", "Total neto (kg)", f => f.PesoTotal),
+                desposte,
+                Texto("Origen", "Origen", f => TextosReporte.Origen(f.Origen))
+            };
+
+        if (!mostrarDesposte)
+        {
+            columnas.Remove(desposte);
+        }
+
+        return columnas;
     }
 }

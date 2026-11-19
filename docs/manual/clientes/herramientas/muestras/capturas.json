@@ -1,0 +1,115 @@
+[
+  {
+    "id": "muestra-01-login",
+    "archivo": "muestra-01-login.png",
+    "titulo": "Inicio de sesión (MUESTRA)",
+    "descripcion": "Muestra",
+    "ancho": 640,
+    "alto": 330,
+    "escalaDpi": 1.0,
+    "controles": [
+      {
+        "nombre": "txtUsuario",
+        "texto": "Usuario",
+        "x": 20,
+        "y": 79,
+        "ancho": 600,
+        "alto": 30
+      },
+      {
+        "nombre": "txtPassword",
+        "texto": "Contraseña",
+        "x": 20,
+        "y": 154,
+        "ancho": 600,
+        "alto": 30
+      },
+      {
+        "nombre": "btnSalir",
+        "texto": "Salir",
+        "x": 551,
+        "y": 260,
+        "ancho": 69,
+        "alto": 36
+      },
+      {
+        "nombre": "btnIngresar",
+        "texto": "Ingresar",
+        "x": 443,
+        "y": 260,
+        "ancho": 96,
+        "alto": 36
+      }
+    ]
+  },
+  {
+    "id": "muestra-02-ancha",
+    "archivo": "muestra-02-ancha.png",
+    "titulo": "Pantalla ancha (MUESTRA)",
+    "descripcion": "Más ancha que la página: se reduce",
+    "ancho": 1400,
+    "alto": 520,
+    "escalaDpi": 1.0,
+    "controles": [
+      {
+        "nombre": "txtGanadero",
+        "texto": "Ganadero",
+        "x": 20,
+        "y": 79,
+        "ancho": 1360,
+        "alto": 30
+      },
+      {
+        "nombre": "txtCliente",
+        "texto": "Cliente",
+        "x": 20,
+        "y": 154,
+        "ancho": 1360,
+        "alto": 30
+      },
+      {
+        "nombre": "btnBorrar",
+        "texto": "Borrar pesaje (F8)",
+        "x": 1194,
+        "y": 450,
+        "ancho": 186,
+        "alto": 36
+      },
+      {
+        "nombre": "btnGrabar",
+        "texto": "Grabar (F12)",
+        "x": 1050,
+        "y": 450,
+        "ancho": 132,
+        "alto": 36
+      }
+    ]
+  },
+  {
+    "id": "muestra-03-sin-anotar",
+    "archivo": "muestra-03-sin-anotar.png",
+    "titulo": "Sin anotaciones (MUESTRA)",
+    "descripcion": "Se copia tal cual",
+    "ancho": 420,
+    "alto": 200,
+    "escalaDpi": 1.0,
+    "controles": [
+      {
+        "nombre": "txtMensaje",
+        "texto": "Mensaje",
+        "x": 20,
+        "y": 79,
+        "ancho": 380,
+        "alto": 30
+      },
+      {
+        "nombre": "btnAceptar",
+        "texto": "Aceptar",
+        "x": 313,
+        "y": 130,
+        "ancho": 87,
+        "alto": 36
+      }
+    ]
+  }
+]

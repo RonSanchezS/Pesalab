@@ -47,6 +47,14 @@ public sealed record LogoBoleta(
     float Ancho,
     float Alto) : ElementoBoleta;
 
+/// <summary>Logo de la empresa atenuado, dibujado detrás de todo el contenido (marca de agua).</summary>
+public sealed record FondoLogoBoleta(
+    float X,
+    float Y,
+    float Ancho,
+    float Alto,
+    float Opacidad) : ElementoBoleta;
+
 public sealed record PaginaBoleta(
     float AnchoMm,
     float AltoMm,

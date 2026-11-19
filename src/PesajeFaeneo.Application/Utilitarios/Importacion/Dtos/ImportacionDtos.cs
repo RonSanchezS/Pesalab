@@ -23,11 +23,12 @@ public sealed record CampoImportacion(string Clave, string Titulo, bool Obligato
 public sealed record ClienteExistente(int Id, string Direccion);
 
 public sealed record ClavesExistentes(
-    IReadOnlyDictionary<string, int> GanaderosPorMarca,
+    IReadOnlyDictionary<string, int> GanaderosPorCodigo,
     IReadOnlyDictionary<int, ClienteExistente> ClientesPorCodigo,
-    IReadOnlyDictionary<long, OrigenPeso> BoletasExistentes);
+    IReadOnlyDictionary<long, OrigenPeso> BoletasExistentes,
+    ModoDesposte ModoDesposte = ModoDesposte.Ambos);   // F11 (D10): tipo de pesaje efectivo, solo para advertir
 
-public sealed record GanaderoAImportar(int Fila, string Marca, string Nombre, bool Activo);
+public sealed record GanaderoAImportar(int Fila, string Codigo, string Nombre, bool Activo);
 
 public sealed record ClienteAImportar(int Fila, int Codigo, string Nombre, string Direccion, bool Activo);
 

@@ -1,0 +1,7394 @@
+[
+  {
+    "id": "ad-01-asistente-puesta-en-marcha",
+    "archivo": "ad-01-asistente-puesta-en-marcha.png",
+    "titulo": "Asistente de puesta en marcha",
+    "descripcion": "El asistente lista los pasos para dejar el sistema listo (copias de seguridad, empresa, tipo de pesaje, balanza, impresión, fleteros, usuarios e importación) y marca cuáles faltan.",
+    "ancho": 884,
+    "alto": 792,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "btnFinalizar",
+        "tipo": "Button",
+        "texto": "Finalizar",
+        "x": 618,
+        "y": 712,
+        "ancho": 110,
+        "alto": 32
+      },
+      {
+        "nombre": "btnOmitir",
+        "tipo": "Button",
+        "texto": "Omitir por ahora",
+        "x": 738,
+        "y": 712,
+        "ancho": 130,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "ad-10-usuarios",
+    "archivo": "ad-10-usuarios.png",
+    "titulo": "Gestión de usuarios",
+    "descripcion": "Lista de usuarios con su rol, si están activos o bloqueados y su último acceso; abajo, los botones para crear, editar, desactivar o restablecer la clave.",
+    "ancho": 880,
+    "alto": 551,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dgvUsuarios",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 18,
+        "y": 84,
+        "ancho": 694,
+        "alto": 449
+      },
+      {
+        "nombre": "chkMostrarInactivos",
+        "tipo": "CheckBox",
+        "texto": "Mostrar usuarios inactivos",
+        "x": 18,
+        "y": 49,
+        "ancho": 694,
+        "alto": 29
+      },
+      {
+        "nombre": "btnNuevo",
+        "tipo": "Button",
+        "texto": "Nuevo",
+        "x": 731,
+        "y": 87,
+        "ancho": 130,
+        "alto": 35
+      },
+      {
+        "nombre": "btnEditar",
+        "tipo": "Button",
+        "texto": "Editar",
+        "x": 731,
+        "y": 128,
+        "ancho": 130,
+        "alto": 35
+      },
+      {
+        "nombre": "btnActivarDesactivar",
+        "tipo": "Button",
+        "texto": "Desactivar",
+        "x": 731,
+        "y": 169,
+        "ancho": 130,
+        "alto": 35
+      },
+      {
+        "nombre": "btnRestablecer",
+        "tipo": "Button",
+        "texto": "Restablecer clave",
+        "x": 731,
+        "y": 210,
+        "ancho": 130,
+        "alto": 35
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar",
+        "x": 731,
+        "y": 251,
+        "ancho": 130,
+        "alto": 35
+      }
+    ]
+  },
+  {
+    "id": "ad-11-usuario-nuevo",
+    "archivo": "ad-11-usuario-nuevo.png",
+    "titulo": "Nuevo usuario",
+    "descripcion": "Al crear un usuario se escribe su nombre de usuario, su nombre completo, su rol y una contraseña inicial; al ingresar por primera vez tendrá que cambiarla.",
+    "ancho": 480,
+    "alto": 371,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtNombreUsuario",
+        "tipo": "TextBox",
+        "texto": "ana.vaca",
+        "x": 165,
+        "y": 86,
+        "ancho": 285,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNombreCompleto",
+        "tipo": "TextBox",
+        "texto": "ANA VACA SUÁREZ",
+        "x": 165,
+        "y": 121,
+        "ancho": 285,
+        "alto": 21
+      },
+      {
+        "nombre": "cmbRol",
+        "tipo": "ComboBox",
+        "texto": "Operador",
+        "x": 163,
+        "y": 154,
+        "ancho": 289,
+        "alto": 25
+      },
+      {
+        "nombre": "txtPassword",
+        "tipo": "TextBox",
+        "texto": "ClaveDemo123",
+        "x": 165,
+        "y": 191,
+        "ancho": 285,
+        "alto": 21
+      },
+      {
+        "nombre": "txtConfirmacion",
+        "tipo": "TextBox",
+        "texto": "ClaveDemo123",
+        "x": 165,
+        "y": 226,
+        "ancho": 285,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 243,
+        "y": 272,
+        "ancho": 100,
+        "alto": 35
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 349,
+        "y": 272,
+        "ancho": 100,
+        "alto": 35
+      }
+    ]
+  },
+  {
+    "id": "ad-12-restablecer-password",
+    "archivo": "ad-12-restablecer-password.png",
+    "titulo": "Restablecer la contraseña de un usuario",
+    "descripcion": "Para restablecer la clave de un usuario se escribe una contraseña temporal; el usuario deberá cambiarla al ingresar.",
+    "ancho": 440,
+    "alto": 251,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "ad-13-restablecer-confirmacion",
+    "archivo": "ad-13-restablecer-confirmacion.png",
+    "titulo": "Confirmar restablecimiento",
+    "descripcion": "Pregunta de confirmación antes de restablecer la contraseña del usuario seleccionado.",
+    "ancho": 383,
+    "alto": 151,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&Sí",
+        "x": 209,
+        "y": 119,
+        "ancho": 75,
+        "alto": 23
+      },
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&No",
+        "x": 293,
+        "y": 119,
+        "ancho": 75,
+        "alto": 23
+      }
+    ]
+  },
+  {
+    "id": "ad-14-usuarios-bloqueado",
+    "archivo": "ad-14-usuarios-bloqueado.png",
+    "titulo": "Usuarios: un usuario bloqueado",
+    "descripcion": "Tras 5 intentos fallidos de ingreso, el usuario queda «Bloqueado: Sí» durante 5 minutos.",
+    "ancho": 880,
+    "alto": 551,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dgvUsuarios",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 18,
+        "y": 84,
+        "ancho": 694,
+        "alto": 449
+      },
+      {
+        "nombre": "btnEditar",
+        "tipo": "Button",
+        "texto": "Editar",
+        "x": 731,
+        "y": 128,
+        "ancho": 130,
+        "alto": 35
+      },
+      {
+        "nombre": "btnRestablecer",
+        "tipo": "Button",
+        "texto": "Restablecer clave",
+        "x": 731,
+        "y": 210,
+        "ancho": 130,
+        "alto": 35
+      }
+    ]
+  },
+  {
+    "id": "ad-15-usuarios-inactivos",
+    "archivo": "ad-15-usuarios-inactivos.png",
+    "titulo": "Usuarios con «Mostrar usuarios inactivos»",
+    "descripcion": "Al marcar «Mostrar usuarios inactivos» aparecen también los usuarios desactivados; el botón de estado pasa a decir «Activar».",
+    "ancho": 880,
+    "alto": 551,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "chkMostrarInactivos",
+        "tipo": "CheckBox",
+        "texto": "Mostrar usuarios inactivos",
+        "x": 18,
+        "y": 49,
+        "ancho": 694,
+        "alto": 29
+      },
+      {
+        "nombre": "dgvUsuarios",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 18,
+        "y": 84,
+        "ancho": 694,
+        "alto": 449
+      },
+      {
+        "nombre": "btnActivarDesactivar",
+        "tipo": "Button",
+        "texto": "Desactivar",
+        "x": 731,
+        "y": 169,
+        "ancho": 130,
+        "alto": 35
+      }
+    ]
+  },
+  {
+    "id": "ad-16-usuario-editar",
+    "archivo": "ad-16-usuario-editar.png",
+    "titulo": "Editar usuario",
+    "descripcion": "Al editar un usuario se puede cambiar el nombre completo y el rol; el nombre de usuario no se puede cambiar.",
+    "ancho": 480,
+    "alto": 371,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtNombreUsuario",
+        "tipo": "TextBox",
+        "texto": "operador",
+        "x": 165,
+        "y": 86,
+        "ancho": 285,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNombreCompleto",
+        "tipo": "TextBox",
+        "texto": "JUAN PÉREZ",
+        "x": 165,
+        "y": 121,
+        "ancho": 285,
+        "alto": 21
+      },
+      {
+        "nombre": "cmbRol",
+        "tipo": "ComboBox",
+        "texto": "Operador",
+        "x": 163,
+        "y": 154,
+        "ancho": 289,
+        "alto": 25
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 243,
+        "y": 272,
+        "ancho": 100,
+        "alto": 35
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 349,
+        "y": 272,
+        "ancho": 100,
+        "alto": 35
+      }
+    ]
+  },
+  {
+    "id": "ad-20-parametros",
+    "archivo": "ad-20-parametros.png",
+    "titulo": "Parámetros del sistema",
+    "descripcion": "Datos de la empresa que salen en las boletas y los reportes, el logo y el siguiente número de boleta (que queda bloqueado cuando ya se emitió la primera boleta).",
+    "ancho": 720,
+    "alto": 591,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtNombreEmpresa",
+        "tipo": "TextBox",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 158,
+        "y": 89,
+        "ancho": 233,
+        "alto": 21
+      },
+      {
+        "nombre": "txtDireccion",
+        "tipo": "TextBox",
+        "texto": "AV. EJEMPLO NRO. 100",
+        "x": 158,
+        "y": 123,
+        "ancho": 233,
+        "alto": 21
+      },
+      {
+        "nombre": "txtCiudad",
+        "tipo": "TextBox",
+        "texto": "SANTA CRUZ",
+        "x": 158,
+        "y": 157,
+        "ancho": 233,
+        "alto": 21
+      },
+      {
+        "nombre": "txtTelefono",
+        "tipo": "TextBox",
+        "texto": "(3) 555-0100",
+        "x": 158,
+        "y": 191,
+        "ancho": 233,
+        "alto": 21
+      },
+      {
+        "nombre": "txtRegistroSanitario",
+        "tipo": "TextBox",
+        "texto": "SENASAG-0000",
+        "x": 158,
+        "y": 225,
+        "ancho": 233,
+        "alto": 21
+      },
+      {
+        "nombre": "txtTelefonosReclamos",
+        "tipo": "TextBox",
+        "texto": "(3) 555-0101 / 700-00000",
+        "x": 158,
+        "y": 259,
+        "ancho": 233,
+        "alto": 21
+      },
+      {
+        "nombre": "txtObservacionPorDefecto",
+        "tipo": "TextBox",
+        "texto": "SIN OBSERVACIONES",
+        "x": 158,
+        "y": 293,
+        "ancho": 216,
+        "alto": 58
+      },
+      {
+        "nombre": "grpBoleta",
+        "tipo": "GroupBox",
+        "texto": "Numeración de Boleta",
+        "x": 420,
+        "y": 87,
+        "ancho": 274,
+        "alto": 154
+      },
+      {
+        "nombre": "numSiguienteBoleta",
+        "tipo": "NumericUpDown",
+        "texto": "2438",
+        "x": 545,
+        "y": 120,
+        "ancho": 134,
+        "alto": 25
+      },
+      {
+        "nombre": "lblNotaNumeracion",
+        "tipo": "Label",
+        "texto": "Se asigna automáticamente al grabar cada pesaje.",
+        "x": 435,
+        "y": 176,
+        "ancho": 244,
+        "alto": 53
+      },
+      {
+        "nombre": "grpLogo",
+        "tipo": "GroupBox",
+        "texto": "Logo de la Empresa",
+        "x": 420,
+        "y": 247,
+        "ancho": 274,
+        "alto": 271
+      },
+      {
+        "nombre": "picLogo",
+        "tipo": "PictureBox",
+        "texto": "",
+        "x": 436,
+        "y": 281,
+        "ancho": 242,
+        "alto": 181
+      },
+      {
+        "nombre": "btnCambiarLogo",
+        "tipo": "Button",
+        "texto": "Cambiar...",
+        "x": 438,
+        "y": 472,
+        "ancho": 95,
+        "alto": 30
+      },
+      {
+        "nombre": "btnQuitarLogo",
+        "tipo": "Button",
+        "texto": "Quitar",
+        "x": 539,
+        "y": 472,
+        "ancho": 80,
+        "alto": 30
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 498,
+        "y": 532,
+        "ancho": 95,
+        "alto": 34
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 599,
+        "y": 532,
+        "ancho": 95,
+        "alto": 34
+      }
+    ]
+  },
+  {
+    "id": "ad-21-parametros-antes-primera-boleta",
+    "archivo": "ad-21-parametros-antes-primera-boleta.png",
+    "titulo": "Parámetros antes de emitir la primera boleta",
+    "descripcion": "Mientras no exista ninguna boleta, el «Siguiente» número se puede fijar a mano (por ejemplo, para continuar el talonario anterior); después queda automático.",
+    "ancho": 720,
+    "alto": 591,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "grpBoleta",
+        "tipo": "GroupBox",
+        "texto": "Numeración de Boleta",
+        "x": 420,
+        "y": 87,
+        "ancho": 274,
+        "alto": 154
+      },
+      {
+        "nombre": "numSiguienteBoleta",
+        "tipo": "NumericUpDown",
+        "texto": "2401",
+        "x": 545,
+        "y": 120,
+        "ancho": 134,
+        "alto": 25
+      },
+      {
+        "nombre": "lblNotaNumeracion",
+        "tipo": "Label",
+        "texto": "Solo puede fijarse antes de emitir la primera boleta.",
+        "x": 435,
+        "y": 176,
+        "ancho": 244,
+        "alto": 53
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 498,
+        "y": 532,
+        "ancho": 95,
+        "alto": 34
+      }
+    ]
+  },
+  {
+    "id": "ad-22-parametros-confirmar-numeracion",
+    "archivo": "ad-22-parametros-confirmar-numeracion.png",
+    "titulo": "Confirmar el cambio de numeración",
+    "descripcion": "Al cambiar el número de boleta, el sistema pide confirmar: «Cambiará el siguiente número de boleta de … a …. Esta acción afecta la numeración oficial».",
+    "ancho": 407,
+    "alto": 151,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&Sí",
+        "x": 234,
+        "y": 119,
+        "ancho": 75,
+        "alto": 23
+      },
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&No",
+        "x": 317,
+        "y": 119,
+        "ancho": 75,
+        "alto": 23
+      }
+    ]
+  },
+  {
+    "id": "ad-25-tipo-de-pesaje",
+    "archivo": "ad-25-tipo-de-pesaje.png",
+    "titulo": "Tipo de pesaje",
+    "descripcion": "Se elige si la empresa pesa res completa y media res, solo res completa o solo media res; define qué se muestra al pesar, en las boletas y en los reportes.",
+    "ancho": 549,
+    "alto": 390,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "rbAmbos",
+        "tipo": "RadioButton",
+        "texto": "Res completa y media res",
+        "x": 20,
+        "y": 101,
+        "ancho": 199,
+        "alto": 23
+      },
+      {
+        "nombre": "rbSoloResCompleta",
+        "tipo": "RadioButton",
+        "texto": "Solo res completa",
+        "x": 20,
+        "y": 153,
+        "ancho": 148,
+        "alto": 23
+      },
+      {
+        "nombre": "rbSoloMediaRes",
+        "tipo": "RadioButton",
+        "texto": "Solo media res",
+        "x": 20,
+        "y": 224,
+        "ancho": 127,
+        "alto": 23
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 315,
+        "y": 338,
+        "ancho": 100,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 425,
+        "y": 338,
+        "ancho": 100,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "ad-26-tipo-de-pesaje-aviso",
+    "archivo": "ad-26-tipo-de-pesaje-aviso.png",
+    "titulo": "Cambiar el tipo de pesaje con boletas existentes",
+    "descripcion": "Si ya hay boletas del tipo que se deja de pesar, el sistema avisa que seguirán mostrando su tipo de desposte en las pantallas y reportes que las incluyan.",
+    "ancho": 548,
+    "alto": 408,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "rbSoloResCompleta",
+        "tipo": "RadioButton",
+        "texto": "Solo res completa",
+        "x": 20,
+        "y": 153,
+        "ancho": 148,
+        "alto": 23
+      },
+      {
+        "nombre": "lblAviso",
+        "tipo": "Label",
+        "texto": "Hay 7 boletas de media res; seguirán mostrando su tipo de desposte en las pantallas y reportes que las incluyan.",
+        "x": 20,
+        "y": 303,
+        "ancho": 472,
+        "alto": 38
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 315,
+        "y": 357,
+        "ancho": 100,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "ad-27-pesaje-solo-res-completa",
+    "archivo": "ad-27-pesaje-solo-res-completa.png",
+    "titulo": "Pesaje con «Solo res completa»",
+    "descripcion": "Con el tipo de pesaje «Solo res completa» la pantalla de pesaje no muestra la opción de desposte: siempre se capturan los dos lados.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbSexo",
+        "tipo": "ComboBox",
+        "texto": "M - MACHO",
+        "x": 138,
+        "y": 441,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "txtObservacion",
+        "tipo": "TextBox",
+        "texto": "SIN OBSERVACIONES",
+        "x": 140,
+        "y": 472,
+        "ancho": 393,
+        "alto": 21
+      },
+      {
+        "nombre": "btnCapturarIzquierdo",
+        "tipo": "Button",
+        "texto": "Capturar izq. (F5)",
+        "x": 584,
+        "y": 351,
+        "ancho": 125,
+        "alto": 36
+      },
+      {
+        "nombre": "btnCapturarDerecho",
+        "tipo": "Button",
+        "texto": "Capturar der. (F6)",
+        "x": 715,
+        "y": 351,
+        "ancho": 125,
+        "alto": 36
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Seleccione el ganadero (código o nombre).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      }
+    ]
+  },
+  {
+    "id": "ad-30-configuracion-impresion",
+    "archivo": "ad-30-configuracion-impresion.png",
+    "titulo": "Configuración de impresión",
+    "descripcion": "Aquí se elige la impresora, el formato de la boleta (media carta o ticket), el papel, las copias, si se imprime al grabar y el ajuste fino de la posición; abajo, la vista previa de una boleta de muestra y la página de calibración.",
+    "ancho": 604,
+    "alto": 512,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbImpresora",
+        "tipo": "ComboBox",
+        "texto": "(Predeterminada de Windows: Microsoft Print to PDF)",
+        "x": 140,
+        "y": 108,
+        "ancho": 430,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbFormato",
+        "tipo": "ComboBox",
+        "texto": "Media carta (216 × 140 mm)",
+        "x": 140,
+        "y": 143,
+        "ancho": 430,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbPapel",
+        "tipo": "ComboBox",
+        "texto": "(Automático)",
+        "x": 140,
+        "y": 178,
+        "ancho": 430,
+        "alto": 25
+      },
+      {
+        "nombre": "numCopias",
+        "tipo": "NumericUpDown",
+        "texto": "1",
+        "x": 140,
+        "y": 213,
+        "ancho": 80,
+        "alto": 25
+      },
+      {
+        "nombre": "chkImprimirAlGrabar",
+        "tipo": "CheckBox",
+        "texto": "Imprimir la boleta automáticamente al grabar",
+        "x": 140,
+        "y": 246,
+        "ancho": 305,
+        "alto": 23
+      },
+      {
+        "nombre": "numDesplX",
+        "tipo": "NumericUpDown",
+        "texto": "0.0",
+        "x": 360,
+        "y": 306,
+        "ancho": 80,
+        "alto": 25
+      },
+      {
+        "nombre": "numDesplY",
+        "tipo": "NumericUpDown",
+        "texto": "0.0",
+        "x": 360,
+        "y": 340,
+        "ancho": 80,
+        "alto": 25
+      },
+      {
+        "nombre": "btnVistaPrevia",
+        "tipo": "Button",
+        "texto": "Vista previa (muestra)",
+        "x": 20,
+        "y": 441,
+        "ancho": 150,
+        "alto": 34
+      },
+      {
+        "nombre": "btnImprimirMuestra",
+        "tipo": "Button",
+        "texto": "Imprimir muestra",
+        "x": 180,
+        "y": 441,
+        "ancho": 130,
+        "alto": 34
+      },
+      {
+        "nombre": "btnCalibracion",
+        "tipo": "Button",
+        "texto": "Imprimir página de calibración",
+        "x": 450,
+        "y": 303,
+        "ancho": 110,
+        "alto": 62
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "&Guardar",
+        "x": 330,
+        "y": 441,
+        "ancho": 110,
+        "alto": 34
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 450,
+        "y": 441,
+        "ancho": 110,
+        "alto": 34
+      }
+    ]
+  },
+  {
+    "id": "ad-31-impresion-muestra",
+    "archivo": "ad-31-impresion-muestra.png",
+    "titulo": "Vista previa de la boleta de muestra",
+    "descripcion": "La boleta de muestra permite revisar el formato antes de imprimir; la leyenda «MUESTRA» indica que no es una boleta real.",
+    "ancho": 884,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ppcVista",
+        "tipo": "PrintPreviewControl",
+        "texto": "",
+        "x": 0,
+        "y": 31,
+        "ancho": 884,
+        "alto": 611
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 754,
+        "y": 651,
+        "ancho": 120,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "ad-32-impresion-impresora-virtual",
+    "archivo": "ad-32-impresion-impresora-virtual.png",
+    "titulo": "Impresión automática con una impresora virtual",
+    "descripcion": "Si se marca «Imprimir la boleta automáticamente al grabar» con una impresora virtual (PDF), aparece una advertencia en rojo: pediría un nombre de archivo en cada boleta.",
+    "ancho": 604,
+    "alto": 512,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbImpresora",
+        "tipo": "ComboBox",
+        "texto": "Microsoft Print to PDF",
+        "x": 140,
+        "y": 108,
+        "ancho": 430,
+        "alto": 25
+      },
+      {
+        "nombre": "chkImprimirAlGrabar",
+        "tipo": "CheckBox",
+        "texto": "Imprimir la boleta automáticamente al grabar",
+        "x": 140,
+        "y": 246,
+        "ancho": 305,
+        "alto": 23
+      },
+      {
+        "nombre": "lblAdvertencia",
+        "tipo": "Label",
+        "texto": "Impresora virtual: pedirá un nombre de archivo en cada impresión. No se recomienda con la impresión automática.",
+        "x": 20,
+        "y": 391,
+        "ancho": 550,
+        "alto": 35
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "&Guardar",
+        "x": 330,
+        "y": 441,
+        "ancho": 110,
+        "alto": 34
+      }
+    ]
+  },
+  {
+    "id": "ad-40-configuracion-balanza",
+    "archivo": "ad-40-configuracion-balanza.png",
+    "titulo": "Configuración de balanza",
+    "descripcion": "Pantalla de configuración de la balanza: tipo de conexión, puerto, velocidad y formato de lectura; a la derecha, el estado de la balanza en uso y la prueba de conexión.",
+    "ancho": 1008,
+    "alto": 852,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipoConexion",
+        "tipo": "ComboBox",
+        "texto": "Serie (RS-232 / USB)",
+        "x": 65,
+        "y": 68,
+        "ancho": 469,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbPuerto",
+        "tipo": "ComboBox",
+        "texto": "COM3",
+        "x": 134,
+        "y": 121,
+        "ancho": 80,
+        "alto": 25
+      },
+      {
+        "nombre": "btnRefrescarPuertos",
+        "tipo": "Button",
+        "texto": "Refrescar",
+        "x": 220,
+        "y": 121,
+        "ancho": 90,
+        "alto": 29
+      },
+      {
+        "nombre": "cmbBaudios",
+        "tipo": "ComboBox",
+        "texto": "9600",
+        "x": 382,
+        "y": 121,
+        "ancho": 144,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbBitsDatos",
+        "tipo": "ComboBox",
+        "texto": "8",
+        "x": 134,
+        "y": 156,
+        "ancho": 176,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbParidad",
+        "tipo": "ComboBox",
+        "texto": "Ninguna",
+        "x": 382,
+        "y": 156,
+        "ancho": 144,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbBitsParada",
+        "tipo": "ComboBox",
+        "texto": "1",
+        "x": 134,
+        "y": 185,
+        "ancho": 176,
+        "alto": 25
+      },
+      {
+        "nombre": "txtPatron",
+        "tipo": "TextBox",
+        "texto": "^[^-+\\d]*(?<peso>[-+]?\\s*\\d+(?:[.,]\\d+)?)",
+        "x": 192,
+        "y": 349,
+        "ancho": 340,
+        "alto": 18
+      },
+      {
+        "nombre": "numLecturas",
+        "tipo": "NumericUpDown",
+        "texto": "5",
+        "x": 190,
+        "y": 459,
+        "ancho": 90,
+        "alto": 25
+      },
+      {
+        "nombre": "numTolerancia",
+        "tipo": "NumericUpDown",
+        "texto": "0.5",
+        "x": 190,
+        "y": 490,
+        "ancho": 90,
+        "alto": 25
+      },
+      {
+        "nombre": "numTimeout",
+        "tipo": "NumericUpDown",
+        "texto": "3000",
+        "x": 190,
+        "y": 521,
+        "ancho": 90,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbDelimitador",
+        "tipo": "ComboBox",
+        "texto": "Fin de línea (CR/LF)",
+        "x": 190,
+        "y": 401,
+        "ancho": 344,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbUnidad",
+        "tipo": "ComboBox",
+        "texto": "Kilogramos (kg)",
+        "x": 190,
+        "y": 430,
+        "ancho": 344,
+        "alto": 25
+      },
+      {
+        "nombre": "btnProbarConexion",
+        "tipo": "Button",
+        "texto": "Probar conexión",
+        "x": 564,
+        "y": 334,
+        "ancho": 120,
+        "alto": 28
+      },
+      {
+        "nombre": "lblEstadoActual",
+        "tipo": "Label",
+        "texto": "Balanza: conectada (COM3 9600 8N1)",
+        "x": 564,
+        "y": 65,
+        "ancho": 423,
+        "alto": 17
+      },
+      {
+        "nombre": "lblPesoActual",
+        "tipo": "Label",
+        "texto": "121.4 kg",
+        "x": 564,
+        "y": 83,
+        "ancho": 112,
+        "alto": 32
+      },
+      {
+        "nombre": "btnReconectar",
+        "tipo": "Button",
+        "texto": "Reconectar",
+        "x": 889,
+        "y": 85,
+        "ancho": 98,
+        "alto": 29
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 809,
+        "y": 810,
+        "ancho": 90,
+        "alto": 29
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar",
+        "x": 905,
+        "y": 810,
+        "ancho": 90,
+        "alto": 29
+      }
+    ]
+  },
+  {
+    "id": "ad-41-balanza-prueba-en-curso",
+    "archivo": "ad-41-balanza-prueba-en-curso.png",
+    "titulo": "Probando la conexión con la balanza",
+    "descripcion": "Durante la prueba se ven las tramas que llegan de la balanza y el peso leído.",
+    "ancho": 1008,
+    "alto": 852,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "btnProbarConexion",
+        "tipo": "Button",
+        "texto": "Probar conexión",
+        "x": 564,
+        "y": 334,
+        "ancho": 120,
+        "alto": 28
+      },
+      {
+        "nombre": "btnCancelarPrueba",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 690,
+        "y": 334,
+        "ancho": 90,
+        "alto": 29
+      },
+      {
+        "nombre": "lblEstadoPrueba",
+        "tipo": "Label",
+        "texto": "Probando…",
+        "x": 564,
+        "y": 366,
+        "ancho": 423,
+        "alto": 19
+      },
+      {
+        "nombre": "lblPesoPrueba",
+        "tipo": "Label",
+        "texto": "121.6 kg",
+        "x": 724,
+        "y": 385,
+        "ancho": 103,
+        "alto": 30
+      },
+      {
+        "nombre": "lstTramas",
+        "tipo": "ListBox",
+        "texto": "",
+        "x": 566,
+        "y": 420,
+        "ancho": 419,
+        "alto": 366
+      }
+    ]
+  },
+  {
+    "id": "ad-42-balanza-prueba-resultado",
+    "archivo": "ad-42-balanza-prueba-resultado.png",
+    "titulo": "Resultado de la prueba de conexión",
+    "descripcion": "Al terminar, la prueba indica si hubo conexión, cuántas tramas se recibieron y si el peso llegó a estabilizarse.",
+    "ancho": 1008,
+    "alto": 852,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblEstadoPrueba",
+        "tipo": "Label",
+        "texto": "Conexión correcta: 49 de 49 tramas reconocidas. Estabilidad: alcanzada.",
+        "x": 564,
+        "y": 366,
+        "ancho": 423,
+        "alto": 38
+      },
+      {
+        "nombre": "lblPesoPrueba",
+        "tipo": "Label",
+        "texto": "121.4 kg",
+        "x": 724,
+        "y": 404,
+        "ancho": 103,
+        "alto": 30
+      },
+      {
+        "nombre": "lstTramas",
+        "tipo": "ListBox",
+        "texto": "",
+        "x": 566,
+        "y": 439,
+        "ancho": 402,
+        "alto": 347
+      }
+    ]
+  },
+  {
+    "id": "ad-43-balanza-rx8",
+    "archivo": "ad-43-balanza-rx8.png",
+    "titulo": "Configuración de balanza para el indicador RX8",
+    "descripcion": "Valores del indicador RX8 Accurex: conexión Serie, COM3, 9600 baudios, 8 bits, sin paridad, 1 bit de parada, separación «Inicio con '='» y unidad Gramos.",
+    "ancho": 1008,
+    "alto": 852,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipoConexion",
+        "tipo": "ComboBox",
+        "texto": "Serie (RS-232 / USB)",
+        "x": 65,
+        "y": 68,
+        "ancho": 469,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbPuerto",
+        "tipo": "ComboBox",
+        "texto": "COM3",
+        "x": 134,
+        "y": 121,
+        "ancho": 80,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbBaudios",
+        "tipo": "ComboBox",
+        "texto": "9600",
+        "x": 382,
+        "y": 121,
+        "ancho": 144,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbBitsDatos",
+        "tipo": "ComboBox",
+        "texto": "8",
+        "x": 134,
+        "y": 156,
+        "ancho": 176,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbParidad",
+        "tipo": "ComboBox",
+        "texto": "Ninguna",
+        "x": 382,
+        "y": 156,
+        "ancho": 144,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbBitsParada",
+        "tipo": "ComboBox",
+        "texto": "1",
+        "x": 134,
+        "y": 185,
+        "ancho": 176,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbDelimitador",
+        "tipo": "ComboBox",
+        "texto": "Inicio con '=' (RX8 / XK3190)",
+        "x": 190,
+        "y": 401,
+        "ancho": 344,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbUnidad",
+        "tipo": "ComboBox",
+        "texto": "Gramos (g)",
+        "x": 190,
+        "y": 430,
+        "ancho": 344,
+        "alto": 25
+      },
+      {
+        "nombre": "btnProbarConexion",
+        "tipo": "Button",
+        "texto": "Probar conexión",
+        "x": 564,
+        "y": 334,
+        "ancho": 120,
+        "alto": 28
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 809,
+        "y": 810,
+        "ancho": 90,
+        "alto": 29
+      }
+    ]
+  },
+  {
+    "id": "ad-43b-balanza-rx8-prueba",
+    "archivo": "ad-43b-balanza-rx8-prueba.png",
+    "titulo": "Prueba de conexión con el indicador RX8",
+    "descripcion": "La prueba muestra las tramas recibidas del indicador (=121400, el peso en gramos) y confirma «Conexión correcta … Estabilidad: alcanzada».",
+    "ancho": 1008,
+    "alto": 852,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblEstadoPrueba",
+        "tipo": "Label",
+        "texto": "Conexión correcta: 49 de 49 tramas reconocidas. Estabilidad: alcanzada.",
+        "x": 564,
+        "y": 366,
+        "ancho": 423,
+        "alto": 38
+      },
+      {
+        "nombre": "lblPesoPrueba",
+        "tipo": "Label",
+        "texto": "121.4 kg",
+        "x": 724,
+        "y": 404,
+        "ancho": 103,
+        "alto": 30
+      },
+      {
+        "nombre": "lstTramas",
+        "tipo": "ListBox",
+        "texto": "",
+        "x": 566,
+        "y": 439,
+        "ancho": 402,
+        "alto": 347
+      }
+    ]
+  },
+  {
+    "id": "ad-44-barra-estado-simulador",
+    "archivo": "ad-44-barra-estado-simulador.png",
+    "titulo": "Barra de estado con el simulador activo",
+    "descripcion": "Con la balanza en modo Simulador, el indicador de la barra de estado se ve con fondo naranja y la marca [SIMULADOR].",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "[SIMULADOR] Balanza: conectada (Simulador)  121.4 kg",
+        "x": 457,
+        "y": 9,
+        "ancho": 303,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "ad-44-barra-estado-simulador-detalle",
+    "archivo": "ad-44-barra-estado-simulador-detalle.png",
+    "titulo": "Barra de estado con el simulador activo (detalle)",
+    "descripcion": "Segmento de la balanza con la marca [SIMULADOR] sobre fondo naranja.",
+    "ancho": 309,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "[SIMULADOR] Balanza: conectada (Simulador)  121.4 kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 303,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "ad-45-balanza-simulador",
+    "archivo": "ad-45-balanza-simulador.png",
+    "titulo": "Configuración de balanza en modo Simulador",
+    "descripcion": "Con el tipo «Simulador» se habilita el control del simulador (peso objetivo, «Aplicar», «Simular carga», «Vaciar»); solo para pruebas.",
+    "ancho": 1008,
+    "alto": 852,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipoConexion",
+        "tipo": "ComboBox",
+        "texto": "Simulador",
+        "x": 65,
+        "y": 68,
+        "ancho": 469,
+        "alto": 25
+      },
+      {
+        "nombre": "grpSimulador",
+        "tipo": "GroupBox",
+        "texto": "Control del modo simulador",
+        "x": 553,
+        "y": 135,
+        "ancho": 445,
+        "alto": 162
+      },
+      {
+        "nombre": "numPesoObjetivo",
+        "tipo": "NumericUpDown",
+        "texto": "121.4",
+        "x": 690,
+        "y": 164,
+        "ancho": 100,
+        "alto": 25
+      },
+      {
+        "nombre": "btnAplicarPeso",
+        "tipo": "Button",
+        "texto": "Aplicar",
+        "x": 796,
+        "y": 162,
+        "ancho": 90,
+        "alto": 29
+      },
+      {
+        "nombre": "btnCargaAleatoria",
+        "tipo": "Button",
+        "texto": "Simular carga",
+        "x": 564,
+        "y": 197,
+        "ancho": 113,
+        "alto": 29
+      },
+      {
+        "nombre": "btnVaciar",
+        "tipo": "Button",
+        "texto": "Vaciar",
+        "x": 683,
+        "y": 197,
+        "ancho": 90,
+        "alto": 29
+      },
+      {
+        "nombre": "chkDesconexion",
+        "tipo": "CheckBox",
+        "texto": "Simular desconexión física de la balanza",
+        "x": 564,
+        "y": 247,
+        "ancho": 268,
+        "alto": 23
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 809,
+        "y": 810,
+        "ancho": 90,
+        "alto": 29
+      }
+    ]
+  },
+  {
+    "id": "ad-46-asistente-simulador",
+    "archivo": "ad-46-asistente-simulador.png",
+    "titulo": "Asistente con la balanza en modo Simulador",
+    "descripcion": "Si la balanza está en modo Simulador, el asistente exige marcar «Continuar con la balanza en modo SIMULADOR (solo pruebas…)» para poder finalizar.",
+    "ancho": 884,
+    "alto": 792,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "chkSimulador",
+        "tipo": "CheckBox",
+        "texto": "Continuar con la balanza en modo SIMULADOR (solo pruebas: los pesos no tienen valor comercial)",
+        "x": 16,
+        "y": 690,
+        "ancho": 631,
+        "alto": 23
+      },
+      {
+        "nombre": "btnFinalizar",
+        "tipo": "Button",
+        "texto": "Finalizar",
+        "x": 618,
+        "y": 744,
+        "ancho": 110,
+        "alto": 32
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "Falta: configurar la balanza o confirmar el simulador.",
+        "x": 16,
+        "y": 719,
+        "ancho": 326,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "ad-47-pesaje-modo-simulador",
+    "archivo": "ad-47-pesaje-modo-simulador.png",
+    "titulo": "Registro de pesaje en modo Simulador",
+    "descripcion": "En modo Simulador la pantalla de pesaje muestra la franja «MODO SIMULADOR — los pesos no son reales» y, para el administrador, el panel para simular cargas.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblSimulador",
+        "tipo": "Label",
+        "texto": "MODO SIMULADOR — los pesos no son reales",
+        "x": 16,
+        "y": 47,
+        "ancho": 976,
+        "alto": 24
+      },
+      {
+        "nombre": "grpSimulador",
+        "tipo": "GroupBox",
+        "texto": "Panel de Simulación de Balanza (Admin)",
+        "x": 571,
+        "y": 518,
+        "ancho": 419,
+        "alto": 64
+      },
+      {
+        "nombre": "lblPesoVivo",
+        "tipo": "Label",
+        "texto": "121.4 kg",
+        "x": 458,
+        "y": 74,
+        "ancho": 531,
+        "alto": 84
+      },
+      {
+        "nombre": "lblEstadoBalanza",
+        "tipo": "Label",
+        "texto": "[SIMULADOR] Balanza: conectada (Simulador)",
+        "x": 19,
+        "y": 102,
+        "ancho": 433,
+        "alto": 84
+      }
+    ]
+  },
+  {
+    "id": "ad-50-backup-restaurar",
+    "archivo": "ad-50-backup-restaurar.png",
+    "titulo": "Copias de seguridad",
+    "descripcion": "Lista de copias de seguridad con sus fechas y tamaños, los botones para crear una copia, exportarla o restaurarla, y la configuración de la copia automática diaria.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dgvBackups",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 13,
+        "y": 44,
+        "ancho": 982,
+        "alto": 363
+      },
+      {
+        "nombre": "btnCrear",
+        "tipo": "Button",
+        "texto": "&Crear backup ahora",
+        "x": 20,
+        "y": 417,
+        "ancho": 155,
+        "alto": 30
+      },
+      {
+        "nombre": "btnExportar",
+        "tipo": "Button",
+        "texto": "E&xportar copia…",
+        "x": 188,
+        "y": 417,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "btnRestaurar",
+        "tipo": "Button",
+        "texto": "&Restaurar seleccionada…",
+        "x": 331,
+        "y": 417,
+        "ancho": 185,
+        "alto": 30
+      },
+      {
+        "nombre": "btnRestaurarArchivo",
+        "tipo": "Button",
+        "texto": "Restaurar desde &archivo…",
+        "x": 529,
+        "y": 417,
+        "ancho": 195,
+        "alto": 30
+      },
+      {
+        "nombre": "btnAbrirCarpeta",
+        "tipo": "Button",
+        "texto": "Abrir &carpeta",
+        "x": 737,
+        "y": 417,
+        "ancho": 115,
+        "alto": 30
+      },
+      {
+        "nombre": "btnActualizar",
+        "tipo": "Button",
+        "texto": "Ac&tualizar (F5)",
+        "x": 865,
+        "y": 417,
+        "ancho": 125,
+        "alto": 30
+      },
+      {
+        "nombre": "chkAutomatico",
+        "tipo": "CheckBox",
+        "texto": "Crear un backup automático cada día",
+        "x": 24,
+        "y": 486,
+        "ancho": 256,
+        "alto": 23
+      },
+      {
+        "nombre": "chkAlCerrar",
+        "tipo": "CheckBox",
+        "texto": "Crear también al cerrar el sistema",
+        "x": 300,
+        "y": 486,
+        "ancho": 232,
+        "alto": 23
+      },
+      {
+        "nombre": "nudDias",
+        "tipo": "NumericUpDown",
+        "texto": "30",
+        "x": 242,
+        "y": 521,
+        "ancho": 70,
+        "alto": 25
+      },
+      {
+        "nombre": "txtCarpetaSecundaria",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 214,
+        "y": 563,
+        "ancho": 296,
+        "alto": 21
+      },
+      {
+        "nombre": "btnExaminarCarpeta",
+        "tipo": "Button",
+        "texto": "Examinar…",
+        "x": 526,
+        "y": 560,
+        "ancho": 95,
+        "alto": 30
+      },
+      {
+        "nombre": "btnGuardarConfiguracion",
+        "tipo": "Button",
+        "texto": "&Guardar configuración",
+        "x": 326,
+        "y": 520,
+        "ancho": 175,
+        "alto": 30
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar",
+        "x": 905,
+        "y": 649,
+        "ancho": 90,
+        "alto": 30
+      }
+    ]
+  },
+  {
+    "id": "ad-51-confirmar-restauracion",
+    "archivo": "ad-51-confirmar-restauracion.png",
+    "titulo": "Confirmar la restauración",
+    "descripcion": "Antes de restaurar, el sistema muestra los datos de la copia y pide escribir la palabra de confirmación; restaurar reemplaza todos los datos actuales.",
+    "ancho": 534,
+    "alto": 512,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "tblDetalles",
+        "tipo": "TableLayoutPanel",
+        "texto": "",
+        "x": 12,
+        "y": 43,
+        "ancho": 329,
+        "alto": 258
+      },
+      {
+        "nombre": "lblPrompt",
+        "tipo": "Label",
+        "texto": "Escriba RESTAURAR para confirmar:",
+        "x": 16,
+        "y": 398,
+        "ancho": 223,
+        "alto": 19
+      },
+      {
+        "nombre": "txtConfirmacion",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 18,
+        "y": 424,
+        "ancho": 196,
+        "alto": 21
+      },
+      {
+        "nombre": "btnRestaurar",
+        "tipo": "Button",
+        "texto": "Restaurar",
+        "x": 16,
+        "y": 465,
+        "ancho": 100,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 128,
+        "y": 465,
+        "ancho": 100,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "ad-52-restauracion-programada",
+    "archivo": "ad-52-restauracion-programada.png",
+    "titulo": "La restauración quedó programada",
+    "descripcion": "Tras confirmar, el sistema avisa que la restauración quedó programada, que se guardó una copia de la base actual y que se cerrará y volverá a abrirse.",
+    "ancho": 392,
+    "alto": 171,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "Aceptar",
+        "x": 302,
+        "y": 138,
+        "ancho": 75,
+        "alto": 23
+      }
+    ]
+  },
+  {
+    "id": "ad-60-importar-paso1",
+    "archivo": "ad-60-importar-paso1.png",
+    "titulo": "Importar datos del sistema anterior: paso 1",
+    "descripcion": "Primer paso: se elige qué se va a importar (ganaderos, clientes o pesajes) y se busca el archivo del sistema anterior (CSV, TXT, DBF o Access).",
+    "ancho": 1008,
+    "alto": 752,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipo",
+        "tipo": "ComboBox",
+        "texto": "Ganaderos",
+        "x": 62,
+        "y": 67,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "txtArchivo",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 278,
+        "y": 69,
+        "ancho": 256,
+        "alto": 21
+      },
+      {
+        "nombre": "btnExaminar",
+        "tipo": "Button",
+        "texto": "&Examinar…",
+        "x": 550,
+        "y": 66,
+        "ancho": 95,
+        "alto": 30
+      },
+      {
+        "nombre": "cmbCodificacion",
+        "tipo": "ComboBox",
+        "texto": "Automática",
+        "x": 307,
+        "y": 105,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "btnLeer",
+        "tipo": "Button",
+        "texto": "&Leer archivo",
+        "x": 467,
+        "y": 104,
+        "ancho": 115,
+        "alto": 30
+      }
+    ]
+  },
+  {
+    "id": "ad-61-importar-paso2",
+    "archivo": "ad-61-importar-paso2.png",
+    "titulo": "Importar datos del sistema anterior: paso 2",
+    "descripcion": "Segundo paso: el sistema muestra una muestra del archivo y propone a qué dato corresponde cada columna; se puede corregir con las listas.",
+    "ancho": 1008,
+    "alto": 752,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtArchivo",
+        "tipo": "TextBox",
+        "texto": "C:\\Importar\\ganaderos-sistema-anterior.csv",
+        "x": 278,
+        "y": 69,
+        "ancho": 256,
+        "alto": 21
+      },
+      {
+        "nombre": "dgvMapeo",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 21,
+        "y": 232,
+        "ancho": 424,
+        "alto": 184
+      },
+      {
+        "nombre": "dgvMuestra",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 451,
+        "y": 232,
+        "ancho": 536,
+        "alto": 184
+      },
+      {
+        "nombre": "lblInfoArchivo",
+        "tipo": "Label",
+        "texto": "6 filas · codificación UTF-8",
+        "x": 22,
+        "y": 141,
+        "ancho": 167,
+        "alto": 19
+      },
+      {
+        "nombre": "btnSimular",
+        "tipo": "Button",
+        "texto": "&Simulacro",
+        "x": 28,
+        "y": 456,
+        "ancho": 110,
+        "alto": 30
+      }
+    ]
+  },
+  {
+    "id": "ad-62-importar-paso3-simulacro",
+    "archivo": "ad-62-importar-paso3-simulacro.png",
+    "titulo": "Importar datos del sistema anterior: paso 3 (simulacro)",
+    "descripcion": "Tercer paso: el simulacro muestra cuántas filas se importarían, cuántas ya existen y cuáles tienen errores, sin cambiar nada; si todo está bien se pulsa «Importar».",
+    "ancho": 1008,
+    "alto": 752,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "btnSimular",
+        "tipo": "Button",
+        "texto": "&Simulacro",
+        "x": 28,
+        "y": 456,
+        "ancho": 110,
+        "alto": 30
+      },
+      {
+        "nombre": "btnImportar",
+        "tipo": "Button",
+        "texto": "&Importar",
+        "x": 151,
+        "y": 456,
+        "ancho": 110,
+        "alto": 30
+      },
+      {
+        "nombre": "btnInforme",
+        "tipo": "Button",
+        "texto": "Guardar &informe…",
+        "x": 274,
+        "y": 456,
+        "ancho": 150,
+        "alto": 30
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "Simulacro: 6 filas leídas; se importarían 4; 1 ya existentes; 1 con errores (no se importan); 0 con advertencias.",
+        "x": 30,
+        "y": 495,
+        "ancho": 739,
+        "alto": 19
+      },
+      {
+        "nombre": "dgvIncidencias",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 21,
+        "y": 525,
+        "ancho": 966,
+        "alto": 165
+      }
+    ]
+  },
+  {
+    "id": "ad-70-visor-logs",
+    "archivo": "ad-70-visor-logs.png",
+    "titulo": "Visor de logs",
+    "descripcion": "El visor de logs muestra el registro técnico del sistema por día, con filtros por nivel y por texto, y el detalle de cada entrada; sirve para el soporte técnico.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbArchivo",
+        "tipo": "ComboBox",
+        "texto": "18/11/2026 — pesaje-20261118.log (0.0 MB)",
+        "x": 82,
+        "y": 67,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbNivel",
+        "tipo": "ComboBox",
+        "texto": "Todos",
+        "x": 442,
+        "y": 67,
+        "ancho": 180,
+        "alto": 25
+      },
+      {
+        "nombre": "txtBuscar",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 78,
+        "y": 107,
+        "ancho": 216,
+        "alto": 21
+      },
+      {
+        "nombre": "btnFiltrar",
+        "tipo": "Button",
+        "texto": "&Filtrar",
+        "x": 312,
+        "y": 104,
+        "ancho": 95,
+        "alto": 30
+      },
+      {
+        "nombre": "btnActualizar",
+        "tipo": "Button",
+        "texto": "Ac&tualizar (F5)",
+        "x": 644,
+        "y": 66,
+        "ancho": 125,
+        "alto": 30
+      },
+      {
+        "nombre": "btnAbrirCarpeta",
+        "tipo": "Button",
+        "texto": "Abrir &carpeta",
+        "x": 782,
+        "y": 66,
+        "ancho": 115,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvEntradas",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 16,
+        "y": 159,
+        "ancho": 976,
+        "alto": 307
+      },
+      {
+        "nombre": "txtDetalle",
+        "tipo": "TextBox",
+        "texto": "Simulacro de importación de \"Ganaderos\" (\"Csv\"): 6 leídas, 4 a importar, 1 con error por usuario 1.",
+        "x": 18,
+        "y": 474,
+        "ancho": 955,
+        "alto": 160
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "Mostrando 129 de 129 entradas.",
+        "x": 14,
+        "y": 654,
+        "ancho": 212,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-01-login",
+    "archivo": "comun-01-login.png",
+    "titulo": "Pantalla de inicio de sesión",
+    "descripcion": "Pantalla de inicio de sesión con el logo y el nombre de la empresa, vacía y lista para escribir el usuario.",
+    "ancho": 420,
+    "alto": 391,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtUsuario",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 130,
+        "y": 157,
+        "ancho": 260,
+        "alto": 21
+      },
+      {
+        "nombre": "txtPassword",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 130,
+        "y": 192,
+        "ancho": 260,
+        "alto": 21
+      },
+      {
+        "nombre": "btnIngresar",
+        "tipo": "Button",
+        "texto": "Ingresar",
+        "x": 193,
+        "y": 298,
+        "ancho": 95,
+        "alto": 35
+      },
+      {
+        "nombre": "btnSalir",
+        "tipo": "Button",
+        "texto": "Salir",
+        "x": 294,
+        "y": 298,
+        "ancho": 95,
+        "alto": 35
+      },
+      {
+        "nombre": "picLogo",
+        "tipo": "PictureBox",
+        "texto": "",
+        "x": 25,
+        "y": 47,
+        "ancho": 72,
+        "alto": 72
+      }
+    ]
+  },
+  {
+    "id": "comun-02-login-error",
+    "archivo": "comun-02-login-error.png",
+    "titulo": "Inicio de sesión con datos incorrectos",
+    "descripcion": "Mensaje en rojo «Usuario o contraseña incorrectos.» tras un intento con una contraseña equivocada.",
+    "ancho": 420,
+    "alto": 391,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtUsuario",
+        "tipo": "TextBox",
+        "texto": "operador",
+        "x": 130,
+        "y": 157,
+        "ancho": 260,
+        "alto": 21
+      },
+      {
+        "nombre": "txtPassword",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 130,
+        "y": 192,
+        "ancho": 260,
+        "alto": 21
+      },
+      {
+        "nombre": "lblMensaje",
+        "tipo": "Label",
+        "texto": "Usuario o contraseña incorrectos.",
+        "x": 28,
+        "y": 247,
+        "ancho": 364,
+        "alto": 45
+      },
+      {
+        "nombre": "btnIngresar",
+        "tipo": "Button",
+        "texto": "Ingresar",
+        "x": 193,
+        "y": 298,
+        "ancho": 95,
+        "alto": 35
+      },
+      {
+        "nombre": "btnSalir",
+        "tipo": "Button",
+        "texto": "Salir",
+        "x": 294,
+        "y": 298,
+        "ancho": 95,
+        "alto": 35
+      },
+      {
+        "nombre": "picLogo",
+        "tipo": "PictureBox",
+        "texto": "",
+        "x": 25,
+        "y": 47,
+        "ancho": 72,
+        "alto": 72
+      }
+    ]
+  },
+  {
+    "id": "comun-03-cambio-password-obligatorio",
+    "archivo": "comun-03-cambio-password-obligatorio.png",
+    "titulo": "Cambio de contraseña obligatorio",
+    "descripcion": "Ventana que aparece al ingresar por primera vez o tras un restablecimiento: «Debe cambiar su contraseña para continuar».",
+    "ancho": 460,
+    "alto": 291,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtActual",
+        "tipo": "TextBox",
+        "texto": "••••••••",
+        "x": 175,
+        "y": 86,
+        "ancho": 255,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNueva",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 175,
+        "y": 121,
+        "ancho": 255,
+        "alto": 21
+      },
+      {
+        "nombre": "txtConfirmacion",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 175,
+        "y": 156,
+        "ancho": 255,
+        "alto": 21
+      },
+      {
+        "nombre": "btnAceptar",
+        "tipo": "Button",
+        "texto": "Aceptar",
+        "x": 223,
+        "y": 202,
+        "ancho": 100,
+        "alto": 35
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 329,
+        "y": 202,
+        "ancho": 100,
+        "alto": 35
+      }
+    ]
+  },
+  {
+    "id": "comun-10-inicio-administrador",
+    "archivo": "comun-10-inicio-administrador.png",
+    "titulo": "Pantalla de inicio (administrador)",
+    "descripcion": "Pantalla de inicio del administrador: ve el menú completo (Pesaje, Boletas, Catálogos, Reportes, Administración, Utilitarios, Sesión y Ayuda).",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "tarjetaPesaje",
+        "tipo": "TarjetaAccion",
+        "texto": "Control de peso",
+        "x": 58,
+        "y": 304,
+        "ancho": 340,
+        "alto": 230
+      },
+      {
+        "nombre": "tarjetaTicket",
+        "tipo": "TarjetaAccion",
+        "texto": "Imprimir ticket",
+        "x": 422,
+        "y": 304,
+        "ancho": 340,
+        "alto": 230
+      },
+      {
+        "nombre": "tarjetaHistorial",
+        "tipo": "TarjetaAccion",
+        "texto": "Historial de pesajes",
+        "x": 786,
+        "y": 304,
+        "ancho": 340,
+        "alto": 230
+      }
+    ]
+  },
+  {
+    "id": "comun-11-menu-pesaje",
+    "archivo": "comun-11-menu-pesaje.png",
+    "titulo": "Menú Pesaje",
+    "descripcion": "Menú «Pesaje»: Registrar pesaje (F2) e Historial de pesajes (F4).",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "comun-11-menu-pesaje-detalle",
+    "archivo": "comun-11-menu-pesaje-detalle.png",
+    "titulo": "Menú Pesaje (detalle)",
+    "descripcion": "Menú «Pesaje»: Registrar pesaje (F2) e Historial de pesajes (F4).",
+    "ancho": 533,
+    "alto": 81,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Pesaje",
+        "x": 6,
+        "y": 8,
+        "ancho": 52,
+        "alto": 20
+      },
+      {
+        "nombre": "itemRegistrarPesaje",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Registrar pesaje",
+        "x": 6,
+        "y": 29,
+        "ancho": 194,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Historial de pesajes",
+        "x": 6,
+        "y": 51,
+        "ancho": 194,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "comun-12-menu-boletas",
+    "archivo": "comun-12-menu-boletas.png",
+    "titulo": "Menú Boletas",
+    "descripcion": "Menú «Boletas»: Reimprimir boleta (F3), Buscar / editar boleta (F6) y Anular boleta.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "comun-12-menu-boletas-detalle",
+    "archivo": "comun-12-menu-boletas-detalle.png",
+    "titulo": "Menú Boletas (detalle)",
+    "descripcion": "Menú «Boletas»: Reimprimir boleta (F3), Buscar / editar boleta (F6) y Anular boleta.",
+    "ancho": 533,
+    "alto": 103,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Boletas",
+        "x": 58,
+        "y": 8,
+        "ancho": 57,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Reimprimir boleta",
+        "x": 58,
+        "y": 29,
+        "ancho": 205,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Buscar / editar boleta",
+        "x": 58,
+        "y": 51,
+        "ancho": 205,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Anular boleta",
+        "x": 58,
+        "y": 73,
+        "ancho": 205,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "comun-13-menu-catalogos",
+    "archivo": "comun-13-menu-catalogos.png",
+    "titulo": "Menú Catálogos",
+    "descripcion": "Menú «Catálogos»: Ganaderos, Clientes y Fleteros.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "comun-13-menu-catalogos-detalle",
+    "archivo": "comun-13-menu-catalogos-detalle.png",
+    "titulo": "Menú Catálogos (detalle)",
+    "descripcion": "Menú «Catálogos»: Ganaderos, Clientes y Fleteros.",
+    "ancho": 533,
+    "alto": 103,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Catálogos",
+        "x": 115,
+        "y": 8,
+        "ancho": 72,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Ganaderos",
+        "x": 115,
+        "y": 29,
+        "ancho": 130,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Clientes",
+        "x": 115,
+        "y": 51,
+        "ancho": 130,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Fleteros",
+        "x": 115,
+        "y": 73,
+        "ancho": 130,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "comun-14-menu-reportes",
+    "archivo": "comun-14-menu-reportes.png",
+    "titulo": "Menú Reportes",
+    "descripcion": "Menú «Reportes»: Reportes de pesaje, Pesajes por raza y Boletas anuladas.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "comun-14-menu-reportes-detalle",
+    "archivo": "comun-14-menu-reportes-detalle.png",
+    "titulo": "Menú Reportes (detalle)",
+    "descripcion": "Menú «Reportes»: Reportes de pesaje, Pesajes por raza y Boletas anuladas.",
+    "ancho": 533,
+    "alto": 103,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Reportes",
+        "x": 187,
+        "y": 8,
+        "ancho": 65,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Reportes de pesaje",
+        "x": 187,
+        "y": 29,
+        "ancho": 172,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Pesajes por &raza",
+        "x": 187,
+        "y": 51,
+        "ancho": 172,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Boletas &anuladas",
+        "x": 187,
+        "y": 73,
+        "ancho": 172,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "comun-15-menu-administracion",
+    "archivo": "comun-15-menu-administracion.png",
+    "titulo": "Menú Administración",
+    "descripcion": "Menú «Administración»: Usuarios, Parámetros del sistema, Configuración de balanza, Configuración de impresión y Visor de auditoría.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "comun-15-menu-administracion-detalle",
+    "archivo": "comun-15-menu-administracion-detalle.png",
+    "titulo": "Menú Administración (detalle)",
+    "descripcion": "Menú «Administración»: Usuarios, Parámetros del sistema, Configuración de balanza, Configuración de impresión y Visor de auditoría.",
+    "ancho": 533,
+    "alto": 169,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Administración",
+        "x": 252,
+        "y": 8,
+        "ancho": 100,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Usuarios",
+        "x": 252,
+        "y": 29,
+        "ancho": 222,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Parámetros del sistema",
+        "x": 252,
+        "y": 51,
+        "ancho": 222,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Tipo de pesaje",
+        "x": 252,
+        "y": 73,
+        "ancho": 222,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Configuración de &balanza",
+        "x": 252,
+        "y": 95,
+        "ancho": 222,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Configuración de &impresión",
+        "x": 252,
+        "y": 117,
+        "ancho": 222,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Visor de &auditoría",
+        "x": 252,
+        "y": 139,
+        "ancho": 222,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "comun-16-menu-utilitarios",
+    "archivo": "comun-16-menu-utilitarios.png",
+    "titulo": "Menú Utilitarios",
+    "descripcion": "Menú «Utilitarios»: Backup / Restaurar, Importar datos legados y Visor de logs.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "comun-16-menu-utilitarios-detalle",
+    "archivo": "comun-16-menu-utilitarios-detalle.png",
+    "titulo": "Menú Utilitarios (detalle)",
+    "descripcion": "Menú «Utilitarios»: Backup / Restaurar, Importar datos legados y Visor de logs.",
+    "ancho": 555,
+    "alto": 103,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Utilitarios",
+        "x": 352,
+        "y": 8,
+        "ancho": 69,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Backup / Restaurar",
+        "x": 352,
+        "y": 29,
+        "ancho": 196,
+        "alto": 22
+      },
+      {
+        "nombre": "itemImportarLegado",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Importar datos legados",
+        "x": 352,
+        "y": 51,
+        "ancho": 196,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Visor de &logs",
+        "x": 352,
+        "y": 73,
+        "ancho": 196,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "comun-17-menu-sesion",
+    "archivo": "comun-17-menu-sesion.png",
+    "titulo": "Menú Sesión",
+    "descripcion": "Menú «Sesión»: Cambiar contraseña…, Cerrar sesión y Salir.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "comun-17-menu-sesion-detalle",
+    "archivo": "comun-17-menu-sesion-detalle.png",
+    "titulo": "Menú Sesión (detalle)",
+    "descripcion": "Menú «Sesión»: Cambiar contraseña…, Cerrar sesión y Salir.",
+    "ancho": 642,
+    "alto": 109,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Sesión",
+        "x": 421,
+        "y": 8,
+        "ancho": 53,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Cambiar contraseña…",
+        "x": 421,
+        "y": 29,
+        "ancho": 214,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Cerrar &sesión",
+        "x": 421,
+        "y": 51,
+        "ancho": 214,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Salir",
+        "x": 421,
+        "y": 79,
+        "ancho": 214,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "comun-18-menu-ayuda",
+    "archivo": "comun-18-menu-ayuda.png",
+    "titulo": "Menú Ayuda",
+    "descripcion": "Menú «Ayuda»: Asistente de puesta en marcha… y Acerca de…",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "comun-18-menu-ayuda-detalle",
+    "archivo": "comun-18-menu-ayuda-detalle.png",
+    "titulo": "Menú Ayuda (detalle)",
+    "descripcion": "Menú «Ayuda»: Asistente de puesta en marcha… y Acerca de…",
+    "ancho": 725,
+    "alto": 81,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "A&yuda",
+        "x": 474,
+        "y": 8,
+        "ancho": 53,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Asistente de &puesta en marcha…",
+        "x": 474,
+        "y": 29,
+        "ancho": 244,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Acerca de…",
+        "x": 474,
+        "y": 51,
+        "ancho": 244,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "comun-20-barra-estado-verde",
+    "archivo": "comun-20-barra-estado-verde.png",
+    "titulo": "Barra de estado con la balanza conectada",
+    "descripcion": "Barra inferior: empresa, usuario, rol y estado de la balanza. En verde, «Balanza: conectada (COM3 9600 8N1)» con el peso que llega.",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  121.4 kg",
+        "x": 457,
+        "y": 9,
+        "ancho": 257,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 9,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-20-barra-estado-verde-detalle",
+    "archivo": "comun-20-barra-estado-verde-detalle.png",
+    "titulo": "Barra de estado con la balanza conectada (detalle)",
+    "descripcion": "Barra inferior: empresa, usuario, rol y estado de la balanza. En verde, «Balanza: conectada (COM3 9600 8N1)» con el peso que llega.",
+    "ancho": 263,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  121.4 kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 257,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-21-barra-estado-sin-datos",
+    "archivo": "comun-21-barra-estado-sin-datos.png",
+    "titulo": "Barra de estado con la balanza sin datos",
+    "descripcion": "Si la balanza deja de enviar datos, el indicador se pone en rojo («Balanza: sin datos»): hay que revisar el cable y el indicador.",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: sin datos  ---- kg",
+        "x": 457,
+        "y": 9,
+        "ancho": 146,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 9,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-21-barra-estado-sin-datos-detalle",
+    "archivo": "comun-21-barra-estado-sin-datos-detalle.png",
+    "titulo": "Barra de estado con la balanza sin datos (detalle)",
+    "descripcion": "Si la balanza deja de enviar datos, el indicador se pone en rojo («Balanza: sin datos»): hay que revisar el cable y el indicador.",
+    "ancho": 152,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: sin datos  ---- kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 146,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-22-barra-estado-error",
+    "archivo": "comun-22-barra-estado-error.png",
+    "titulo": "Barra de estado con error en la balanza",
+    "descripcion": "Si se pierde la conexión con la balanza, el indicador se pone en rojo con el motivo del error y el sistema reintenta conectarse solo.",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: error — Se perdió la conexión con la balanza.  ---- kg",
+        "x": 457,
+        "y": 9,
+        "ancho": 335,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 9,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-22-barra-estado-error-detalle",
+    "archivo": "comun-22-barra-estado-error-detalle.png",
+    "titulo": "Barra de estado con error en la balanza (detalle)",
+    "descripcion": "Si se pierde la conexión con la balanza, el indicador se pone en rojo con el motivo del error y el sistema reintenta conectarse solo.",
+    "ancho": 341,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: error — Se perdió la conexión con la balanza.  ---- kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 335,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-23-barra-estado-inestable",
+    "archivo": "comun-23-barra-estado-inestable.png",
+    "titulo": "Barra de estado con la balanza inestable",
+    "descripcion": "Mientras el peso se mueve, el indicador se ve en negro: todavía no se puede capturar el peso.",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  94.5 kg",
+        "x": 457,
+        "y": 9,
+        "ancho": 251,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 9,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-23-barra-estado-inestable-detalle",
+    "archivo": "comun-23-barra-estado-inestable-detalle.png",
+    "titulo": "Barra de estado con la balanza inestable (detalle)",
+    "descripcion": "Mientras el peso se mueve, el indicador se ve en negro: todavía no se puede capturar el peso.",
+    "ancho": 257,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  94.5 kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 251,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-24-barra-estado-diagnostico",
+    "archivo": "comun-24-barra-estado-diagnostico.png",
+    "titulo": "Barra de estado con la balanza en diagnóstico",
+    "descripcion": "Mientras se prueba la conexión desde «Configuración de balanza», el indicador se ve en gris: «Balanza: en diagnóstico».",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: en diagnóstico  ---- kg",
+        "x": 457,
+        "y": 9,
+        "ancho": 177,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 9,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-24-barra-estado-diagnostico-detalle",
+    "archivo": "comun-24-barra-estado-diagnostico-detalle.png",
+    "titulo": "Barra de estado con la balanza en diagnóstico (detalle)",
+    "descripcion": "Mientras se prueba la conexión desde «Configuración de balanza», el indicador se ve en gris: «Balanza: en diagnóstico».",
+    "ancho": 183,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: en diagnóstico  ---- kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 177,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "comun-30-cambiar-password",
+    "archivo": "comun-30-cambiar-password.png",
+    "titulo": "Cambiar contraseña",
+    "descripcion": "Ventana «Cambiar contraseña» (menú Sesión): se escribe la contraseña actual y la nueva dos veces; debe tener entre 6 y 100 caracteres.",
+    "ancho": 460,
+    "alto": 291,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtActual",
+        "tipo": "TextBox",
+        "texto": "claveActual1",
+        "x": 175,
+        "y": 86,
+        "ancho": 255,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNueva",
+        "tipo": "TextBox",
+        "texto": "claveNueva123",
+        "x": 175,
+        "y": 121,
+        "ancho": 255,
+        "alto": 21
+      },
+      {
+        "nombre": "txtConfirmacion",
+        "tipo": "TextBox",
+        "texto": "claveNueva123",
+        "x": 175,
+        "y": 156,
+        "ancho": 255,
+        "alto": 21
+      },
+      {
+        "nombre": "btnAceptar",
+        "tipo": "Button",
+        "texto": "Aceptar",
+        "x": 223,
+        "y": 202,
+        "ancho": 100,
+        "alto": 35
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 329,
+        "y": 202,
+        "ancho": 100,
+        "alto": 35
+      }
+    ]
+  },
+  {
+    "id": "comun-31-acerca-de",
+    "archivo": "comun-31-acerca-de.png",
+    "titulo": "Acerca de",
+    "descripcion": "Ventana «Acerca de»: versión del sistema, equipo y carpetas de datos; el botón «Copiar» deja estos datos en el portapapeles para enviarlos a soporte.",
+    "ancho": 409,
+    "alto": 430,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "<BtnCopiar>k__BackingField",
+        "tipo": "Button",
+        "texto": "Copiar para soporte",
+        "x": 139,
+        "y": 378,
+        "ancho": 150,
+        "alto": 32
+      },
+      {
+        "nombre": "<BtnCerrar>k__BackingField",
+        "tipo": "Button",
+        "texto": "Cerrar",
+        "x": 299,
+        "y": 378,
+        "ancho": 90,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "op-01-inicio",
+    "archivo": "op-01-inicio.png",
+    "titulo": "Pantalla de inicio (operador)",
+    "descripcion": "Pantalla de inicio con las tarjetas «Control de peso», «Imprimir ticket» y «Historial de pesajes», el menú superior y la barra de estado con la balanza conectada.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "tarjetaPesaje",
+        "tipo": "TarjetaAccion",
+        "texto": "Control de peso",
+        "x": 58,
+        "y": 304,
+        "ancho": 340,
+        "alto": 230
+      },
+      {
+        "nombre": "tarjetaTicket",
+        "tipo": "TarjetaAccion",
+        "texto": "Imprimir ticket",
+        "x": 422,
+        "y": 304,
+        "ancho": 340,
+        "alto": 230
+      },
+      {
+        "nombre": "tarjetaHistorial",
+        "tipo": "TarjetaAccion",
+        "texto": "Historial de pesajes",
+        "x": 786,
+        "y": 304,
+        "ancho": 340,
+        "alto": 230
+      },
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  0.0 kg",
+        "x": 429,
+        "y": 651,
+        "ancho": 245,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 651,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "op-02-menu-pesaje",
+    "archivo": "op-02-menu-pesaje.png",
+    "titulo": "Menú Pesaje (operador)",
+    "descripcion": "Menú «Pesaje» abierto: «Registrar pesaje (F2)» y «Historial de pesajes (F4)».",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "op-02-menu-pesaje-detalle",
+    "archivo": "op-02-menu-pesaje-detalle.png",
+    "titulo": "Menú Pesaje (detalle)",
+    "descripcion": "Menú «Pesaje» del operador: «Registrar pesaje» (F2) e «Historial de pesajes» (F4).",
+    "ancho": 227,
+    "alto": 81,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Pesaje",
+        "x": 6,
+        "y": 8,
+        "ancho": 52,
+        "alto": 20
+      },
+      {
+        "nombre": "itemRegistrarPesaje",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Registrar pesaje",
+        "x": 6,
+        "y": 29,
+        "ancho": 194,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Historial de pesajes",
+        "x": 6,
+        "y": 51,
+        "ancho": 194,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "op-03-menu-boletas",
+    "archivo": "op-03-menu-boletas.png",
+    "titulo": "Menú Boletas (operador)",
+    "descripcion": "Menú «Boletas» abierto: el operador solo ve «Reimprimir boleta (F3)».",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "op-03-menu-boletas-detalle",
+    "archivo": "op-03-menu-boletas-detalle.png",
+    "titulo": "Menú Boletas (detalle)",
+    "descripcion": "Menú «Boletas» del operador: solo «Reimprimir boleta» (F3).",
+    "ancho": 270,
+    "alto": 59,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Boletas",
+        "x": 58,
+        "y": 8,
+        "ancho": 57,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Reimprimir boleta",
+        "x": 58,
+        "y": 29,
+        "ancho": 205,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "op-04-menu-sesion",
+    "archivo": "op-04-menu-sesion.png",
+    "titulo": "Menú Sesión",
+    "descripcion": "Menú «Sesión»: «Cambiar contraseña…», «Cerrar sesión» y «Salir».",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "op-04-menu-sesion-detalle",
+    "archivo": "op-04-menu-sesion-detalle.png",
+    "titulo": "Menú Sesión (detalle)",
+    "descripcion": "Menú «Sesión»: «Cambiar contraseña…», «Cerrar sesión» y «Salir».",
+    "ancho": 336,
+    "alto": 109,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Sesión",
+        "x": 115,
+        "y": 8,
+        "ancho": 53,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Cambiar contraseña…",
+        "x": 115,
+        "y": 29,
+        "ancho": 214,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Cerrar &sesión",
+        "x": 115,
+        "y": 51,
+        "ancho": 214,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Salir",
+        "x": 115,
+        "y": 79,
+        "ancho": 214,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "op-05-cerrar-sesion-confirmacion",
+    "archivo": "op-05-cerrar-sesion-confirmacion.png",
+    "titulo": "Confirmar cierre de sesión",
+    "descripcion": "Pregunta «¿Está seguro de que desea cerrar la sesión?» con los botones Sí y No.",
+    "ancho": 314,
+    "alto": 151,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&Sí",
+        "x": 141,
+        "y": 119,
+        "ancho": 75,
+        "alto": 23
+      },
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&No",
+        "x": 224,
+        "y": 119,
+        "ancho": 75,
+        "alto": 23
+      }
+    ]
+  },
+  {
+    "id": "op-06-barra-estado-verde",
+    "archivo": "op-06-barra-estado-verde.png",
+    "titulo": "Barra de estado: balanza estable (operador)",
+    "descripcion": "Con el usuario operador: «Balanza: conectada (COM3 9600 8N1) 0.0 kg» en verde cuando el peso es estable.",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  0.0 kg",
+        "x": 429,
+        "y": 9,
+        "ancho": 245,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 9,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "op-06-barra-estado-verde-detalle",
+    "archivo": "op-06-barra-estado-verde-detalle.png",
+    "titulo": "Barra de estado: balanza estable (operador) (detalle)",
+    "descripcion": "Con el usuario operador: «Balanza: conectada (COM3 9600 8N1) 0.0 kg» en verde cuando el peso es estable.",
+    "ancho": 251,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  0.0 kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 245,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "op-07-barra-estado-inestable",
+    "archivo": "op-07-barra-estado-inestable.png",
+    "titulo": "Barra de estado: balanza inestable (operador)",
+    "descripcion": "Mientras el peso se mueve, el indicador se ve en negro: todavía no se puede capturar.",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  20.5 kg",
+        "x": 429,
+        "y": 9,
+        "ancho": 251,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 9,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "op-07-barra-estado-inestable-detalle",
+    "archivo": "op-07-barra-estado-inestable-detalle.png",
+    "titulo": "Barra de estado: balanza inestable (operador) (detalle)",
+    "descripcion": "Mientras el peso se mueve, el indicador se ve en negro: todavía no se puede capturar.",
+    "ancho": 257,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  20.5 kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 251,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "op-08-barra-estado-sin-datos",
+    "archivo": "op-08-barra-estado-sin-datos.png",
+    "titulo": "Barra de estado: balanza sin datos (operador)",
+    "descripcion": "Si la balanza deja de enviar datos, el indicador pasa a rojo: «Balanza: sin datos».",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: sin datos  ---- kg",
+        "x": 429,
+        "y": 9,
+        "ancho": 146,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 9,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "op-08-barra-estado-sin-datos-detalle",
+    "archivo": "op-08-barra-estado-sin-datos-detalle.png",
+    "titulo": "Barra de estado: balanza sin datos (operador) (detalle)",
+    "descripcion": "Si la balanza deja de enviar datos, el indicador pasa a rojo: «Balanza: sin datos».",
+    "ancho": 152,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: sin datos  ---- kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 146,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "op-09-barra-estado-error",
+    "archivo": "op-09-barra-estado-error.png",
+    "titulo": "Barra de estado: error de la balanza (operador)",
+    "descripcion": "Si se pierde la conexión, el indicador pasa a rojo con el motivo del error; el sistema reintenta solo.",
+    "ancho": 1184,
+    "alto": 30,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: error — Se perdió la conexión con la balanza.  ---- kg",
+        "x": 429,
+        "y": 9,
+        "ancho": 335,
+        "alto": 19
+      },
+      {
+        "nombre": "lblStatusEmpresa",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "FRIGORÍFICO EJEMPLO S.R.L.",
+        "x": 1,
+        "y": 9,
+        "ancho": 163,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "op-09-barra-estado-error-detalle",
+    "archivo": "op-09-barra-estado-error-detalle.png",
+    "titulo": "Barra de estado: error de la balanza (operador) (detalle)",
+    "descripcion": "Si se pierde la conexión, el indicador pasa a rojo con el motivo del error; el sistema reintenta solo.",
+    "ancho": 341,
+    "alto": 24,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: error — Se perdió la conexión con la balanza.  ---- kg",
+        "x": 3,
+        "y": 3,
+        "ancho": 335,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "op-10-pesaje-vacio",
+    "archivo": "op-10-pesaje-vacio.png",
+    "titulo": "Registro de pesaje, pantalla vacía",
+    "descripcion": "Pantalla de registro de pesaje recién abierta: peso en vivo estable en 0.0 kg y el mensaje guía «Seleccione el ganadero (código o nombre).».",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblProximaBoleta",
+        "tipo": "Label",
+        "texto": "Próxima boleta: 2436",
+        "x": 19,
+        "y": 50,
+        "ancho": 433,
+        "alto": 28
+      },
+      {
+        "nombre": "lblPesoVivo",
+        "tipo": "Label",
+        "texto": "0.0 kg",
+        "x": 458,
+        "y": 50,
+        "ancho": 531,
+        "alto": 108
+      },
+      {
+        "nombre": "lblEstable",
+        "tipo": "Label",
+        "texto": "ESTABLE",
+        "x": 458,
+        "y": 158,
+        "ancho": 531,
+        "alto": 28
+      },
+      {
+        "nombre": "lblEstadoBalanza",
+        "tipo": "Label",
+        "texto": "Balanza: conectada (COM3 9600 8N1)",
+        "x": 19,
+        "y": 78,
+        "ancho": 433,
+        "alto": 108
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Seleccione el ganadero (código o nombre).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 138,
+        "y": 255,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlCliente",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 138,
+        "y": 321,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlFletero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 138,
+        "y": 381,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "numSecuencia",
+        "tipo": "NumericUpDown",
+        "texto": "1",
+        "x": 141,
+        "y": 287,
+        "ancho": 90,
+        "alto": 25
+      },
+      {
+        "nombre": "txtColorRaza",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 140,
+        "y": 412,
+        "ancho": 393,
+        "alto": 21
+      },
+      {
+        "nombre": "cmbSexo",
+        "tipo": "ComboBox",
+        "texto": "M - MACHO",
+        "x": 138,
+        "y": 441,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbDesposte",
+        "tipo": "ComboBox",
+        "texto": "RES COMPLETA",
+        "x": 138,
+        "y": 470,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "txtObservacion",
+        "tipo": "TextBox",
+        "texto": "SIN OBSERVACIONES",
+        "x": 140,
+        "y": 501,
+        "ancho": 393,
+        "alto": 21
+      },
+      {
+        "nombre": "btnCapturarIzquierdo",
+        "tipo": "Button",
+        "texto": "Capturar izq. (F5)",
+        "x": 584,
+        "y": 351,
+        "ancho": 125,
+        "alto": 36
+      },
+      {
+        "nombre": "btnCapturarDerecho",
+        "tipo": "Button",
+        "texto": "Capturar der. (F6)",
+        "x": 715,
+        "y": 351,
+        "ancho": 125,
+        "alto": 36
+      },
+      {
+        "nombre": "btnBorrarPesaje",
+        "tipo": "Button",
+        "texto": "Borrar pesaje (F8)",
+        "x": 846,
+        "y": 351,
+        "ancho": 131,
+        "alto": 36
+      },
+      {
+        "nombre": "btnGrabar",
+        "tipo": "Button",
+        "texto": "&Grabar (F12)",
+        "x": 837,
+        "y": 467,
+        "ancho": 150,
+        "alto": 42
+      },
+      {
+        "nombre": "btnImprimir",
+        "tipo": "Button",
+        "texto": "Imprimir último (F9)",
+        "x": 676,
+        "y": 419,
+        "ancho": 185,
+        "alto": 42
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 867,
+        "y": 419,
+        "ancho": 120,
+        "alto": 42
+      }
+    ]
+  },
+  {
+    "id": "op-11-pesaje-buscar-ganadero",
+    "archivo": "op-11-pesaje-buscar-ganadero.png",
+    "titulo": "Buscar ganadero por nombre o código",
+    "descripcion": "Al escribir «san» en el campo del ganadero se abre la lista con las coincidencias; se elige una con las flechas y Enter, o con el mouse.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "san",
+        "x": 138,
+        "y": 255,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "",
+        "tipo": "ListBox",
+        "texto": "",
+        "x": 142,
+        "y": 284,
+        "ancho": 393,
+        "alto": 34
+      }
+    ]
+  },
+  {
+    "id": "op-11b-pesaje-ganadero-resaltado",
+    "archivo": "op-11b-pesaje-ganadero-resaltado.png",
+    "titulo": "Ganadero resaltado en la lista",
+    "descripcion": "La primera coincidencia queda resaltada; Enter la elige.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "san",
+        "x": 138,
+        "y": 255,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "",
+        "tipo": "ListBox",
+        "texto": "5 — AGROPECUARIA SANTA ROSA",
+        "x": 142,
+        "y": 284,
+        "ancho": 393,
+        "alto": 34
+      }
+    ]
+  },
+  {
+    "id": "op-12-pesaje-ganadero-cliente",
+    "archivo": "op-12-pesaje-ganadero-cliente.png",
+    "titulo": "Ganadero y cliente elegidos",
+    "descripcion": "Con el ganadero y el cliente elegidos, el sistema sugiere el número de secuencia del día y copia la dirección del cliente.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "5 — AGROPECUARIA SANTA ROSA",
+        "x": 138,
+        "y": 255,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "numSecuencia",
+        "tipo": "NumericUpDown",
+        "texto": "2",
+        "x": 141,
+        "y": 287,
+        "ancho": 90,
+        "alto": 25
+      },
+      {
+        "nombre": "lblInfoSecuencia",
+        "tipo": "Label",
+        "texto": "Hoy: 1 pesaje(s) de este ganadero",
+        "x": 237,
+        "y": 284,
+        "ancho": 221,
+        "alto": 23
+      },
+      {
+        "nombre": "ctlCliente",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "7 — CARNES SELECTAS HERMANOS ROCA",
+        "x": 138,
+        "y": 321,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "txtDireccion",
+        "tipo": "TextBox",
+        "texto": "CALLE BOLIVAR NRO. 17",
+        "x": 140,
+        "y": 352,
+        "ancho": 393,
+        "alto": 21
+      }
+    ]
+  },
+  {
+    "id": "op-13-pesaje-fletero-lista",
+    "archivo": "op-13-pesaje-fletero-lista.png",
+    "titulo": "Elegir el fletero",
+    "descripcion": "El fletero se elige igual que el ganadero: se escribe parte del nombre o del código y se elige de la lista.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlFletero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "pe",
+        "x": 138,
+        "y": 381,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "",
+        "tipo": "ListBox",
+        "texto": "",
+        "x": 142,
+        "y": 410,
+        "ancho": 393,
+        "alto": 17
+      }
+    ]
+  },
+  {
+    "id": "op-13b-pesaje-fletero-sin-elegir",
+    "archivo": "op-13b-pesaje-fletero-sin-elegir.png",
+    "titulo": "Fletero escrito pero no elegido",
+    "descripcion": "Si se escribe parte del nombre del fletero y no se elige de la lista, la guía pide «Elija el fletero de la lista o borre el texto.» y «Grabar» queda deshabilitado hasta resolverlo.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlFletero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "ra",
+        "x": 138,
+        "y": 381,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "txtColorRaza",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 140,
+        "y": 412,
+        "ancho": 393,
+        "alto": 21
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Elija el fletero de la lista o borre el texto.",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "btnGrabar",
+        "tipo": "Button",
+        "texto": "&Grabar (F12)",
+        "x": 837,
+        "y": 467,
+        "ancho": 150,
+        "alto": 42
+      }
+    ]
+  },
+  {
+    "id": "op-14-pesaje-peso-estable",
+    "archivo": "op-14-pesaje-peso-estable.png",
+    "titulo": "Peso estable en la balanza",
+    "descripcion": "La res está en la balanza: el peso en vivo (121.4 kg) aparece en verde con la palabra ESTABLE y se habilita «Capturar izquierdo (F5)».",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblPesoVivo",
+        "tipo": "Label",
+        "texto": "121.4 kg",
+        "x": 458,
+        "y": 50,
+        "ancho": 531,
+        "alto": 108
+      },
+      {
+        "nombre": "lblEstable",
+        "tipo": "Label",
+        "texto": "ESTABLE",
+        "x": 458,
+        "y": 158,
+        "ancho": 531,
+        "alto": 28
+      },
+      {
+        "nombre": "btnCapturarIzquierdo",
+        "tipo": "Button",
+        "texto": "Capturar izq. (F5)",
+        "x": 584,
+        "y": 351,
+        "ancho": 125,
+        "alto": 36
+      },
+      {
+        "nombre": "btnCapturarDerecho",
+        "tipo": "Button",
+        "texto": "Capturar der. (F6)",
+        "x": 715,
+        "y": 351,
+        "ancho": 125,
+        "alto": 36
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Capture el lado izquierdo (F5) y el derecho (F6).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      }
+    ]
+  },
+  {
+    "id": "op-15-pesaje-izquierdo-capturado",
+    "archivo": "op-15-pesaje-izquierdo-capturado.png",
+    "titulo": "Lado izquierdo capturado",
+    "descripcion": "Tras capturar el lado izquierdo, el sistema pide retirar el peso de la balanza (retorno a cero) antes de capturar el derecho.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtPesoIzquierdo",
+        "tipo": "TextBox",
+        "texto": "121.4",
+        "x": 586,
+        "y": 311,
+        "ancho": 121,
+        "alto": 32
+      },
+      {
+        "nombre": "txtPesoDerecho",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 717,
+        "y": 311,
+        "ancho": 121,
+        "alto": 32
+      },
+      {
+        "nombre": "txtPesoTotal",
+        "tipo": "TextBox",
+        "texto": "121.4",
+        "x": 848,
+        "y": 311,
+        "ancho": 127,
+        "alto": 32
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Retire el peso de la balanza (esperando retorno a cero).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "btnBorrarPesaje",
+        "tipo": "Button",
+        "texto": "Borrar pesaje (F8)",
+        "x": 846,
+        "y": 351,
+        "ancho": 131,
+        "alto": 36
+      }
+    ]
+  },
+  {
+    "id": "op-16-pesaje-balanza-en-cero",
+    "archivo": "op-16-pesaje-balanza-en-cero.png",
+    "titulo": "Balanza en cero",
+    "descripcion": "La balanza volvió a cero: ya puede colocar el otro lado de la res.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblPesoVivo",
+        "tipo": "Label",
+        "texto": "5.9 kg",
+        "x": 458,
+        "y": 50,
+        "ancho": 531,
+        "alto": 108
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Esperando peso estable…",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "txtPesoIzquierdo",
+        "tipo": "TextBox",
+        "texto": "121.4",
+        "x": 586,
+        "y": 311,
+        "ancho": 121,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "op-17-pesaje-listo-grabar",
+    "archivo": "op-17-pesaje-listo-grabar.png",
+    "titulo": "Pesos capturados, listo para grabar",
+    "descripcion": "Con los dos lados capturados aparece el total y el mensaje «Listo para grabar (F12).».",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtPesoIzquierdo",
+        "tipo": "TextBox",
+        "texto": "121.4",
+        "x": 586,
+        "y": 311,
+        "ancho": 121,
+        "alto": 32
+      },
+      {
+        "nombre": "txtPesoDerecho",
+        "tipo": "TextBox",
+        "texto": "118.6",
+        "x": 717,
+        "y": 311,
+        "ancho": 121,
+        "alto": 32
+      },
+      {
+        "nombre": "txtPesoTotal",
+        "tipo": "TextBox",
+        "texto": "240.0",
+        "x": 848,
+        "y": 311,
+        "ancho": 127,
+        "alto": 32
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Listo para grabar (F12).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "btnGrabar",
+        "tipo": "Button",
+        "texto": "&Grabar (F12)",
+        "x": 837,
+        "y": 467,
+        "ancho": 150,
+        "alto": 42
+      },
+      {
+        "nombre": "btnBorrarPesaje",
+        "tipo": "Button",
+        "texto": "Borrar pesaje (F8)",
+        "x": 846,
+        "y": 351,
+        "ancho": 131,
+        "alto": 36
+      }
+    ]
+  },
+  {
+    "id": "op-18-pesaje-falta-ganadero",
+    "archivo": "op-18-pesaje-falta-ganadero.png",
+    "titulo": "Falta elegir el ganadero",
+    "descripcion": "Con los pesos capturados pero sin ganadero, «Grabar pesaje» sigue desactivado y el mensaje guía dice «Seleccione el ganadero (código o nombre).».",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 138,
+        "y": 255,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Seleccione el ganadero (código o nombre).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "btnGrabar",
+        "tipo": "Button",
+        "texto": "&Grabar (F12)",
+        "x": 837,
+        "y": 467,
+        "ancho": 150,
+        "alto": 42
+      }
+    ]
+  },
+  {
+    "id": "op-19-pesaje-error-validacion",
+    "archivo": "op-19-pesaje-error-validacion.png",
+    "titulo": "Error de validación al grabar",
+    "descripcion": "Si un dato no es válido, aparece un icono rojo junto al campo (pase el mouse para leer el motivo) y la boleta no se graba.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtColorRaza",
+        "tipo": "TextBox",
+        "texto": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "x": 140,
+        "y": 412,
+        "ancho": 393,
+        "alto": 21
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Listo para grabar (F12).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "btnGrabar",
+        "tipo": "Button",
+        "texto": "&Grabar (F12)",
+        "x": 837,
+        "y": 467,
+        "ancho": 150,
+        "alto": 42
+      }
+    ]
+  },
+  {
+    "id": "op-20-pesaje-borrado",
+    "archivo": "op-20-pesaje-borrado.png",
+    "titulo": "Pesaje borrado",
+    "descripcion": "«Borrar pesaje (F8)» deja los pesos capturados en blanco para volver a pesar la res.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtPesoIzquierdo",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 586,
+        "y": 311,
+        "ancho": 121,
+        "alto": 32
+      },
+      {
+        "nombre": "txtPesoDerecho",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 717,
+        "y": 311,
+        "ancho": 121,
+        "alto": 32
+      },
+      {
+        "nombre": "txtPesoTotal",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 848,
+        "y": 311,
+        "ancho": 127,
+        "alto": 32
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Capture el lado izquierdo (F5) y el derecho (F6).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "btnBorrarPesaje",
+        "tipo": "Button",
+        "texto": "Borrar pesaje (F8)",
+        "x": 846,
+        "y": 351,
+        "ancho": 131,
+        "alto": 36
+      }
+    ]
+  },
+  {
+    "id": "op-21-pesaje-grabado",
+    "archivo": "op-21-pesaje-grabado.png",
+    "titulo": "Boleta grabada",
+    "descripcion": "Mensaje verde «Boleta N° … grabada — 240.0 kg»: la boleta quedó registrada; con la impresión automática desactivada se imprime con F9.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Boleta N° 2436 grabada — 240.0 kg — pulse F9 para imprimir.",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "lblProximaBoleta",
+        "tipo": "Label",
+        "texto": "Próxima boleta: 2437",
+        "x": 19,
+        "y": 50,
+        "ancho": 433,
+        "alto": 28
+      },
+      {
+        "nombre": "btnImprimir",
+        "tipo": "Button",
+        "texto": "Imprimir último (F9)",
+        "x": 676,
+        "y": 419,
+        "ancho": 185,
+        "alto": 42
+      },
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "2 — GANADERA EL TRIUNFO S.R.L.",
+        "x": 138,
+        "y": 255,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlCliente",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "7 — CARNES SELECTAS HERMANOS ROCA",
+        "x": 138,
+        "y": 321,
+        "ancho": 397,
+        "alto": 25
+      }
+    ]
+  },
+  {
+    "id": "op-22-pesaje-media-res",
+    "archivo": "op-22-pesaje-media-res.png",
+    "titulo": "Media res: tipo de desposte",
+    "descripcion": "En «Media res» se captura un solo lado (izquierdo con F5 o derecho con F6).",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbDesposte",
+        "tipo": "ComboBox",
+        "texto": "MEDIA RES",
+        "x": 138,
+        "y": 470,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbSexo",
+        "tipo": "ComboBox",
+        "texto": "H - HEMBRA",
+        "x": 138,
+        "y": 441,
+        "ancho": 397,
+        "alto": 25
+      },
+      {
+        "nombre": "btnCapturarIzquierdo",
+        "tipo": "Button",
+        "texto": "Capturar izq. (F5)",
+        "x": 584,
+        "y": 351,
+        "ancho": 125,
+        "alto": 36
+      },
+      {
+        "nombre": "btnCapturarDerecho",
+        "tipo": "Button",
+        "texto": "Capturar der. (F6)",
+        "x": 715,
+        "y": 351,
+        "ancho": 125,
+        "alto": 36
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Media res: capture un lado (F5 o F6).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      }
+    ]
+  },
+  {
+    "id": "op-23-pesaje-media-res-lista",
+    "archivo": "op-23-pesaje-media-res-lista.png",
+    "titulo": "Media res lista para grabar",
+    "descripcion": "Con un solo lado capturado, el total es ese peso y el sistema indica «Listo para grabar (F12).».",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtPesoIzquierdo",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 586,
+        "y": 311,
+        "ancho": 121,
+        "alto": 32
+      },
+      {
+        "nombre": "txtPesoDerecho",
+        "tipo": "TextBox",
+        "texto": "104.7",
+        "x": 717,
+        "y": 311,
+        "ancho": 121,
+        "alto": 32
+      },
+      {
+        "nombre": "txtPesoTotal",
+        "tipo": "TextBox",
+        "texto": "104.7",
+        "x": 848,
+        "y": 311,
+        "ancho": 127,
+        "alto": 32
+      },
+      {
+        "nombre": "lblGuia",
+        "tipo": "Label",
+        "texto": "Listo para grabar (F12).",
+        "x": 13,
+        "y": 198,
+        "ancho": 982,
+        "alto": 40
+      },
+      {
+        "nombre": "btnGrabar",
+        "tipo": "Button",
+        "texto": "&Grabar (F12)",
+        "x": 837,
+        "y": 467,
+        "ancho": 150,
+        "alto": 42
+      }
+    ]
+  },
+  {
+    "id": "op-24-alta-rapida-ganadero",
+    "archivo": "op-24-alta-rapida-ganadero.png",
+    "titulo": "Alta rápida de ganadero",
+    "descripcion": "Si el ganadero no existe, se puede crear desde el mismo pesaje: se escribe el nombre y el código lo asigna el sistema.",
+    "ancho": 460,
+    "alto": 251,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblCodigo",
+        "tipo": "Label",
+        "texto": "Código:",
+        "x": 23,
+        "y": 81,
+        "ancho": 84,
+        "alto": 35
+      },
+      {
+        "nombre": "txtCodigo",
+        "tipo": "TextBox",
+        "texto": "(se asigna al guardar)",
+        "x": 115,
+        "y": 86,
+        "ancho": 315,
+        "alto": 21
+      },
+      {
+        "nombre": "lblNombre",
+        "tipo": "Label",
+        "texto": "Nombre:",
+        "x": 23,
+        "y": 116,
+        "ancho": 84,
+        "alto": 35
+      },
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "HACIENDA NUEVA",
+        "x": 115,
+        "y": 121,
+        "ancho": 315,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 233,
+        "y": 167,
+        "ancho": 95,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 334,
+        "y": 167,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "op-25-alta-rapida-cliente",
+    "archivo": "op-25-alta-rapida-cliente.png",
+    "titulo": "Alta rápida de cliente",
+    "descripcion": "El cliente nuevo se crea con su nombre y, si se desea, su dirección; el código también es automático.",
+    "ancho": 480,
+    "alto": 291,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblCodigo",
+        "tipo": "Label",
+        "texto": "Código:",
+        "x": 23,
+        "y": 81,
+        "ancho": 84,
+        "alto": 35
+      },
+      {
+        "nombre": "txtCodigo",
+        "tipo": "TextBox",
+        "texto": "(se asigna al guardar)",
+        "x": 115,
+        "y": 86,
+        "ancho": 335,
+        "alto": 21
+      },
+      {
+        "nombre": "lblNombre",
+        "tipo": "Label",
+        "texto": "Nombre:",
+        "x": 23,
+        "y": 116,
+        "ancho": 84,
+        "alto": 35
+      },
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "CARNES DEL SUR",
+        "x": 115,
+        "y": 121,
+        "ancho": 335,
+        "alto": 21
+      },
+      {
+        "nombre": "lblDireccion",
+        "tipo": "Label",
+        "texto": "Dirección:",
+        "x": 23,
+        "y": 151,
+        "ancho": 84,
+        "alto": 35
+      },
+      {
+        "nombre": "txtDireccion",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 115,
+        "y": 156,
+        "ancho": 335,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 253,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 354,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "op-30-historial-hoy",
+    "archivo": "op-30-historial-hoy.png",
+    "titulo": "Historial de pesajes del día",
+    "descripcion": "El historial muestra los pesajes de un día (hoy al abrir), el más reciente primero, con su número de boleta, ganadero, cliente, fletero y pesos.",
+    "ancho": 1374,
+    "alto": 632,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dtpDia",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 53,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "btnActualizar",
+        "tipo": "Button",
+        "texto": "&Actualizar (F5)",
+        "x": 206,
+        "y": 56,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "btnHoy",
+        "tipo": "Button",
+        "texto": "&Hoy",
+        "x": 349,
+        "y": 56,
+        "ancho": 80,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvHistorial",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 95,
+        "ancho": 1374,
+        "alto": 483
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "7 pesaje(s).",
+        "x": 15,
+        "y": 586,
+        "ancho": 1062,
+        "alto": 38
+      },
+      {
+        "nombre": "btnReimprimir",
+        "tipo": "Button",
+        "texto": "&Reimprimir (F9)",
+        "x": 1083,
+        "y": 589,
+        "ancho": 150,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 1239,
+        "y": 589,
+        "ancho": 120,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "op-31-historial-otro-dia",
+    "archivo": "op-31-historial-otro-dia.png",
+    "titulo": "Historial de otro día",
+    "descripcion": "Para ver otro día se cambia la fecha; con «Hoy» se vuelve al día actual.",
+    "ancho": 1374,
+    "alto": 632,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dtpDia",
+        "tipo": "DateTimePicker",
+        "texto": "16/11/2026",
+        "x": 53,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "btnHoy",
+        "tipo": "Button",
+        "texto": "&Hoy",
+        "x": 349,
+        "y": 56,
+        "ancho": 80,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvHistorial",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 95,
+        "ancho": 1374,
+        "alto": 483
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "5 pesaje(s).",
+        "x": 15,
+        "y": 586,
+        "ancho": 1062,
+        "alto": 38
+      }
+    ]
+  },
+  {
+    "id": "op-32-historial-anuladas",
+    "archivo": "op-32-historial-anuladas.png",
+    "titulo": "Historial con boletas anuladas",
+    "descripcion": "Las boletas anuladas se muestran en el historial con el estado «Anulado».",
+    "ancho": 1374,
+    "alto": 632,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dgvHistorial",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 95,
+        "ancho": 1374,
+        "alto": 483
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "8 pesaje(s): 7 vigente(s) y 1 anulada(s).",
+        "x": 15,
+        "y": 586,
+        "ancho": 1062,
+        "alto": 38
+      }
+    ]
+  },
+  {
+    "id": "op-40-reimprimir-boleta",
+    "archivo": "op-40-reimprimir-boleta.png",
+    "titulo": "Reimprimir boleta",
+    "descripcion": "Se escribe el número de boleta y se pulsa «Buscar»; el resumen muestra fecha, ganadero, cliente, desposte, total, estado y cuántas veces se imprimió.",
+    "ancho": 529,
+    "alto": 402,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "numBoleta",
+        "tipo": "NumericUpDown",
+        "texto": "2437",
+        "x": 144,
+        "y": 48,
+        "ancho": 150,
+        "alto": 25
+      },
+      {
+        "nombre": "btnBuscar",
+        "tipo": "Button",
+        "texto": "&Buscar (Enter)",
+        "x": 309,
+        "y": 46,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "lblFecha",
+        "tipo": "Label",
+        "texto": "18/11/2026 17:25",
+        "x": 123,
+        "y": 118,
+        "ancho": 107,
+        "alto": 15
+      },
+      {
+        "nombre": "lblGanadero",
+        "tipo": "Label",
+        "texto": "4 - ESTANCIA LA PAMPA",
+        "x": 123,
+        "y": 145,
+        "ancho": 161,
+        "alto": 19
+      },
+      {
+        "nombre": "lblCliente",
+        "tipo": "Label",
+        "texto": "2 - SUPERMERCADO LA CENTRAL",
+        "x": 123,
+        "y": 172,
+        "ancho": 219,
+        "alto": 19
+      },
+      {
+        "nombre": "lblDesposte",
+        "tipo": "Label",
+        "texto": "MEDIA RES",
+        "x": 123,
+        "y": 199,
+        "ancho": 78,
+        "alto": 19
+      },
+      {
+        "nombre": "lblTotal",
+        "tipo": "Label",
+        "texto": "104,7 kg",
+        "x": 123,
+        "y": 226,
+        "ancho": 55,
+        "alto": 15
+      },
+      {
+        "nombre": "lblEstado",
+        "tipo": "Label",
+        "texto": "VIGENTE",
+        "x": 123,
+        "y": 253,
+        "ancho": 63,
+        "alto": 19
+      },
+      {
+        "nombre": "lblImpresiones",
+        "tipo": "Label",
+        "texto": "Impresiones previas: 1",
+        "x": 123,
+        "y": 280,
+        "ancho": 145,
+        "alto": 19
+      },
+      {
+        "nombre": "btnVistaPrevia",
+        "tipo": "Button",
+        "texto": "Vista previa (F4)",
+        "x": 91,
+        "y": 352,
+        "ancho": 140,
+        "alto": 34
+      },
+      {
+        "nombre": "btnImprimir",
+        "tipo": "Button",
+        "texto": "&Imprimir (F9)",
+        "x": 237,
+        "y": 352,
+        "ancho": 140,
+        "alto": 34
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 383,
+        "y": 352,
+        "ancho": 130,
+        "alto": 34
+      }
+    ]
+  },
+  {
+    "id": "op-41-vista-previa-media-carta",
+    "archivo": "op-41-vista-previa-media-carta.png",
+    "titulo": "Vista previa de la boleta en media carta",
+    "descripcion": "Vista previa de la boleta en media carta: datos de la empresa, del ganadero, cliente y fletero, pesos y firmas; la leyenda de reimpresión aparece porque la boleta ya se imprimió antes.",
+    "ancho": 884,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ppcVista",
+        "tipo": "PrintPreviewControl",
+        "texto": "",
+        "x": 0,
+        "y": 31,
+        "ancho": 884,
+        "alto": 611
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 754,
+        "y": 651,
+        "ancho": 120,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "op-42-vista-previa-ticket",
+    "archivo": "op-42-vista-previa-ticket.png",
+    "titulo": "Vista previa de la boleta en ticket",
+    "descripcion": "Vista previa de la misma boleta en formato ticket de 80 mm.",
+    "ancho": 884,
+    "alto": 892,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ppcVista",
+        "tipo": "PrintPreviewControl",
+        "texto": "",
+        "x": 0,
+        "y": 31,
+        "ancho": 884,
+        "alto": 811
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 754,
+        "y": 851,
+        "ancho": 120,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-00-inicio-supervisor",
+    "archivo": "su-00-inicio-supervisor.png",
+    "titulo": "Pantalla de inicio (supervisor)",
+    "descripcion": "Pantalla de inicio del supervisor: las mismas tarjetas que el operador y, en el menú superior, además Catálogos y Reportes.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "tarjetaPesaje",
+        "tipo": "TarjetaAccion",
+        "texto": "Control de peso",
+        "x": 58,
+        "y": 304,
+        "ancho": 340,
+        "alto": 230
+      },
+      {
+        "nombre": "tarjetaTicket",
+        "tipo": "TarjetaAccion",
+        "texto": "Imprimir ticket",
+        "x": 422,
+        "y": 304,
+        "ancho": 340,
+        "alto": 230
+      },
+      {
+        "nombre": "tarjetaHistorial",
+        "tipo": "TarjetaAccion",
+        "texto": "Historial de pesajes",
+        "x": 786,
+        "y": 304,
+        "ancho": 340,
+        "alto": 230
+      },
+      {
+        "nombre": "lblStatusBalanza",
+        "tipo": "ToolStripStatusLabel",
+        "texto": "Balanza: conectada (COM3 9600 8N1)  0.0 kg",
+        "x": 450,
+        "y": 651,
+        "ancho": 245,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "su-00-menu-ayuda",
+    "archivo": "su-00-menu-ayuda.png",
+    "titulo": "Menú Ayuda",
+    "descripcion": "Menú «Ayuda» del supervisor: solo «Acerca de…».",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "su-00-menu-ayuda-detalle",
+    "archivo": "su-00-menu-ayuda-detalle.png",
+    "titulo": "Menú Ayuda (detalle)",
+    "descripcion": "Menú «Ayuda» del supervisor: solo «Acerca de…».",
+    "ancho": 656,
+    "alto": 59,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "A&yuda",
+        "x": 405,
+        "y": 8,
+        "ancho": 53,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Acerca de…",
+        "x": 405,
+        "y": 29,
+        "ancho": 244,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "su-00-menu-boletas",
+    "archivo": "su-00-menu-boletas.png",
+    "titulo": "Menú Boletas",
+    "descripcion": "Menú «Boletas» del supervisor: Reimprimir boleta, Buscar / editar boleta y Anular boleta.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "su-00-menu-boletas-detalle",
+    "archivo": "su-00-menu-boletas-detalle.png",
+    "titulo": "Menú Boletas (detalle)",
+    "descripcion": "Menú «Boletas» del supervisor: Reimprimir boleta, Buscar / editar boleta y Anular boleta.",
+    "ancho": 464,
+    "alto": 103,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Boletas",
+        "x": 58,
+        "y": 8,
+        "ancho": 57,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Reimprimir boleta",
+        "x": 58,
+        "y": 29,
+        "ancho": 205,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Buscar / editar boleta",
+        "x": 58,
+        "y": 51,
+        "ancho": 205,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Anular boleta",
+        "x": 58,
+        "y": 73,
+        "ancho": 205,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "su-00-menu-catalogos",
+    "archivo": "su-00-menu-catalogos.png",
+    "titulo": "Menú Catálogos",
+    "descripcion": "Menú «Catálogos»: Ganaderos, Clientes y Fleteros.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "su-00-menu-catalogos-detalle",
+    "archivo": "su-00-menu-catalogos-detalle.png",
+    "titulo": "Menú Catálogos (detalle)",
+    "descripcion": "Menú «Catálogos»: Ganaderos, Clientes y Fleteros.",
+    "ancho": 464,
+    "alto": 103,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Catálogos",
+        "x": 115,
+        "y": 8,
+        "ancho": 72,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Ganaderos",
+        "x": 115,
+        "y": 29,
+        "ancho": 130,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Clientes",
+        "x": 115,
+        "y": 51,
+        "ancho": 130,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Fleteros",
+        "x": 115,
+        "y": 73,
+        "ancho": 130,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "su-00-menu-pesaje",
+    "archivo": "su-00-menu-pesaje.png",
+    "titulo": "Menú Pesaje",
+    "descripcion": "Menú «Pesaje» del supervisor.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "su-00-menu-pesaje-detalle",
+    "archivo": "su-00-menu-pesaje-detalle.png",
+    "titulo": "Menú Pesaje (detalle)",
+    "descripcion": "Menú «Pesaje» del supervisor.",
+    "ancho": 464,
+    "alto": 81,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Pesaje",
+        "x": 6,
+        "y": 8,
+        "ancho": 52,
+        "alto": 20
+      },
+      {
+        "nombre": "itemRegistrarPesaje",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Registrar pesaje",
+        "x": 6,
+        "y": 29,
+        "ancho": 194,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Historial de pesajes",
+        "x": 6,
+        "y": 51,
+        "ancho": 194,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "su-00-menu-reportes",
+    "archivo": "su-00-menu-reportes.png",
+    "titulo": "Menú Reportes",
+    "descripcion": "Menú «Reportes»: Reportes de pesaje, Pesajes por raza y Boletas anuladas.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "su-00-menu-reportes-detalle",
+    "archivo": "su-00-menu-reportes-detalle.png",
+    "titulo": "Menú Reportes (detalle)",
+    "descripcion": "Menú «Reportes»: Reportes de pesaje, Pesajes por raza y Boletas anuladas.",
+    "ancho": 464,
+    "alto": 103,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Reportes",
+        "x": 187,
+        "y": 8,
+        "ancho": 65,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Reportes de pesaje",
+        "x": 187,
+        "y": 29,
+        "ancho": 172,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Pesajes por &raza",
+        "x": 187,
+        "y": 51,
+        "ancho": 172,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Boletas &anuladas",
+        "x": 187,
+        "y": 73,
+        "ancho": 172,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "su-00-menu-sesion",
+    "archivo": "su-00-menu-sesion.png",
+    "titulo": "Menú Sesión",
+    "descripcion": "Menú «Sesión» del supervisor.",
+    "ancho": 1184,
+    "alto": 672,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "su-00-menu-sesion-detalle",
+    "archivo": "su-00-menu-sesion-detalle.png",
+    "titulo": "Menú Sesión (detalle)",
+    "descripcion": "Menú «Sesión» del supervisor.",
+    "ancho": 573,
+    "alto": 109,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Sesión",
+        "x": 352,
+        "y": 8,
+        "ancho": 53,
+        "alto": 20
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Cambiar contraseña…",
+        "x": 352,
+        "y": 29,
+        "ancho": 214,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "Cerrar &sesión",
+        "x": 352,
+        "y": 51,
+        "ancho": 214,
+        "alto": 22
+      },
+      {
+        "nombre": "",
+        "tipo": "ToolStripMenuItem",
+        "texto": "&Salir",
+        "x": 352,
+        "y": 79,
+        "ancho": 214,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "su-01-buscar-boletas",
+    "archivo": "su-01-buscar-boletas.png",
+    "titulo": "Buscar boletas",
+    "descripcion": "Pantalla «Buscar / editar boleta» con los filtros (fechas, número, estado, ganadero y cliente) y los resultados; las boletas anuladas se ven en gris.",
+    "ancho": 1354,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dtpDesde",
+        "tipo": "DateTimePicker",
+        "texto": "13/11/2026",
+        "x": 71,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpHasta",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 276,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "txtNumero",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 505,
+        "y": 60,
+        "ancho": 86,
+        "alto": 21
+      },
+      {
+        "nombre": "cmbEstado",
+        "tipo": "ComboBox",
+        "texto": "Todos",
+        "x": 664,
+        "y": 59,
+        "ancho": 120,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 93,
+        "y": 92,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlCliente",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 465,
+        "y": 92,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "btnBuscar",
+        "tipo": "Button",
+        "texto": "&Buscar (Enter)",
+        "x": 797,
+        "y": 56,
+        "ancho": 120,
+        "alto": 30
+      },
+      {
+        "nombre": "btnLimpiar",
+        "tipo": "Button",
+        "texto": "&Limpiar",
+        "x": 930,
+        "y": 56,
+        "ancho": 90,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvResultados",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1354,
+        "alto": 476
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "37 boleta(s) encontrada(s).",
+        "x": 16,
+        "y": 616,
+        "ancho": 500,
+        "alto": 22
+      },
+      {
+        "nombre": "btnEditar",
+        "tipo": "Button",
+        "texto": "&Editar (F4)",
+        "x": 540,
+        "y": 610,
+        "ancho": 130,
+        "alto": 32
+      },
+      {
+        "nombre": "btnAnular",
+        "tipo": "Button",
+        "texto": "A&nular (F8)",
+        "x": 680,
+        "y": 610,
+        "ancho": 130,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 820,
+        "y": 610,
+        "ancho": 110,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-01-filtros-detalle",
+    "archivo": "su-01-filtros-detalle.png",
+    "titulo": "Buscar boletas: filtros (detalle)",
+    "descripcion": "Zona de filtros del buscador: fechas, número de boleta, estado, ganadero y cliente, con los botones «Buscar» y «Limpiar».",
+    "ancho": 1354,
+    "alto": 97,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dtpDesde",
+        "tipo": "DateTimePicker",
+        "texto": "13/11/2026",
+        "x": 71,
+        "y": 29,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpHasta",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 276,
+        "y": 29,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "txtNumero",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 505,
+        "y": 31,
+        "ancho": 86,
+        "alto": 21
+      },
+      {
+        "nombre": "cmbEstado",
+        "tipo": "ComboBox",
+        "texto": "Todos",
+        "x": 664,
+        "y": 30,
+        "ancho": 120,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 93,
+        "y": 63,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlCliente",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 465,
+        "y": 63,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "btnBuscar",
+        "tipo": "Button",
+        "texto": "&Buscar (Enter)",
+        "x": 797,
+        "y": 27,
+        "ancho": 120,
+        "alto": 30
+      },
+      {
+        "nombre": "btnLimpiar",
+        "tipo": "Button",
+        "texto": "&Limpiar",
+        "x": 930,
+        "y": 27,
+        "ancho": 90,
+        "alto": 30
+      }
+    ]
+  },
+  {
+    "id": "su-02-buscar-anulada-seleccionada",
+    "archivo": "su-02-buscar-anulada-seleccionada.png",
+    "titulo": "Boleta anulada seleccionada",
+    "descripcion": "Una boleta anulada se ve en gris y no se puede editar ni anular otra vez: los botones «Editar» y «Anular» quedan desactivados.",
+    "ancho": 1354,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dgvResultados",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1354,
+        "alto": 476
+      },
+      {
+        "nombre": "btnEditar",
+        "tipo": "Button",
+        "texto": "&Editar (F4)",
+        "x": 540,
+        "y": 610,
+        "ancho": 130,
+        "alto": 32
+      },
+      {
+        "nombre": "btnAnular",
+        "tipo": "Button",
+        "texto": "A&nular (F8)",
+        "x": 680,
+        "y": 610,
+        "ancho": 130,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-03-buscar-solo-anuladas",
+    "archivo": "su-03-buscar-solo-anuladas.png",
+    "titulo": "Buscar solo boletas anuladas",
+    "descripcion": "Con el estado «Anulado» solo se listan las boletas anuladas.",
+    "ancho": 1354,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbEstado",
+        "tipo": "ComboBox",
+        "texto": "Anulado",
+        "x": 664,
+        "y": 59,
+        "ancho": 120,
+        "alto": 25
+      },
+      {
+        "nombre": "btnBuscar",
+        "tipo": "Button",
+        "texto": "&Buscar (Enter)",
+        "x": 797,
+        "y": 56,
+        "ancho": 120,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvResultados",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1354,
+        "alto": 476
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "2 boleta(s) encontrada(s).",
+        "x": 16,
+        "y": 616,
+        "ancho": 500,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "su-04-buscar-por-ganadero",
+    "archivo": "su-04-buscar-por-ganadero.png",
+    "titulo": "Buscar boletas de un ganadero",
+    "descripcion": "Los filtros se combinan: aquí, las boletas de un ganadero en los últimos días.",
+    "ancho": 1354,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "4 — ESTANCIA LA PAMPA",
+        "x": 93,
+        "y": 92,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "btnBuscar",
+        "tipo": "Button",
+        "texto": "&Buscar (Enter)",
+        "x": 797,
+        "y": 56,
+        "ancho": 120,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvResultados",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1354,
+        "alto": 476
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "7 boleta(s) encontrada(s).",
+        "x": 16,
+        "y": 616,
+        "ancho": 500,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "su-04b-buscar-ganadero-lista",
+    "archivo": "su-04b-buscar-ganadero-lista.png",
+    "titulo": "Buscar boletas: elegir ganadero",
+    "descripcion": "En el campo «Ganadero» se escribe parte del nombre o del código y se elige de la lista desplegable.",
+    "ancho": 1354,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "ha",
+        "x": 93,
+        "y": 92,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "",
+        "tipo": "ListBox",
+        "texto": "",
+        "x": 97,
+        "y": 121,
+        "ancho": 346,
+        "alto": 17
+      }
+    ]
+  },
+  {
+    "id": "su-05-editar-boleta",
+    "archivo": "su-05-editar-boleta.png",
+    "titulo": "Editar boleta",
+    "descripcion": "Ventana «Editar boleta»: se pueden cambiar el ganadero, el cliente, el fletero, la dirección, el color o raza, el sexo y la observación; los pesos no se pueden modificar.",
+    "ancho": 744,
+    "alto": 712,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblTitulo",
+        "tipo": "Label",
+        "texto": "Boleta N° 2437",
+        "x": 32,
+        "y": 65,
+        "ancho": 250,
+        "alto": 24
+      },
+      {
+        "nombre": "txtPesoIzquierdo",
+        "tipo": "TextBox",
+        "texto": "Izq: —",
+        "x": 108,
+        "y": 123,
+        "ancho": 86,
+        "alto": 19
+      },
+      {
+        "nombre": "txtPesoDerecho",
+        "tipo": "TextBox",
+        "texto": "Der: 104,7 kg",
+        "x": 208,
+        "y": 123,
+        "ancho": 86,
+        "alto": 19
+      },
+      {
+        "nombre": "txtPesoTotal",
+        "tipo": "TextBox",
+        "texto": "Total: 104,7 kg",
+        "x": 308,
+        "y": 123,
+        "ancho": 96,
+        "alto": 19
+      },
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "4 — ESTANCIA LA PAMPA",
+        "x": 160,
+        "y": 193,
+        "ancho": 460,
+        "alto": 23
+      },
+      {
+        "nombre": "numSecuencia",
+        "tipo": "NumericUpDown",
+        "texto": "3",
+        "x": 160,
+        "y": 225,
+        "ancho": 120,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlCliente",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "2 — SUPERMERCADO LA CENTRAL",
+        "x": 160,
+        "y": 257,
+        "ancho": 460,
+        "alto": 23
+      },
+      {
+        "nombre": "ctlFletero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 160,
+        "y": 289,
+        "ancho": 460,
+        "alto": 23
+      },
+      {
+        "nombre": "txtDireccion",
+        "tipo": "TextBox",
+        "texto": "CALLE LIBERTAD NRO. 45",
+        "x": 162,
+        "y": 323,
+        "ancho": 456,
+        "alto": 21
+      },
+      {
+        "nombre": "txtColorRaza",
+        "tipo": "TextBox",
+        "texto": "CRIOLLO",
+        "x": 162,
+        "y": 355,
+        "ancho": 196,
+        "alto": 21
+      },
+      {
+        "nombre": "cmbSexo",
+        "tipo": "ComboBox",
+        "texto": "HEMBRA",
+        "x": 430,
+        "y": 353,
+        "ancho": 190,
+        "alto": 25
+      },
+      {
+        "nombre": "txtObservacion",
+        "tipo": "TextBox",
+        "texto": "SIN OBSERVACIONES",
+        "x": 162,
+        "y": 387,
+        "ancho": 456,
+        "alto": 21
+      },
+      {
+        "nombre": "txtMotivo",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 162,
+        "y": 419,
+        "ancho": 456,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "&Guardar (F12)",
+        "x": 400,
+        "y": 461,
+        "ancho": 110,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar (Esc)",
+        "x": 518,
+        "y": 461,
+        "ancho": 102,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-06-editar-boleta-motivo",
+    "archivo": "su-06-editar-boleta-motivo.png",
+    "titulo": "Editar boleta con motivo",
+    "descripcion": "Tras cambiar un dato se escribe el motivo del cambio y se pulsa «Guardar»; la modificación queda en la auditoría.",
+    "ancho": 744,
+    "alto": 712,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtColorRaza",
+        "tipo": "TextBox",
+        "texto": "NELORE CRUZADO",
+        "x": 162,
+        "y": 355,
+        "ancho": 196,
+        "alto": 21
+      },
+      {
+        "nombre": "txtMotivo",
+        "tipo": "TextBox",
+        "texto": "Corrección de raza",
+        "x": 162,
+        "y": 419,
+        "ancho": 456,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "&Guardar (F12)",
+        "x": 400,
+        "y": 461,
+        "ancho": 110,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-06b-editar-sin-cambios",
+    "archivo": "su-06b-editar-sin-cambios.png",
+    "titulo": "Editar boleta sin cambios",
+    "descripcion": "Si se pulsa «Guardar» sin haber cambiado ningún dato, aparece «No se modificó ningún dato.» y la ventana sigue abierta.",
+    "ancho": 744,
+    "alto": 712,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblMensaje",
+        "tipo": "Label",
+        "texto": "No se modificó ningún dato.",
+        "x": 16,
+        "y": 461,
+        "ancho": 380,
+        "alto": 24
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "&Guardar (F12)",
+        "x": 400,
+        "y": 461,
+        "ancho": 110,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar (Esc)",
+        "x": 518,
+        "y": 461,
+        "ancho": 102,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-06c-editar-error-validacion",
+    "archivo": "su-06c-editar-error-validacion.png",
+    "titulo": "Editar boleta con un dato no válido",
+    "descripcion": "Si falta un dato obligatorio (por ejemplo, el ganadero), aparece un icono rojo junto al campo y no se guarda.",
+    "ancho": 744,
+    "alto": 712,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 160,
+        "y": 193,
+        "ancho": 460,
+        "alto": 23
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "&Guardar (F12)",
+        "x": 400,
+        "y": 461,
+        "ancho": 110,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-06d-editar-boleta-cambiada",
+    "archivo": "su-06d-editar-boleta-cambiada.png",
+    "titulo": "La boleta cambió mientras se editaba",
+    "descripcion": "Si otra persona modificó o anuló la boleta mientras se editaba, el sistema avisa y recarga los datos actuales.",
+    "ancho": 407,
+    "alto": 151,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "Aceptar",
+        "x": 317,
+        "y": 119,
+        "ancho": 75,
+        "alto": 23
+      }
+    ]
+  },
+  {
+    "id": "su-06e-editar-fletero-sin-elegir",
+    "archivo": "su-06e-editar-fletero-sin-elegir.png",
+    "titulo": "Editar boleta con el fletero sin elegir",
+    "descripcion": "Si el fletero quedó escrito sin elegirlo de la lista, aparece un icono rojo junto al campo («Elija el fletero de la lista o borre el texto.») y no se guarda.",
+    "ancho": 744,
+    "alto": 712,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ctlFletero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "ra",
+        "x": 160,
+        "y": 289,
+        "ancho": 460,
+        "alto": 23
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "&Guardar (F12)",
+        "x": 400,
+        "y": 461,
+        "ancho": 110,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-07-anular-boleta",
+    "archivo": "su-07-anular-boleta.png",
+    "titulo": "Anular boleta",
+    "descripcion": "Para anular una boleta se escribe el motivo (obligatorio) y se pulsa «Anular boleta»; la anulación no se puede deshacer.",
+    "ancho": 604,
+    "alto": 412,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblTitulo",
+        "tipo": "Label",
+        "texto": "Boleta N° 2437",
+        "x": 20,
+        "y": 47,
+        "ancho": 520,
+        "alto": 28
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "18/11/2026 17:25  |  Ganadero: 4 - ESTANCIA LA PAMPA  |  Cliente: SUPERMERCADO LA CENTRAL\r\nDesposte: MEDIA RES  |  Total: 104,7 kg",
+        "x": 20,
+        "y": 83,
+        "ancho": 520,
+        "alto": 50
+      },
+      {
+        "nombre": "lblAdvertencia",
+        "tipo": "Label",
+        "texto": "Esta acción NO se puede deshacer. La boleta quedará anulada, conservará su número y no volverá a estar vigente.",
+        "x": 31,
+        "y": 150,
+        "ancho": 500,
+        "alto": 44
+      },
+      {
+        "nombre": "txtMotivo",
+        "tipo": "TextBox",
+        "texto": "Pesaje duplicado por error de captura",
+        "x": 22,
+        "y": 243,
+        "ancho": 516,
+        "alto": 21
+      },
+      {
+        "nombre": "btnAnular",
+        "tipo": "Button",
+        "texto": "&Anular boleta",
+        "x": 290,
+        "y": 321,
+        "ancho": 130,
+        "alto": 36
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar (Esc)",
+        "x": 430,
+        "y": 321,
+        "ancho": 110,
+        "alto": 36
+      }
+    ]
+  },
+  {
+    "id": "su-07b-anular-confirmacion",
+    "archivo": "su-07b-anular-confirmacion.png",
+    "titulo": "Confirmar la anulación",
+    "descripcion": "Antes de anular, el sistema pregunta «Se anulará la boleta N° …. ¿Desea continuar?»; la anulación no se puede deshacer.",
+    "ancho": 239,
+    "alto": 158,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&Sí",
+        "x": 66,
+        "y": 125,
+        "ancho": 75,
+        "alto": 23
+      },
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&No",
+        "x": 149,
+        "y": 125,
+        "ancho": 75,
+        "alto": 23
+      }
+    ]
+  },
+  {
+    "id": "su-07c-anular-motivo-corto",
+    "archivo": "su-07c-anular-motivo-corto.png",
+    "titulo": "Anular con un motivo demasiado corto",
+    "descripcion": "El motivo debe tener entre 5 y 100 caracteres: si es más corto, aparece el icono rojo junto al campo, sin preguntar nada, y la boleta no se anula.",
+    "ancho": 604,
+    "alto": 412,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtMotivo",
+        "tipo": "TextBox",
+        "texto": "ab",
+        "x": 22,
+        "y": 243,
+        "ancho": 516,
+        "alto": 21
+      },
+      {
+        "nombre": "btnAnular",
+        "tipo": "Button",
+        "texto": "&Anular boleta",
+        "x": 290,
+        "y": 321,
+        "ancho": 130,
+        "alto": 36
+      }
+    ]
+  },
+  {
+    "id": "su-10-filtros-detalle",
+    "archivo": "su-10-filtros-detalle.png",
+    "titulo": "Reportes: filtros (detalle)",
+    "descripcion": "Zona de filtros de los reportes: tipo de reporte, fechas, ganadero, cliente y raza (según el tipo), y el botón «Generar».",
+    "ancho": 1324,
+    "alto": 97,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipo",
+        "tipo": "ComboBox",
+        "texto": "Pesajes entre fechas",
+        "x": 127,
+        "y": 27,
+        "ancho": 200,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpDesde",
+        "tipo": "DateTimePicker",
+        "texto": "13/11/2026",
+        "x": 395,
+        "y": 29,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpHasta",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 600,
+        "y": 29,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 93,
+        "y": 63,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlCliente",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "",
+        "x": 465,
+        "y": 63,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbRaza",
+        "tipo": "ComboBox",
+        "texto": "",
+        "x": 823,
+        "y": 63,
+        "ancho": 220,
+        "alto": 25
+      },
+      {
+        "nombre": "btnGenerar",
+        "tipo": "Button",
+        "texto": "&Generar (Enter)",
+        "x": 753,
+        "y": 27,
+        "ancho": 130,
+        "alto": 30
+      }
+    ]
+  },
+  {
+    "id": "su-10-reporte-pesajes-del-dia",
+    "archivo": "su-10-reporte-pesajes-del-dia.png",
+    "titulo": "Reporte: pesajes del día",
+    "descripcion": "Reporte «Pesajes del día»: se elige el tipo, la fecha y se pulsa «Generar»; abajo aparecen los totales de reses y kilos.",
+    "ancho": 1324,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipo",
+        "tipo": "ComboBox",
+        "texto": "Pesajes del día",
+        "x": 127,
+        "y": 56,
+        "ancho": 200,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpDesde",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 395,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpHasta",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 600,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "btnGenerar",
+        "tipo": "Button",
+        "texto": "&Generar (Enter)",
+        "x": 753,
+        "y": 56,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvVista",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1324,
+        "alto": 446
+      },
+      {
+        "nombre": "lblTotales",
+        "tipo": "Label",
+        "texto": "Total Peso Neto: 1.477,5 Kg.    Cantidad Reses: 6    Boletas: 7 (res completa: 5 · media res: 2)",
+        "x": 13,
+        "y": 574,
+        "ancho": 622,
+        "alto": 19
+      },
+      {
+        "nombre": "btnVistaPrevia",
+        "tipo": "Button",
+        "texto": "&Vista previa",
+        "x": 10,
+        "y": 619,
+        "ancho": 120,
+        "alto": 30
+      },
+      {
+        "nombre": "btnImprimir",
+        "tipo": "Button",
+        "texto": "&Imprimir…",
+        "x": 143,
+        "y": 619,
+        "ancho": 120,
+        "alto": 30
+      },
+      {
+        "nombre": "btnPdf",
+        "tipo": "Button",
+        "texto": "Exportar &PDF…",
+        "x": 276,
+        "y": 619,
+        "ancho": 120,
+        "alto": 30
+      },
+      {
+        "nombre": "btnExcel",
+        "tipo": "Button",
+        "texto": "Exportar &Excel…",
+        "x": 409,
+        "y": 619,
+        "ancho": 120,
+        "alto": 30
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 542,
+        "y": 619,
+        "ancho": 120,
+        "alto": 30
+      }
+    ]
+  },
+  {
+    "id": "su-10-totales-detalle",
+    "archivo": "su-10-totales-detalle.png",
+    "titulo": "Reportes: totales (detalle)",
+    "descripcion": "Línea de totales del reporte: peso neto total, cantidad de reses (res completa = 1, media res = 0,5) y boletas.",
+    "ancho": 1324,
+    "alto": 50,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "lblTotales",
+        "tipo": "Label",
+        "texto": "Total Peso Neto: 7.605,8 Kg.    Cantidad Reses: 31,5    Boletas: 35 (res completa: 28 · media res: 7)",
+        "x": 13,
+        "y": 6,
+        "ancho": 658,
+        "alto": 19
+      },
+      {
+        "nombre": "lblAviso",
+        "tipo": "Label",
+        "texto": "(*) 1 boleta(s) con peso SIMULADO — sin valor comercial.",
+        "x": 13,
+        "y": 25,
+        "ancho": 362,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "su-10c-reporte-filtros-cambiaron",
+    "archivo": "su-10c-reporte-filtros-cambiaron.png",
+    "titulo": "Reporte: los filtros cambiaron",
+    "descripcion": "Si se cambia un filtro después de generar el reporte, el reporte se borra y aparece «Los filtros cambiaron: presione Generar para actualizar el reporte.».",
+    "ancho": 1324,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dtpDesde",
+        "tipo": "DateTimePicker",
+        "texto": "14/11/2026",
+        "x": 395,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "btnGenerar",
+        "tipo": "Button",
+        "texto": "&Generar (Enter)",
+        "x": 753,
+        "y": 56,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "lblAviso",
+        "tipo": "Label",
+        "texto": "Los filtros cambiaron: presione Generar para actualizar el reporte.",
+        "x": 13,
+        "y": 593,
+        "ancho": 406,
+        "alto": 19
+      },
+      {
+        "nombre": "dgvVista",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1324,
+        "alto": 446
+      }
+    ]
+  },
+  {
+    "id": "su-11-reporte-entre-fechas",
+    "archivo": "su-11-reporte-entre-fechas.png",
+    "titulo": "Reporte: pesajes entre fechas",
+    "descripcion": "Reporte «Pesajes entre fechas»: se indican la fecha inicial y la final.",
+    "ancho": 1324,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipo",
+        "tipo": "ComboBox",
+        "texto": "Pesajes entre fechas",
+        "x": 127,
+        "y": 56,
+        "ancho": 200,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpDesde",
+        "tipo": "DateTimePicker",
+        "texto": "13/11/2026",
+        "x": 395,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpHasta",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 600,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "btnGenerar",
+        "tipo": "Button",
+        "texto": "&Generar (Enter)",
+        "x": 753,
+        "y": 56,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvVista",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1324,
+        "alto": 446
+      },
+      {
+        "nombre": "lblTotales",
+        "tipo": "Label",
+        "texto": "Total Peso Neto: 7.605,8 Kg.    Cantidad Reses: 31,5    Boletas: 35 (res completa: 28 · media res: 7)",
+        "x": 13,
+        "y": 574,
+        "ancho": 658,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "su-11b-reporte-peso-simulado",
+    "archivo": "su-11b-reporte-peso-simulado.png",
+    "titulo": "Reporte con un peso simulado",
+    "descripcion": "Una boleta grabada con la balanza en modo simulador se marca con un asterisco (*) y el reporte agrega una nota en naranja: esos pesos no tienen valor comercial.",
+    "ancho": 1324,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dgvVista",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1324,
+        "alto": 446
+      },
+      {
+        "nombre": "lblAviso",
+        "tipo": "Label",
+        "texto": "(*) 1 boleta(s) con peso SIMULADO — sin valor comercial.",
+        "x": 13,
+        "y": 593,
+        "ancho": 362,
+        "alto": 19
+      },
+      {
+        "nombre": "lblTotales",
+        "tipo": "Label",
+        "texto": "Total Peso Neto: 7.605,8 Kg.    Cantidad Reses: 31,5    Boletas: 35 (res completa: 28 · media res: 7)",
+        "x": 13,
+        "y": 574,
+        "ancho": 658,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "su-12-reporte-vista-previa",
+    "archivo": "su-12-reporte-vista-previa.png",
+    "titulo": "Vista previa de un reporte",
+    "descripcion": "La vista previa muestra cómo saldrá el reporte impreso (misma presentación que el PDF).",
+    "ancho": 884,
+    "alto": 752,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ppcVista",
+        "tipo": "PrintPreviewControl",
+        "texto": "",
+        "x": 0,
+        "y": 31,
+        "ancho": 884,
+        "alto": 671
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 754,
+        "y": 711,
+        "ancho": 120,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-12b-reporte-vista-previa-pagina2",
+    "archivo": "su-12b-reporte-vista-previa-pagina2.png",
+    "titulo": "Vista previa de un reporte: página 2",
+    "descripcion": "Segunda página de la vista previa del reporte (se cambia con la barra de desplazamiento).",
+    "ancho": 884,
+    "alto": 752,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "ppcVista",
+        "tipo": "PrintPreviewControl",
+        "texto": "",
+        "x": 0,
+        "y": 31,
+        "ancho": 884,
+        "alto": 671
+      },
+      {
+        "nombre": "btnCerrar",
+        "tipo": "Button",
+        "texto": "Cerrar (Esc)",
+        "x": 754,
+        "y": 711,
+        "ancho": 120,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-13-reporte-por-ganadero",
+    "archivo": "su-13-reporte-por-ganadero.png",
+    "titulo": "Reporte: pesajes por ganadero",
+    "descripcion": "Reporte «Pesajes por ganadero»: además de las fechas se elige el ganadero.",
+    "ancho": 1324,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipo",
+        "tipo": "ComboBox",
+        "texto": "Pesajes por ganadero",
+        "x": 127,
+        "y": 56,
+        "ancho": 200,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpDesde",
+        "tipo": "DateTimePicker",
+        "texto": "13/11/2026",
+        "x": 395,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpHasta",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 600,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlGanadero",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "4 — ESTANCIA LA PAMPA",
+        "x": 93,
+        "y": 92,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "btnGenerar",
+        "tipo": "Button",
+        "texto": "&Generar (Enter)",
+        "x": 753,
+        "y": 56,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvVista",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1324,
+        "alto": 446
+      },
+      {
+        "nombre": "lblTotales",
+        "tipo": "Label",
+        "texto": "Total Peso Neto: 1.670,1 Kg.    Cantidad Reses: 6,5    Boletas: 7 (res completa: 6 · media res: 1)",
+        "x": 13,
+        "y": 574,
+        "ancho": 634,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "su-14-reporte-por-cliente",
+    "archivo": "su-14-reporte-por-cliente.png",
+    "titulo": "Reporte: pesajes por cliente",
+    "descripcion": "Reporte «Pesajes por cliente»: se elige el cliente y las fechas.",
+    "ancho": 1324,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipo",
+        "tipo": "ComboBox",
+        "texto": "Pesajes por cliente",
+        "x": 127,
+        "y": 56,
+        "ancho": 200,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpDesde",
+        "tipo": "DateTimePicker",
+        "texto": "13/11/2026",
+        "x": 395,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpHasta",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 600,
+        "y": 58,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "ctlCliente",
+        "tipo": "ControlBusquedaCatalogo",
+        "texto": "7 — CARNES SELECTAS HERMANOS ROCA",
+        "x": 465,
+        "y": 92,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "btnGenerar",
+        "tipo": "Button",
+        "texto": "&Generar (Enter)",
+        "x": 753,
+        "y": 56,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvVista",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1324,
+        "alto": 446
+      },
+      {
+        "nombre": "lblTotales",
+        "tipo": "Label",
+        "texto": "Total Peso Neto: 1.445,7 Kg.    Cantidad Reses: 6    Boletas: 6 (res completa: 6 · media res: 0)",
+        "x": 13,
+        "y": 574,
+        "ancho": 622,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "su-15-reporte-por-raza-lista",
+    "archivo": "su-15-reporte-por-raza-lista.png",
+    "titulo": "Reporte por raza: elegir la raza",
+    "descripcion": "En «Pesajes por raza» se elige la raza de la lista (aparecen las razas ya registradas).",
+    "ancho": 1324,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipo",
+        "tipo": "ComboBox",
+        "texto": "Pesajes por raza",
+        "x": 127,
+        "y": 56,
+        "ancho": 200,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbRaza",
+        "tipo": "ComboBox",
+        "texto": "",
+        "x": 823,
+        "y": 92,
+        "ancho": 220,
+        "alto": 25
+      }
+    ]
+  },
+  {
+    "id": "su-16-reporte-por-raza",
+    "archivo": "su-16-reporte-por-raza.png",
+    "titulo": "Reporte: pesajes por raza",
+    "descripcion": "Resultado del reporte por raza con los totales de la raza elegida.",
+    "ancho": 1324,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipo",
+        "tipo": "ComboBox",
+        "texto": "Pesajes por raza",
+        "x": 127,
+        "y": 56,
+        "ancho": 200,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbRaza",
+        "tipo": "ComboBox",
+        "texto": "NELORE",
+        "x": 823,
+        "y": 92,
+        "ancho": 220,
+        "alto": 25
+      },
+      {
+        "nombre": "btnGenerar",
+        "tipo": "Button",
+        "texto": "&Generar (Enter)",
+        "x": 753,
+        "y": 56,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvVista",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1324,
+        "alto": 446
+      },
+      {
+        "nombre": "lblTotales",
+        "tipo": "Label",
+        "texto": "Total Peso Neto: 1.865,1 Kg.    Cantidad Reses: 7,5    Boletas: 8 (res completa: 7 · media res: 1)",
+        "x": 13,
+        "y": 574,
+        "ancho": 634,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "su-17-reporte-anuladas",
+    "archivo": "su-17-reporte-anuladas.png",
+    "titulo": "Reporte de boletas anuladas",
+    "descripcion": "Reporte «Boletas anuladas»: incluye el motivo y quién anuló cada boleta.",
+    "ancho": 1324,
+    "alto": 652,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "cmbTipo",
+        "tipo": "ComboBox",
+        "texto": "Boletas anuladas",
+        "x": 127,
+        "y": 56,
+        "ancho": 200,
+        "alto": 25
+      },
+      {
+        "nombre": "btnGenerar",
+        "tipo": "Button",
+        "texto": "&Generar (Enter)",
+        "x": 753,
+        "y": 56,
+        "ancho": 130,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvVista",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 124,
+        "ancho": 1324,
+        "alto": 446
+      },
+      {
+        "nombre": "lblTotales",
+        "tipo": "Label",
+        "texto": "Boletas anuladas: 2    Peso neto anulado: 494,5 Kg.",
+        "x": 13,
+        "y": 574,
+        "ancho": 347,
+        "alto": 19
+      }
+    ]
+  },
+  {
+    "id": "su-18-reporte-abrir-archivo",
+    "archivo": "su-18-reporte-abrir-archivo.png",
+    "titulo": "Reporte exportado: ¿abrirlo ahora?",
+    "descripcion": "Al exportar a PDF o Excel, el sistema indica dónde guardó el archivo y pregunta «¿Desea abrirlo ahora?».",
+    "ancho": 407,
+    "alto": 184,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&Sí",
+        "x": 236,
+        "y": 151,
+        "ancho": 75,
+        "alto": 23
+      },
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&No",
+        "x": 318,
+        "y": 151,
+        "ancho": 75,
+        "alto": 23
+      }
+    ]
+  },
+  {
+    "id": "su-20-catalogo-ganaderos",
+    "archivo": "su-20-catalogo-ganaderos.png",
+    "titulo": "Catálogo de ganaderos",
+    "descripcion": "Lista de ganaderos con su código (automático), nombre y si están activos; arriba, los botones para crear, editar y activar o desactivar.",
+    "ancho": 944,
+    "alto": 632,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "su-21-ganadero-nuevo",
+    "archivo": "su-21-ganadero-nuevo.png",
+    "titulo": "Nuevo ganadero",
+    "descripcion": "En un ganadero nuevo el código aparece como «(se asigna al guardar)»: se escribe solo el nombre.",
+    "ancho": 504,
+    "alto": 292,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtCodigo",
+        "tipo": "TextBox",
+        "texto": "(se asigna al guardar)",
+        "x": 115,
+        "y": 86,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 115,
+        "y": 121,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 277,
+        "y": 167,
+        "ancho": 95,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 378,
+        "y": 167,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-21b-ganadero-error-nombre",
+    "archivo": "su-21b-ganadero-error-nombre.png",
+    "titulo": "Nuevo ganadero con el nombre demasiado corto",
+    "descripcion": "El nombre debe tener entre 3 y 100 caracteres: si es más corto, aparece el icono rojo junto al campo y no se guarda.",
+    "ancho": 504,
+    "alto": 292,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "AB",
+        "x": 115,
+        "y": 121,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 277,
+        "y": 167,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-22-ganadero-editar",
+    "archivo": "su-22-ganadero-editar.png",
+    "titulo": "Editar ganadero",
+    "descripcion": "Al editar, el código se ve pero no se puede cambiar; solo se modifica el nombre.",
+    "ancho": 504,
+    "alto": 292,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtCodigo",
+        "tipo": "TextBox",
+        "texto": "1",
+        "x": 115,
+        "y": 86,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "HACIENDA SAN MIGUEL",
+        "x": 115,
+        "y": 121,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 277,
+        "y": 167,
+        "ancho": 95,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 378,
+        "y": 167,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-23-catalogo-clientes",
+    "archivo": "su-23-catalogo-clientes.png",
+    "titulo": "Catálogo de clientes",
+    "descripcion": "Lista de clientes con su código (automático), nombre y dirección.",
+    "ancho": 1008,
+    "alto": 632,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "su-24-cliente-nuevo",
+    "archivo": "su-24-cliente-nuevo.png",
+    "titulo": "Nuevo cliente",
+    "descripcion": "Cliente nuevo: el código se asigna al guardar; se escribe el nombre y la dirección.",
+    "ancho": 544,
+    "alto": 332,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtCodigo",
+        "tipo": "TextBox",
+        "texto": "(se asigna al guardar)",
+        "x": 115,
+        "y": 86,
+        "ancho": 399,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 115,
+        "y": 121,
+        "ancho": 399,
+        "alto": 21
+      },
+      {
+        "nombre": "txtDireccion",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 115,
+        "y": 156,
+        "ancho": 399,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 317,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 418,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-25-cliente-editar",
+    "archivo": "su-25-cliente-editar.png",
+    "titulo": "Editar cliente",
+    "descripcion": "Al editar un cliente se puede cambiar el nombre y la dirección, no el código.",
+    "ancho": 544,
+    "alto": 332,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtCodigo",
+        "tipo": "TextBox",
+        "texto": "1",
+        "x": 115,
+        "y": 86,
+        "ancho": 399,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "CARNICERIA EL BUEN SABOR",
+        "x": 115,
+        "y": 121,
+        "ancho": 399,
+        "alto": 21
+      },
+      {
+        "nombre": "txtDireccion",
+        "tipo": "TextBox",
+        "texto": "AV. BANZER 4TO ANILLO NRO. 120",
+        "x": 115,
+        "y": 156,
+        "ancho": 399,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 317,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 418,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-26-catalogo-fleteros",
+    "archivo": "su-26-catalogo-fleteros.png",
+    "titulo": "Catálogo de fleteros",
+    "descripcion": "Lista de fleteros con su código (automático), nombre y celular. No hay límite de fleteros.",
+    "ancho": 944,
+    "alto": 592,
+    "escalaDpi": 96,
+    "controles": []
+  },
+  {
+    "id": "su-27-fletero-nuevo",
+    "archivo": "su-27-fletero-nuevo.png",
+    "titulo": "Nuevo fletero",
+    "descripcion": "Fletero nuevo: el código se asigna al guardar; se escribe el nombre y el celular.",
+    "ancho": 504,
+    "alto": 332,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtCodigo",
+        "tipo": "TextBox",
+        "texto": "(se asigna al guardar)",
+        "x": 115,
+        "y": 86,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 115,
+        "y": 121,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "txtCelular",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 115,
+        "y": 156,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 277,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 378,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-27b-fletero-error-celular",
+    "archivo": "su-27b-fletero-error-celular.png",
+    "titulo": "Nuevo fletero con el celular no válido",
+    "descripcion": "El celular debe tener al menos 6 dígitos: si no, aparece el icono rojo junto al campo y no se guarda.",
+    "ancho": 504,
+    "alto": 332,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "PEDRO",
+        "x": 115,
+        "y": 121,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "txtCelular",
+        "tipo": "TextBox",
+        "texto": "12",
+        "x": 115,
+        "y": 156,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 277,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-28-fletero-editar",
+    "archivo": "su-28-fletero-editar.png",
+    "titulo": "Editar fletero",
+    "descripcion": "Al editar un fletero se cambia el nombre o el celular; el código queda fijo.",
+    "ancho": 504,
+    "alto": 332,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "txtCodigo",
+        "tipo": "TextBox",
+        "texto": "1",
+        "x": 115,
+        "y": 86,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "txtNombre",
+        "tipo": "TextBox",
+        "texto": "PEDRO MAMANI QUISPE",
+        "x": 115,
+        "y": 121,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "txtCelular",
+        "tipo": "TextBox",
+        "texto": "70123456",
+        "x": 115,
+        "y": 156,
+        "ancho": 359,
+        "alto": 21
+      },
+      {
+        "nombre": "btnGuardar",
+        "tipo": "Button",
+        "texto": "Guardar",
+        "x": 277,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      },
+      {
+        "nombre": "btnCancelar",
+        "tipo": "Button",
+        "texto": "Cancelar",
+        "x": 378,
+        "y": 202,
+        "ancho": 95,
+        "alto": 32
+      }
+    ]
+  },
+  {
+    "id": "su-29-ganaderos-inactivos",
+    "archivo": "su-29-ganaderos-inactivos.png",
+    "titulo": "Catálogo de ganaderos con inactivos",
+    "descripcion": "Con «Mostrar inactivos» marcado se ven también los ganaderos desactivados; al elegir uno, el botón pasa a decir «Activar».",
+    "ancho": 944,
+    "alto": 632,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "chkMostrarInactivos",
+        "tipo": "CheckBox",
+        "texto": "Mostrar inactivos",
+        "x": 499,
+        "y": 52,
+        "ancho": 274,
+        "alto": 28
+      },
+      {
+        "nombre": "dgvGanaderos",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 18,
+        "y": 89,
+        "ancho": 758,
+        "alto": 525
+      },
+      {
+        "nombre": "btnActivarDesactivar",
+        "tipo": "Button",
+        "texto": "Activar",
+        "x": 795,
+        "y": 172,
+        "ancho": 128,
+        "alto": 34
+      }
+    ]
+  },
+  {
+    "id": "su-29b-desactivar-confirmacion",
+    "archivo": "su-29b-desactivar-confirmacion.png",
+    "titulo": "Confirmar la desactivación",
+    "descripcion": "Antes de desactivar un ganadero, el sistema pide confirmación; un ganadero desactivado deja de aparecer al pesar pero se conserva su historial.",
+    "ancho": 377,
+    "alto": 151,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&Sí",
+        "x": 204,
+        "y": 119,
+        "ancho": 75,
+        "alto": 23
+      },
+      {
+        "nombre": "Boton",
+        "tipo": "Button",
+        "texto": "&No",
+        "x": 287,
+        "y": 119,
+        "ancho": 75,
+        "alto": 23
+      }
+    ]
+  },
+  {
+    "id": "su-29c-clientes-inactivos",
+    "archivo": "su-29c-clientes-inactivos.png",
+    "titulo": "Catálogo de clientes con inactivos",
+    "descripcion": "Los clientes desactivados se ven al marcar «Mostrar inactivos» y se pueden volver a activar.",
+    "ancho": 1008,
+    "alto": 632,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "chkMostrarInactivos",
+        "tipo": "CheckBox",
+        "texto": "Mostrar inactivos",
+        "x": 538,
+        "y": 52,
+        "ancho": 299,
+        "alto": 28
+      },
+      {
+        "nombre": "dgvClientes",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 18,
+        "y": 89,
+        "ancho": 822,
+        "alto": 525
+      },
+      {
+        "nombre": "btnActivarDesactivar",
+        "tipo": "Button",
+        "texto": "Activar",
+        "x": 859,
+        "y": 172,
+        "ancho": 128,
+        "alto": 34
+      }
+    ]
+  },
+  {
+    "id": "su-30-auditoria",
+    "archivo": "su-30-auditoria.png",
+    "titulo": "Visor de auditoría",
+    "descripcion": "El visor de auditoría lista quién hizo qué y cuándo (altas, cambios, anulaciones, inicios de sesión…), con filtros por fecha, tipo, acción, usuario y boleta.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dtpDesde",
+        "tipo": "DateTimePicker",
+        "texto": "12/11/2026",
+        "x": 71,
+        "y": 56,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "dtpHasta",
+        "tipo": "DateTimePicker",
+        "texto": "18/11/2026",
+        "x": 276,
+        "y": 56,
+        "ancho": 140,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbEntidad",
+        "tipo": "ComboBox",
+        "texto": "(Todas)",
+        "x": 492,
+        "y": 57,
+        "ancho": 170,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbAccion",
+        "tipo": "ComboBox",
+        "texto": "(Todas)",
+        "x": 732,
+        "y": 57,
+        "ancho": 200,
+        "alto": 25
+      },
+      {
+        "nombre": "cmbUsuario",
+        "tipo": "ComboBox",
+        "texto": "(Todos)",
+        "x": 80,
+        "y": 90,
+        "ancho": 300,
+        "alto": 25
+      },
+      {
+        "nombre": "txtBoleta",
+        "tipo": "TextBox",
+        "texto": "",
+        "x": 469,
+        "y": 91,
+        "ancho": 86,
+        "alto": 21
+      },
+      {
+        "nombre": "btnBuscar",
+        "tipo": "Button",
+        "texto": "&Buscar (Enter)",
+        "x": 570,
+        "y": 87,
+        "ancho": 120,
+        "alto": 30
+      },
+      {
+        "nombre": "dgvRegistros",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 126,
+        "ancho": 1008,
+        "alto": 369
+      },
+      {
+        "nombre": "lblResumen",
+        "tipo": "Label",
+        "texto": "100 registro(s) encontrado(s).",
+        "x": 12,
+        "y": 660,
+        "ancho": 550,
+        "alto": 22
+      }
+    ]
+  },
+  {
+    "id": "su-31-auditoria-cambios",
+    "archivo": "su-31-auditoria-cambios.png",
+    "titulo": "Auditoría: pestaña Cambios",
+    "descripcion": "Al elegir un registro, la pestaña «Cambios» muestra qué dato cambió, con el valor anterior y el nuevo (en amarillo lo modificado).",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "dgvRegistros",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 0,
+        "y": 126,
+        "ancho": 1008,
+        "alto": 150
+      },
+      {
+        "nombre": "tabDetalle",
+        "tipo": "TabControl",
+        "texto": "",
+        "x": 0,
+        "y": 282,
+        "ancho": 1008,
+        "alto": 364
+      },
+      {
+        "nombre": "dgvCambios",
+        "tipo": "DataGridView",
+        "texto": "",
+        "x": 4,
+        "y": 308,
+        "ancho": 1000,
+        "alto": 334
+      }
+    ]
+  },
+  {
+    "id": "su-32-auditoria-json",
+    "archivo": "su-32-auditoria-json.png",
+    "titulo": "Auditoría: pestaña JSON",
+    "descripcion": "La pestaña «JSON» muestra el detalle técnico completo del registro, antes y después del cambio.",
+    "ancho": 1008,
+    "alto": 692,
+    "escalaDpi": 96,
+    "controles": [
+      {
+        "nombre": "tabDetalle",
+        "tipo": "TabControl",
+        "texto": "",
+        "x": 0,
+        "y": 282,
+        "ancho": 1008,
+        "alto": 364
+      },
+      {
+        "nombre": "txtAntesJson",
+        "tipo": "TextBox",
+        "texto": "{\"Id\":21,\"NumeroBoleta\":2421,\"FechaHora\":\"2026-11-16T12:20:00.0006183Z\",\"GanaderoId\":8,\"ClienteId\":8,\"Direccion\":\"PLAZA 24 DE SEPTIEMBRE NRO. 2\",\"Secuencia\":1,\"ColorRaza\":\"NELORE\",\"Sexo\":\"H\",\"TipoDesposte\":\"ResCompleta\",\"PesoIzquierdo\":107.5,\"PesoDerecho\":106.9,\"PesoTotal\":214.4,\"Observacion\":\"SIN OBSERVACIONES\",\"Estado\":\"Vigente\",\"OrigenPeso\":\"Balanza\",\"UsuarioId\":2,\"MotivoAnulacion\":null,\"AnuladoPorId\":null,\"AnuladoEn\":null,\"CodigoGanadero\":\"8\",\"NombreGanadero\":\"ROBERTO ZABALA PE\\u00D1A\",\"CodigoCliente\":8,\"NombreCliente\":\"HOTEL PLAZA SANTA CRUZ\",\"FleteroId\":3,\"CodigoFletero\":3,\"NombreFletero\":\"RAMIRO GUTIERREZ SALAS\"}",
+        "x": 11,
+        "y": 335,
+        "ancho": 769,
+        "alto": 300
+      },
+      {
+        "nombre": "txtDespuesJson",
+        "tipo": "TextBox",
+        "texto": "{\"Id\":21,\"NumeroBoleta\":2421,\"FechaHora\":\"2026-11-16T12:20:00.0006183Z\",\"GanaderoId\":8,\"ClienteId\":8,\"Direccion\":\"PLAZA 24 DE SEPTIEMBRE NRO. 2\",\"Secuencia\":1,\"ColorRaza\":\"NELORE CRUZADO\",\"Sexo\":\"H\",\"TipoDesposte\":\"ResCompleta\",\"PesoIzquierdo\":107.5,\"PesoDerecho\":106.9,\"PesoTotal\":214.4,\"Observacion\":\"SIN OBSERVACIONES\",\"Estado\":\"Vigente\",\"OrigenPeso\":\"Balanza\",\"UsuarioId\":2,\"MotivoAnulacion\":null,\"AnuladoPorId\":null,\"AnuladoEn\":null,\"CodigoGanadero\":\"8\",\"NombreGanadero\":\"ROBERTO ZABALA PE\\u00D1A\",\"CodigoCliente\":8,\"NombreCliente\":\"HOTEL PLAZA SANTA CRUZ\",\"FleteroId\":3,\"CodigoFletero\":3,\"NombreFletero\":\"RAMIRO GUTIERREZ SALAS\"}",
+        "x": 816,
+        "y": 335,
+        "ancho": 164,
+        "alto": 300
+      }
+    ]
+  }
+]

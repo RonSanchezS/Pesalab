@@ -1,11 +1,18 @@
 using PesajeFaeneo.Infrastructure.Common;
+using PesajeFaeneo.Application.Parametros;
+using PesajeFaeneo.Application.PuestaEnMarcha;
 using PesajeFaeneo.Application.Seguridad;
+using PesajeFaeneo.WinForms.Infraestructura;
+using Serilog;
 
 namespace PesajeFaeneo.WinForms.Formularios.Seguridad;
 
 public class FrmLogin : FormBase
 {
     private readonly IServicioAutenticacion _autenticacion;
+    private readonly IServicioParametros _parametros;
+
+    private const string TituloPorDefecto = "Capataz";
 
     internal TextBox txtUsuario = null!;
     internal TextBox txtPassword = null!;
@@ -14,29 +21,35 @@ public class FrmLogin : FormBase
     internal Label lblMensaje = null!;
     internal Label lblBloqMayus = null!;
     internal Label lblVersion = null!;
+    internal PictureBox picLogo = null!;
+    internal Label lblEmpresa = null!;
 
     public bool DebeCambiarPassword { get; private set; }
 
-    public FrmLogin(IServicioAutenticacion autenticacion)
+    public FrmLogin(IServicioAutenticacion autenticacion, IServicioParametros parametros)
     {
         _autenticacion = autenticacion ?? throw new ArgumentNullException(nameof(autenticacion));
+        _parametros = parametros ?? throw new ArgumentNullException(nameof(parametros));
 
         InitializeComponent();
 
         Activated += (_, _) => ActualizarEstadoBloqMayus();
+        // El encabezado se carga sin bloquear el inicio de sesión: no pasa por EjecutarAsync (cuya protección contra
+        // reentrada descartaría un clic en "Ingresar" hecho mientras carga) y un error solo se registra en el log.
+        Shown += async (_, _) => await CargarEncabezadoAsync();
     }
 
     private void InitializeComponent()
     {
         SuspendLayout();
 
-        Text = "Sistema de Pesaje para Faeneo — Iniciar sesión";
+        Text = "Capataz — Iniciar sesión";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
         ShowInTaskbar = true;
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(420, 260);
+        ClientSize = new Size(420, 360);
 
         var mainLayout = new TableLayoutPanel
         {
@@ -159,13 +172,97 @@ public class FrmLogin : FormBase
         mainLayout.SetColumnSpan(lblVersion, 2);
         mainLayout.Controls.Add(lblVersion, 0, 5);
 
+        // Encabezado de marca (F10, O7): logo y nombre de la empresa. Crece con el texto (AutoSize) en vez de usar
+        // alturas fijas; sin logo solo se ve el nombre.
+        picLogo = new PictureBox
+        {
+            Size = new Size(72, 72),
+            SizeMode = PictureBoxSizeMode.Zoom,
+            Margin = new Padding(0, 0, 14, 0),
+            Anchor = AnchorStyles.Left,
+            Visible = false,
+            AccessibleName = "Logo de la empresa",
+            TabStop = false
+        };
+
+        lblEmpresa = new Label
+        {
+            Text = TituloPorDefecto,
+            AutoSize = true,
+            MaximumSize = new Size(300, 0),
+            Font = new Font("Segoe UI Semibold", 15F, FontStyle.Regular, GraphicsUnit.Point),
+            ForeColor = Color.FromArgb(0x1B, 0x27, 0x33),
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(0)
+        };
+
+        var encabezado = new TableLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 2,
+            RowCount = 1,
+            BackColor = Color.White,
+            Padding = new Padding(25, 16, 25, 12)
+        };
+        encabezado.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        encabezado.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        encabezado.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        encabezado.Controls.Add(picLogo, 0, 0);
+        encabezado.Controls.Add(lblEmpresa, 1, 0);
+
+        var separador = new Panel { Dock = DockStyle.Top, Height = 1, BackColor = Color.FromArgb(0xD5, 0xDA, 0xE0) };
+
+        // El orden de Controls.Add define el acople: el último agregado se acopla primero (arriba).
         Controls.Add(mainLayout);
+        Controls.Add(separador);
+        Controls.Add(encabezado);
 
         AcceptButton = btnIngresar;
         CancelButton = btnSalir;
 
         ResumeLayout(false);
     }
+
+    private async Task CargarEncabezadoAsync()
+    {
+        try
+        {
+            var identidad = await _parametros.ObtenerIdentidadEmpresaAsync();
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            var nombre = identidad.NombreEmpresa?.Trim() ?? string.Empty;
+            lblEmpresa.Text = nombre.Length == 0 || !ReglasPuestaEnMarcha.EmpresaConfigurada(nombre)
+                ? TituloPorDefecto
+                : nombre;
+
+            var logo = CargadorLogoUi.Cargar(identidad.RutaLogoCompleta, "la pantalla de inicio de sesión");
+            var anterior = picLogo.Image;
+            picLogo.Image = logo;
+            picLogo.Visible = logo is not null;
+            anterior?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            // El encabezado es decorativo: si falla, el inicio de sesión sigue usable con el título genérico.
+            Log.Warning(ex, "No se pudo cargar el nombre y logo de la empresa para la pantalla de inicio de sesión.");
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            picLogo?.Image?.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
+    internal Task CargarEncabezadoParaTestAsync() => CargarEncabezadoAsync();
 
     private void ActualizarEstadoBloqMayus()
     {

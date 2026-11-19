@@ -183,7 +183,7 @@ public sealed class AutopruebaInstalacion
             NumeroBoleta: 1,
             FechaHoraLocal: ahoraUnspecified,
             Secuencia: 1,
-            MarcaGanadero: "AB",
+            CodigoGanadero: "AB",
             NombreGanadero: "GANADERO DE PRUEBA",
             CodigoCliente: 1,
             NombreCliente: "CLIENTE DE PRUEBA",

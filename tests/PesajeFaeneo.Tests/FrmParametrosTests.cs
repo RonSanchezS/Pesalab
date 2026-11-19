@@ -30,6 +30,18 @@ public class FrmParametrosTests
         public Task<ParametrosDto> ObtenerAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(Dto);
 
+        public Task<IdentidadEmpresa> ObtenerIdentidadEmpresaAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new IdentidadEmpresa(Dto.NombreEmpresa, Dto.RutaLogoCompleta));
+
+        public Task<PesajeFaeneo.Domain.Enums.ModoDesposte> ObtenerModoDesposteAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(PesajeFaeneo.Domain.Enums.ModoDesposte.Ambos);
+
+        public Task<ConfiguracionDesposte> ObtenerConfiguracionDesposteAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new ConfiguracionDesposte(PesajeFaeneo.Domain.Enums.ModoDesposte.Ambos, 0, 0));
+
+        public Task CambiarModoDesposteAsync(PesajeFaeneo.Domain.Enums.ModoDesposte modo, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
         public Task ActualizarAsync(ActualizarParametros dto, CancellationToken cancellationToken = default)
         {
             if (LanzarErrorValidacion)
@@ -72,6 +84,63 @@ public class FrmParametrosTests
             Assert.Equal("OBS PREDETERMINADA", form.TxtObservacionPorDefecto.Text);
             Assert.Equal(10, form.NumSiguienteBoleta.Value);
             Assert.Contains("9", form.LblUltimaBoleta.Text);
+        });
+    }
+
+    [Fact]
+    public void FrmParametros_ConBoletasEmitidas_DeshabilitaElNumeroYExplicaQueEsAutomatico()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var fakeServicio = new FalsoServicioParametros(); // Último emitido = 9
+            using var form = new FrmParametros(fakeServicio);
+            form.Show();
+
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.False(form.NumSiguienteBoleta.Enabled);
+            Assert.Equal(10, form.NumSiguienteBoleta.Value);
+            Assert.Contains("automáticamente", form.LblNotaNumeracion.Text);
+        });
+    }
+
+    [Fact]
+    public void FrmParametros_SinBoletasEmitidas_HabilitaElNumeroInicial()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var fakeServicio = new FalsoServicioParametros();
+            fakeServicio.Dto = fakeServicio.Dto with { UltimoNumeroBoletaEmitido = null, SiguienteNumeroBoleta = 1 };
+            using var form = new FrmParametros(fakeServicio);
+            form.Show();
+
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.True(form.NumSiguienteBoleta.Enabled);
+            Assert.Contains("antes de emitir la primera boleta", form.LblNotaNumeracion.Text);
+        });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void FrmParametros_Layout_ConLaNotaDeNumeracion_SinRecortesA96DpiYConEscalado(bool numeracionEditable)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var fakeServicio = new FalsoServicioParametros();
+            if (numeracionEditable)
+            {
+                fakeServicio.Dto = fakeServicio.Dto with { UltimoNumeroBoletaEmitido = null, SiguienteNumeroBoleta = 1 };
+            }
+
+            using var form = new FrmParametros(fakeServicio);
+            form.Show();
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+            System.Windows.Forms.Application.DoEvents();
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
         });
     }
 

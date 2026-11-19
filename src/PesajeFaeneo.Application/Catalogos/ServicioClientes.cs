@@ -70,17 +70,6 @@ public class ServicioClientes : IServicioClientes
             .AsReadOnly();
     }
 
-    public async Task<int> SugerirSiguienteCodigoAsync(CancellationToken cancellationToken = default)
-    {
-        if (!_sesionActual.TienePermiso(Permiso.GestionarCatalogos) && !_sesionActual.TienePermiso(Permiso.AltaRapidaCatalogos))
-            throw new NoAutorizadoException();
-
-        await using var uow = await _uowFactory.CrearAsync(cancellationToken);
-        var max = await uow.Clientes.ObtenerCodigoMaximoAsync(cancellationToken);
-        var siguiente = (max ?? 0) + 1;
-        return siguiente > ReglasCatalogos.CodigoClienteMaximo ? ReglasCatalogos.CodigoClienteMaximo : siguiente;
-    }
-
     public Task<int> CrearAsync(CrearCliente dto, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
@@ -102,31 +91,16 @@ public class ServicioClientes : IServicioClientes
         var nombre = ValidadorCatalogos.NormalizarMayusculas(dto.Nombre);
         var direccion = ValidadorCatalogos.NormalizarMayusculas(dto.Direccion);
 
-        var errores = ValidadorCatalogos.ValidarCliente(dto.Codigo, nombre, direccion);
+        var errores = ValidadorCatalogos.ValidarCliente(nombre, direccion);
         if (errores.Count > 0)
         {
             throw new ValidacionException(errores);
         }
 
         await using var uow = await _uowFactory.CrearAsync(cancellationToken);
-        var existente = await uow.Clientes.ObtenerPorCodigoAsync(dto.Codigo, cancellationToken);
-        if (existente != null)
-        {
-            if (existente.Activo)
-            {
-                throw new ValidacionException(CamposCatalogo.Codigo, $"Ya existe un cliente con el código {dto.Codigo}.");
-            }
-
-            var mensajeInactivo = altaRapida
-                ? $"El código {dto.Codigo} pertenece a un cliente desactivado ({existente.Nombre}). Pida a un supervisor que lo reactive."
-                : $"El código {dto.Codigo} pertenece a un cliente desactivado ({existente.Nombre}). Reactívelo en lugar de crear uno nuevo.";
-
-            throw new ValidacionException(CamposCatalogo.Codigo, mensajeInactivo);
-        }
 
         var entidad = new Cliente
         {
-            Codigo = dto.Codigo,
             Nombre = nombre,
             Direccion = direccion,
             Activo = true,
@@ -134,8 +108,18 @@ public class ServicioClientes : IServicioClientes
         };
 
         await using var tx = await uow.IniciarTransaccionAsync(cancellationToken);
-        uow.Clientes.Agregar(entidad);
-        await uow.GuardarCambiosAsync(cancellationToken);
+        await AsignadorCodigos.GuardarNuevoAsync(uow, async ct =>
+        {
+            // F10 (O6): código correlativo automático (mayor existente, incluidos inactivos, + 1).
+            var maximo = await uow.Clientes.ObtenerCodigoMaximoAsync(ct) ?? 0;
+            if (maximo >= ReglasCatalogos.CodigoClienteMaximo)
+            {
+                throw new ReglaNegocioException("CLI_CODIGO_AGOTADO", $"Se alcanzó el último código de cliente disponible ({ReglasCatalogos.CodigoClienteMaximo}).");
+            }
+
+            entidad.Codigo = maximo + 1;
+            uow.Clientes.Agregar(entidad);
+        }, cancellationToken);
 
         var motivo = altaRapida ? "Alta rápida desde pesaje" : "Alta de cliente";
         var auditoria = FabricaAuditoria.Crear(
@@ -153,11 +137,11 @@ public class ServicioClientes : IServicioClientes
 
         if (altaRapida)
         {
-            _logger.LogInformation("Cliente creado por alta rápida con Id {Id}, Código {Codigo} por usuario {Usuario}", entidad.Id, dto.Codigo, sesion.NombreUsuario);
+            _logger.LogInformation("Cliente creado por alta rápida con Id {Id}, Código {Codigo} por usuario {Usuario}", entidad.Id, entidad.Codigo, sesion.NombreUsuario);
         }
         else
         {
-            _logger.LogInformation("Cliente creado con Id {Id}, Código {Codigo} por usuario {Usuario}", entidad.Id, dto.Codigo, sesion.NombreUsuario);
+            _logger.LogInformation("Cliente creado con Id {Id}, Código {Codigo} por usuario {Usuario}", entidad.Id, entidad.Codigo, sesion.NombreUsuario);
         }
 
         return entidad.Id;
@@ -172,7 +156,7 @@ public class ServicioClientes : IServicioClientes
         var nombre = ValidadorCatalogos.NormalizarMayusculas(dto.Nombre);
         var direccion = ValidadorCatalogos.NormalizarMayusculas(dto.Direccion);
 
-        var errores = ValidadorCatalogos.ValidarCliente(dto.Codigo, nombre, direccion);
+        var errores = ValidadorCatalogos.ValidarCliente(nombre, direccion);
         if (errores.Count > 0)
         {
             throw new ValidacionException(errores);
@@ -187,25 +171,7 @@ public class ServicioClientes : IServicioClientes
 
         var antes = FabricaAuditoria.CrearSnapshot(cliente);
 
-        if (cliente.Codigo != dto.Codigo)
-        {
-            if (await uow.Clientes.TienePesajesAsync(cliente.Id, cancellationToken))
-            {
-                throw new ReglaNegocioException("CLI_CODIGO_EN_USO", "No se puede cambiar el código de un cliente que ya tiene pesajes registrados.");
-            }
-
-            var otro = await uow.Clientes.ObtenerPorCodigoAsync(dto.Codigo, cancellationToken);
-            if (otro != null && otro.Id != dto.Id)
-            {
-                if (otro.Activo)
-                {
-                    throw new ValidacionException(CamposCatalogo.Codigo, $"Ya existe un cliente con el código {dto.Codigo}.");
-                }
-                throw new ValidacionException(CamposCatalogo.Codigo, $"El código {dto.Codigo} pertenece a un cliente desactivado ({otro.Nombre}). Reactívelo en lugar de crear uno nuevo.");
-            }
-        }
-
-        cliente.Codigo = dto.Codigo;
+        // El código no se edita (F10, O6): solo nombre y dirección.
         cliente.Nombre = nombre;
         cliente.Direccion = direccion;
 

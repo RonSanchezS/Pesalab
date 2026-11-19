@@ -51,7 +51,7 @@ public class MigracionF4Tests
             // 4. Verificar: el pesaje sigue ahí con sus datos y OrigenPeso = 1 (Balanza)
             var pesaje = await context.Pesajes.AsNoTracking().SingleAsync(p => p.Id == 1);
             Assert.Equal(80001, pesaje.NumeroBoleta);
-            Assert.Equal("GMIG", (await context.Ganaderos.FindAsync(pesaje.GanaderoId))!.Marca);
+            Assert.Equal("GMIG", (await context.Ganaderos.FindAsync(pesaje.GanaderoId))!.Codigo);
             Assert.Equal(106.0m, pesaje.PesoIzquierdo);
             Assert.Equal(0.0m, pesaje.PesoDerecho);
             Assert.Equal(106.0m, pesaje.PesoTotal);

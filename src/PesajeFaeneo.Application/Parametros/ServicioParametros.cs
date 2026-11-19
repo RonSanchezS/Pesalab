@@ -7,6 +7,7 @@ using PesajeFaeneo.Application.Parametros.Dtos;
 using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Domain.Enums;
 using PesajeFaeneo.Domain.Excepciones;
+using PesajeFaeneo.Domain.Reglas;
 
 namespace PesajeFaeneo.Application.Parametros;
 
@@ -56,6 +57,75 @@ public class ServicioParametros : IServicioParametros
             p.ModificadoEn);
     }
 
+    public async Task<IdentidadEmpresa> ObtenerIdentidadEmpresaAsync(CancellationToken cancellationToken = default)
+    {
+        // Sin ExigirSesion a propósito: ver IServicioParametros.ObtenerIdentidadEmpresaAsync.
+        await using var uow = await _uowFactory.CrearAsync(cancellationToken);
+        var p = await uow.Parametros.ObtenerAsync(cancellationToken);
+        return new IdentidadEmpresa(p.NombreEmpresa, _almacenLogo.ObtenerRutaCompleta(p.LogoPath));
+    }
+
+    public async Task<ModoDesposte> ObtenerModoDesposteAsync(CancellationToken cancellationToken = default)
+    {
+        _sesionActual.ExigirSesion();
+
+        await using var uow = await _uowFactory.CrearAsync(cancellationToken);
+        var p = await uow.Parametros.ObtenerAsync(cancellationToken);
+        return ReglasDesposte.Efectivo(p.ModoDesposte);
+    }
+
+    public async Task<ConfiguracionDesposte> ObtenerConfiguracionDesposteAsync(CancellationToken cancellationToken = default)
+    {
+        _sesionActual.ExigirPermiso(Permiso.GestionarParametros);
+
+        await using var uow = await _uowFactory.CrearAsync(cancellationToken);
+        var p = await uow.Parametros.ObtenerAsync(cancellationToken);
+        var (resCompleta, mediaRes) = await uow.Pesajes.ContarVigentesPorTipoDesposteAsync(cancellationToken);
+        return new ConfiguracionDesposte(p.ModoDesposte, resCompleta, mediaRes);
+    }
+
+    public async Task CambiarModoDesposteAsync(ModoDesposte modo, CancellationToken cancellationToken = default)
+    {
+        _sesionActual.ExigirPermiso(Permiso.GestionarParametros);
+        var sesion = _sesionActual.ExigirSesion();
+
+        if (!ReglasDesposte.EsValido(modo))
+        {
+            throw new ValidacionException(CamposParametros.ModoDesposte, "Seleccione el tipo de pesaje.");
+        }
+
+        await using var uow = await _uowFactory.CrearAsync(cancellationToken);
+        var p = await uow.Parametros.ObtenerAsync(cancellationToken);
+        var anterior = p.ModoDesposte;
+
+        // Desde "sin definir" se guarda y audita aunque el efectivo ya fuera Ambos: la elección queda explícita (D3).
+        if (anterior == modo)
+        {
+            return;
+        }
+
+        p.ModoDesposte = modo;
+        p.ModificadoEn = _timeProvider.GetUtcNow().UtcDateTime;
+
+        uow.Auditoria.Registrar(FabricaAuditoria.Crear(
+            _timeProvider,
+            sesion.Id,
+            AccionAuditoria.CambioParametros,
+            EntidadesAuditoria.ParametrosSistema,
+            "1",
+            antes: new { ModoDesposte = anterior },
+            despues: new { ModoDesposte = (ModoDesposte?)modo },
+            motivo: $"Tipo de pesaje: {ReglasDesposte.Texto(anterior)} → {ReglasDesposte.Texto(modo)}"));
+
+        await uow.GuardarCambiosAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Tipo de pesaje cambiado de {Antes} a {Despues} por {Usuario}",
+            ReglasDesposte.Texto(anterior),
+            ReglasDesposte.Texto(modo),
+            sesion.NombreUsuario);
+    }
+
     public async Task ActualizarAsync(ActualizarParametros dto, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
@@ -92,12 +162,15 @@ public class ServicioParametros : IServicioParametros
         var antes = FabricaAuditoria.CrearSnapshot(p);
         var ultimo = await uow.Parametros.ObtenerUltimoNumeroBoletaAsync(cancellationToken);
 
+        // D1 (F10): el número de boleta solo lo mueven el grabado y la importación. Una vez emitida la primera
+        // boleta (vigente o anulada) no se puede cambiar a mano; antes de eso se admite fijar el número inicial
+        // para dar continuidad al talonario legado.
         var numeroCambio = dto.SiguienteNumeroBoleta != p.SiguienteNumeroBoleta;
-        if (numeroCambio && ultimo.HasValue && dto.SiguienteNumeroBoleta <= ultimo.Value)
+        if (numeroCambio && ultimo.HasValue)
         {
-            throw new ValidacionException(
-                CamposParametros.SiguienteNumeroBoleta,
-                $"Debe ser mayor que el último número de boleta emitido ({ultimo.Value}).");
+            throw new ReglaNegocioException(
+                "PAR_NUMERACION_AUTOMATICA",
+                "El número de boleta es automático y no puede modificarse una vez emitida la primera boleta.");
         }
 
         p.NombreEmpresa = nombreEmpresa;

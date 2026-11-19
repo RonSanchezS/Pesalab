@@ -1,0 +1,8 @@
+node_modules/
+.venv/
+__pycache__/
+_tmp/
+muestras/salida/
+muestras/vista/
+muestras/anotadas/
+muestras/m*.png

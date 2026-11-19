@@ -295,9 +295,8 @@ public class FrmClientes : FormBase
     {
         await EjecutarAsync(async () =>
         {
-            var codigoSugerido = await _servicioClientes.SugerirSiguienteCodigoAsync();
             using var frm = _formFactory.Crear<FrmClienteEdicion>();
-            frm.ConfigurarAlta(codigoSugerido);
+            frm.ConfigurarAlta();
             if (frm.ShowDialog(this) == DialogResult.OK)
             {
                 await CargarAsync(frm.IdGuardado);

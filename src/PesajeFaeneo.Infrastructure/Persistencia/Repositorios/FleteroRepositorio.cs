@@ -18,9 +18,15 @@ public class FleteroRepositorio : IFleteroRepositorio
         return await _context.Fleteros.FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
     }
 
-    public async Task<Fletero?> ObtenerActivoPorOrdenAsync(int orden, CancellationToken cancellationToken = default)
+    public async Task<int?> ObtenerCodigoMaximoAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Fleteros.FirstOrDefaultAsync(f => f.Activo && f.Orden == orden, cancellationToken);
+        // Incluye inactivos: el código no se reutiliza.
+        return await _context.Fleteros.MaxAsync(f => (int?)f.Codigo, cancellationToken);
+    }
+
+    public async Task<int> ContarActivosAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Fleteros.CountAsync(f => f.Activo, cancellationToken);
     }
 
     public async Task<IReadOnlyList<Fletero>> ListarAsync(bool incluirInactivos, CancellationToken cancellationToken = default)
@@ -33,14 +39,8 @@ public class FleteroRepositorio : IFleteroRepositorio
 
         return await query
             .OrderByDescending(f => f.Activo)
-            .ThenBy(f => f.Orden)
-            .ThenBy(f => f.Nombre)
+            .ThenBy(f => f.Codigo)
             .ToListAsync(cancellationToken);
-    }
-
-    public async Task<int> ContarActivosAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.Fleteros.CountAsync(f => f.Activo, cancellationToken);
     }
 
     public void Agregar(Fletero fletero)

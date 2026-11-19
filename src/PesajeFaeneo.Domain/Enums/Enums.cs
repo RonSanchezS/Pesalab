@@ -20,6 +20,14 @@ public enum TipoDesposte
     ResCompleta = 2
 }
 
+// F11 (D1): qué tipos de desposte pesa la empresa. Los dos primeros valores coinciden con TipoDesposte.
+public enum ModoDesposte
+{
+    SoloMediaRes = 1,
+    SoloResCompleta = 2,
+    Ambos = 3
+}
+
 public enum EstadoPesaje
 {
     Vigente = 1,

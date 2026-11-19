@@ -5,7 +5,14 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Recursos\app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Recursos\app.ico" LogicalName="Marca.app.ico" />
+    <EmbeddedResource Include="Recursos\marca-icono.png" LogicalName="Marca.icono.png" />
+    <EmbeddedResource Include="Recursos\marca-horizontal.png" LogicalName="Marca.horizontal.png" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PesajeFaeneo.Domain\PesajeFaeneo.Domain.csproj" />

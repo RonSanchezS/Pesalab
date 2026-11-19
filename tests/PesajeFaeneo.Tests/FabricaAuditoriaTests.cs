@@ -13,7 +13,7 @@ public class FabricaAuditoriaTests
         var ganadero = new Ganadero
         {
             Id = 15,
-            Marca = "AH",
+            Codigo = "AH",
             Nombre = "GANADERO EJEMPLO",
             Activo = true,
             CreadoEn = DateTime.UtcNow
@@ -40,7 +40,7 @@ public class FabricaAuditoriaTests
         Assert.NotNull(auditoria.DatosDespuesJson);
         Assert.DoesNotContain("Pesajes", auditoria.DatosDespuesJson);
         Assert.Contains("\"Id\":15", auditoria.DatosDespuesJson);
-        Assert.Contains("\"Marca\":\"AH\"", auditoria.DatosDespuesJson);
+        Assert.Contains("\"Codigo\":\"AH\"", auditoria.DatosDespuesJson);
         Assert.Contains("\"Nombre\":\"GANADERO EJEMPLO\"", auditoria.DatosDespuesJson);
         Assert.Contains("\"Activo\":true", auditoria.DatosDespuesJson);
     }
@@ -106,7 +106,7 @@ public class FabricaAuditoriaTests
             OrigenPeso = OrigenPeso.Balanza,
             UsuarioId = 4,
             CreadoEn = new DateTime(2026, 9, 27, 10, 0, 0, DateTimeKind.Utc),
-            Ganadero = new Ganadero { Id = 2, Marca = "AH", Nombre = "GANADERO" },
+            Ganadero = new Ganadero { Id = 2, Codigo = "AH", Nombre = "GANADERO" },
             Cliente = new Cliente { Id = 3, Codigo = 10, Nombre = "CLIENTE", Direccion = "DIR" },
             Usuario = new Usuario { Id = 4, NombreUsuario = "operador", NombreCompleto = "Op", Hash = "hash", Salt = "salt" }
         };
@@ -192,7 +192,7 @@ public class FabricaAuditoriaTests
     [Fact]
     public void CrearSnapshot_PesajeConGanaderoYCliente_IncluyeDatosEnriquecidosYCamposAnulacion()
     {
-        var ganadero = new Ganadero { Id = 10, Marca = "XY", Nombre = "GANADERO XY" };
+        var ganadero = new Ganadero { Id = 10, Codigo = "XY", Nombre = "GANADERO XY" };
         var cliente = new Cliente { Id = 20, Codigo = 555, Nombre = "CLIENTE 555" };
         var fechaAnulado = new DateTime(2026, 9, 28, 14, 0, 0, DateTimeKind.Utc);
         var pesaje = new Pesaje
@@ -209,7 +209,7 @@ public class FabricaAuditoriaTests
 
         var snapshot = FabricaAuditoria.CrearSnapshot(pesaje, ganadero, cliente);
 
-        Assert.Equal("XY", snapshot.MarcaGanadero);
+        Assert.Equal("XY", snapshot.CodigoGanadero);
         Assert.Equal("GANADERO XY", snapshot.NombreGanadero);
         Assert.Equal(555, snapshot.CodigoCliente);
         Assert.Equal("CLIENTE 555", snapshot.NombreCliente);
@@ -231,7 +231,7 @@ public class FabricaAuditoriaTests
 
         var snapshot = FabricaAuditoria.CrearSnapshot(pesaje);
 
-        Assert.Null(snapshot.MarcaGanadero);
+        Assert.Null(snapshot.CodigoGanadero);
         Assert.Null(snapshot.NombreGanadero);
         Assert.Null(snapshot.CodigoCliente);
         Assert.Null(snapshot.NombreCliente);
@@ -279,5 +279,32 @@ public class FabricaAuditoriaTests
         Assert.Contains(EntidadesAuditoria.ConfiguracionImpresion, EntidadesAuditoria.Todas);
         Assert.Contains(EntidadesAuditoria.Sistema, EntidadesAuditoria.Todas);
     }
-}
 
+    [Fact]
+    public void CrearSnapshot_Fletero_UsaCodigoEnLugarDeOrden()
+    {
+        var snapshot = FabricaAuditoria.CrearSnapshot(new Fletero { Id = 3, Codigo = 12, Nombre = "FLETERO DOCE", Celular = "7000", Activo = true });
+
+        Assert.Equal(new FleteroAuditoria(3, 12, "FLETERO DOCE", "7000", true), snapshot);
+        var json = System.Text.Json.JsonSerializer.Serialize(snapshot);
+        Assert.Contains("\"Codigo\":12", json);
+        Assert.DoesNotContain("Orden", json);
+    }
+
+    [Fact]
+    public void CrearSnapshot_PesajeConFletero_IncluyeIdCodigoYNombreDelFletero_YSinFleteroQuedanNulos()
+    {
+        var fletero = new Fletero { Id = 7, Codigo = 5, Nombre = "FLETERO CINCO", Celular = "7000" };
+        var pesaje = new Pesaje { Id = 60, NumeroBoleta = 3000, GanaderoId = 10, ClienteId = 20, FleteroId = 7, Fletero = fletero };
+
+        var conFletero = FabricaAuditoria.CrearSnapshot(pesaje);
+        Assert.Equal(7, conFletero.FleteroId);
+        Assert.Equal(5, conFletero.CodigoFletero);
+        Assert.Equal("FLETERO CINCO", conFletero.NombreFletero);
+
+        var sinFletero = FabricaAuditoria.CrearSnapshot(new Pesaje { Id = 61, NumeroBoleta = 3001, GanaderoId = 10, ClienteId = 20 });
+        Assert.Null(sinFletero.FleteroId);
+        Assert.Null(sinFletero.CodigoFletero);
+        Assert.Null(sinFletero.NombreFletero);
+    }
+}

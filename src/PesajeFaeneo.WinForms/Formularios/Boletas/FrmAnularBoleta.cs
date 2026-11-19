@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using PesajeFaeneo.Application.Boletas.Diseno;
 using PesajeFaeneo.Application.Pesajes;
 using PesajeFaeneo.Application.Pesajes.Dtos;
+using PesajeFaeneo.Domain.Enums;
 using PesajeFaeneo.Domain.Excepciones;
 using PesajeFaeneo.Domain.Reglas;
 using PesajeFaeneo.WinForms.Formularios;
@@ -130,13 +131,18 @@ public class FrmAnularBoleta : FormBase
         _controles[CamposGestionPesajes.Motivo] = txtMotivo;
     }
 
-    public void Configurar(BoletaEncontrada b)
+    public void Configurar(BoletaEncontrada b, ModoDesposte modoDesposte = ModoDesposte.Ambos)
     {
         ArgumentNullException.ThrowIfNull(b);
         _boleta = b;
 
+        // F11 (D6): el desposte se omite si la boleta es del único tipo que pesa la empresa.
+        var desposte = ReglasDesposte.MostrarDesposte(modoDesposte, b.TipoDesposte)
+            ? $"Desposte: {TextosBoleta.Desposte(b.TipoDesposte)}  |  "
+            : string.Empty;
+
         lblTitulo.Text = $"Boleta N° {b.NumeroBoleta}";
-        lblResumen.Text = $"{TextosBoleta.FechaHora(b.FechaHoraLocal)}  |  Ganadero: {b.Marca} - {b.NombreGanadero}  |  Cliente: {b.NombreCliente}\r\nDesposte: {TextosBoleta.Desposte(b.TipoDesposte)}  |  Total: {TextosBoleta.Peso(b.PesoTotal)}";
+        lblResumen.Text = $"{TextosBoleta.FechaHora(b.FechaHoraLocal)}  |  Ganadero: {b.Codigo} - {b.NombreGanadero}  |  Cliente: {b.NombreCliente}\r\n{desposte}Total: {TextosBoleta.Peso(b.PesoTotal)}";
         txtMotivo.Text = string.Empty;
         txtMotivo.Focus();
     }
@@ -144,6 +150,15 @@ public class FrmAnularBoleta : FormBase
     private async Task AnularAsync()
     {
         if (_boleta is null) return;
+
+        // F12 (E5): el motivo se valida antes de preguntar (misma regla que el servicio, que vuelve a validar).
+        var (_, errores) = ValidadorGestionPesajes.ValidarAnulacion(new AnularPesaje(_boleta.Id, _boleta.Version, txtMotivo.Text));
+        if (errores.Count > 0)
+        {
+            MostrarErroresValidacion(new ValidacionException(errores), _errorProvider, _controles);
+            txtMotivo.Focus();
+            return;
+        }
 
         string pregunta = $"Se anulará la boleta N° {_boleta.NumeroBoleta}.\r\n\r\n¿Desea continuar?";
         bool confirmado;

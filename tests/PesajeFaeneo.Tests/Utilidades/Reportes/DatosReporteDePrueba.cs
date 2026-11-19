@@ -36,7 +36,7 @@ internal static class DatosReporteDePrueba
                 NumeroBoleta: 1000 + i,
                 FechaHoraLocal: fechaBase.AddMinutes(i * 15),
                 Secuencia: i,
-                MarcaGanadero: $"M{(i % 10):D2}",
+                CodigoGanadero: $"M{(i % 10):D2}",
                 NombreGanadero: $"GANADERO {i}",
                 CodigoCliente: 100 + (i % 20),
                 NombreCliente: $"CLIENTE {i}",
@@ -48,7 +48,8 @@ internal static class DatosReporteDePrueba
                 Origen: origen,
                 AnuladoEnLocal: anuladoEn,
                 AnuladoPor: anuladoPor,
-                MotivoAnulacion: motivoAnulacion));
+                MotivoAnulacion: motivoAnulacion,
+                NombreFletero: (i % 2 == 0) ? $"FLETERO {i}" : string.Empty));
         }
 
         var totales = CalculadoraTotalesReporte.Calcular(listaFilas);

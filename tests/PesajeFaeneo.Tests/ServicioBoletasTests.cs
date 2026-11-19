@@ -64,7 +64,7 @@ public class ServicioBoletasTests
 
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var g = new GanaderoBuilder().ConMarca("AH").ConNombre("GANADERO TEST").Build();
+            var g = new GanaderoBuilder().ConCodigo("AH").ConNombre("GANADERO TEST").Build();
             var c = new ClienteBuilder().ConCodigo(101).ConNombre("CLIENTE TEST").ConDireccion("AV CENTRAL").Build();
             ctx.Ganaderos.Add(g);
             ctx.Clientes.Add(c);
@@ -97,7 +97,7 @@ public class ServicioBoletasTests
         Assert.Equal(pesajeId, boleta.PesajeId);
         Assert.Equal(12345, boleta.NumeroBoleta);
         Assert.Equal(new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified), boleta.FechaHoraLocal);
-        Assert.Equal("AH", boleta.MarcaGanadero);
+        Assert.Equal("AH", boleta.CodigoGanadero);
         Assert.Equal("GANADERO TEST", boleta.NombreGanadero);
         Assert.Equal(5, boleta.Secuencia);
         Assert.Equal(101, boleta.CodigoCliente);
@@ -120,13 +120,14 @@ public class ServicioBoletasTests
     }
 
     [Fact]
-    public async Task Fleteros_ActivosOrdenadosPorOrdenYSinInactivos()
+    public async Task Fletero_SoloElDelPesaje_NoLaListaDeFleterosActivos()
     {
         await using var db = await BaseDatosEnMemoria.CrearAsync();
         var sesion = new SesionActual();
         var usuario = await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Operador);
 
         int pesajeId;
+        int pesajeSinFleteroId;
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
             var g = new GanaderoBuilder().Build();
@@ -135,27 +136,32 @@ public class ServicioBoletasTests
             ctx.Clientes.Add(c);
             await ctx.SaveChangesAsync();
 
-            ctx.Fleteros.Add(new Fletero { Orden = 3, Nombre = "F3", Celular = "333", Activo = true });
-            ctx.Fleteros.Add(new Fletero { Orden = 1, Nombre = "F1", Celular = "111", Activo = true });
-            ctx.Fleteros.Add(new Fletero { Orden = 2, Nombre = "F2", Celular = "222", Activo = true });
-            ctx.Fleteros.Add(new Fletero { Orden = 4, Nombre = "F4", Celular = "444", Activo = false });
+            var f1 = new Fletero { Codigo = 1, Nombre = "FLETERO UNO", Celular = "111", Activo = true };
+            var f7 = new Fletero { Codigo = 7, Nombre = "FLETERO SIETE", Celular = "777", Activo = true };
+            ctx.Fleteros.Add(f1);
+            ctx.Fleteros.Add(f7);
+            await ctx.SaveChangesAsync();
 
-            var p = new PesajeBuilder().ConGanaderoId(g.Id).ConClienteId(c.Id).ConUsuarioId(usuario.Id).Build();
-            ctx.Pesajes.Add(p);
+            var p = new PesajeBuilder().ConNumeroBoleta(2001).ConGanaderoId(g.Id).ConClienteId(c.Id).ConUsuarioId(usuario.Id).Build();
+            p.FleteroId = f7.Id;
+            var sin = new PesajeBuilder().ConNumeroBoleta(2002).ConGanaderoId(g.Id).ConClienteId(c.Id).ConUsuarioId(usuario.Id).Build();
+            ctx.Pesajes.AddRange(p, sin);
             await ctx.SaveChangesAsync();
             pesajeId = p.Id;
+            pesajeSinFleteroId = sin.Id;
         }
 
         var servicio = new ServicioBoletas(db.UnidadDeTrabajoFactory, sesion, new AlmacenLogoFalso(), CrearTimeProvider(), NullLogger<ServicioBoletas>.Instance);
-        var boleta = await servicio.ObtenerPorIdAsync(pesajeId);
 
-        Assert.Equal(3, boleta.Fleteros.Count);
-        Assert.Equal(1, boleta.Fleteros[0].Orden);
-        Assert.Equal("F1", boleta.Fleteros[0].Nombre);
-        Assert.Equal(2, boleta.Fleteros[1].Orden);
-        Assert.Equal("F2", boleta.Fleteros[1].Nombre);
-        Assert.Equal(3, boleta.Fleteros[2].Orden);
-        Assert.Equal("F3", boleta.Fleteros[2].Nombre);
+        // F10 (O5): la boleta imprime solo el fletero elegido al pesar (no una lista).
+        var boleta = await servicio.ObtenerPorIdAsync(pesajeId);
+        Assert.NotNull(boleta.Fletero);
+        Assert.Equal(7, boleta.Fletero.Codigo);
+        Assert.Equal("FLETERO SIETE", boleta.Fletero.Nombre);
+        Assert.Equal("777", boleta.Fletero.Celular);
+
+        var sinFletero = await servicio.ObtenerPorIdAsync(pesajeSinFleteroId);
+        Assert.Null(sinFletero.Fletero);
     }
 
     [Fact]
@@ -314,6 +320,7 @@ public class ServicioBoletasTests
         Assert.Equal(0, muestra.NumeroBoleta);
         Assert.Equal("NOMBRE DE EMPRESA", muestra.Empresa.Nombre);
         Assert.Equal(usuario.NombreCompleto, muestra.NombreOperador);
+        Assert.NotNull(muestra.Fletero); // la muestra lleva un fletero de ejemplo (F10, O9)
 
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
         var totalAud = await ctx.Auditorias.CountAsync();

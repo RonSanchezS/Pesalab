@@ -15,8 +15,8 @@ public class ReporteRepositorioTests
     {
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
 
-        var g1 = new GanaderoBuilder().ConMarca("G1").ConNombre("Ganadero 1").Build();
-        var g2 = new GanaderoBuilder().ConMarca("G2").ConNombre("Ganadero 2").Build();
+        var g1 = new GanaderoBuilder().ConCodigo("G1").ConNombre("Ganadero 1").Build();
+        var g2 = new GanaderoBuilder().ConCodigo("G2").ConNombre("Ganadero 2").Build();
         var c1 = new ClienteBuilder().ConCodigo(101).ConNombre("Cliente 1").Build();
         var c2 = new ClienteBuilder().ConCodigo(102).ConNombre("Cliente 2").Build();
         var u = new UsuarioBuilder().ConNombreUsuario("operador_rep").ConNombreCompleto("Operador Reporte").Build();

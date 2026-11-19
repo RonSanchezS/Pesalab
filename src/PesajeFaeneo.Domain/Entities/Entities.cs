@@ -31,6 +31,9 @@ public class ParametrosSistema
     public long SiguienteNumeroBoleta { get; set; } = 1;
     public string ObservacionPorDefecto { get; set; } = string.Empty;
     public bool ConfiguracionInicialCompleta { get; set; } = false;
+
+    // F11 (D2): null = sin definir (se usa Ambos); el asistente de puesta en marcha exige elegirlo.
+    public ModoDesposte? ModoDesposte { get; set; }
     public DateTime ModificadoEn { get; set; }
 }
 
@@ -57,7 +60,7 @@ public class ConfiguracionBalanza
 public class Ganadero
 {
     public int Id { get; set; }
-    public string Marca { get; set; } = string.Empty;
+    public string Codigo { get; set; } = string.Empty;
     public string Nombre { get; set; } = string.Empty;
     public bool Activo { get; set; } = true;
     public DateTime CreadoEn { get; set; }
@@ -80,7 +83,7 @@ public class Cliente
 public class Fletero
 {
     public int Id { get; set; }
-    public int Orden { get; set; }
+    public int Codigo { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public string Celular { get; set; } = string.Empty;
     public bool Activo { get; set; } = true;
@@ -98,6 +101,10 @@ public class Pesaje
 
     public int ClienteId { get; set; }
     public Cliente Cliente { get; set; } = null!;
+
+    // F10 (O5): el fletero que lleva la carne se elige al pesar; es opcional (null = sin fletero).
+    public int? FleteroId { get; set; }
+    public Fletero? Fletero { get; set; }
 
     public string Direccion { get; set; } = string.Empty;
     public int Secuencia { get; set; }

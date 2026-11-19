@@ -1,6 +1,6 @@
 # Guía de balanza
 
-Esta guía es para el **técnico que instala** el sistema y deja la balanza lista. Corresponde a la versión **1.0.0** del Sistema de Pesaje para Faeneo.
+Esta guía es para el **técnico que instala** el sistema y deja la balanza lista. Corresponde a la versión **1.2.1** del Capataz (la configuración de balanza no cambió desde la 1.0.0).
 
 La configuración se hace en **Administración › Configuración de balanza** y solo está disponible para el rol **Administrador**.
 
@@ -22,7 +22,7 @@ Notas:
 - En modo **Serie**, el sistema respeta la configuración que ya tiene el controlador (driver) del puerto y solo cambia baudios, bits, paridad o parada cuando difieren. Esto es necesario para los adaptadores USB-serie con chip CH340, que rechazan que se reconfigure todo el puerto.
 - Si el controlador rechaza el formato pedido, el mensaje indica en qué formato está configurado el puerto: use esos mismos valores o cámbielos en el Administrador de dispositivos de Windows (Propiedades del puerto › Configuración de puerto).
 - El sistema **no pregunta** el peso al indicador: espera a que el indicador lo transmita solo. Un indicador que solo responde cuando se le envía una orden no está soportado en esta versión.
-- Los parámetros de los grupos que no corresponden al tipo elegido aparecen deshabilitados.
+- Los parámetros de los grupos que no corresponden al tipo elegido aparecen deshabilitados. Aun así el sistema los valida al guardar: deje en ellos valores válidos (por ejemplo, un puerto `COMn` aunque use Red, o una IP o nombre de equipo aunque use Serie).
 
 ## 2. Adaptador USB-serie y número de puerto COM fijo
 
@@ -148,12 +148,13 @@ La prueba comprueba la configuración **que está en pantalla**, aunque todavía
 2. En **Administración › Configuración de balanza**, ajuste los datos de la conexión y de la lectura.
 3. Pulse **Probar conexión** (grupo **Diagnóstico en vivo de la configuración**). La prueba dura **10 segundos**; mientras corre, **Cancelar** la detiene.
 4. Observe:
-   - La lista muestra las **tramas tal como llegan** (las últimas 50).
+   - La lista muestra las **tramas tal como llegan** (las últimas 50), ya separadas según la **Separación de tramas**. Los caracteres de control se ven como `<0x..>` (por ejemplo `<0x02>`).
    - El peso grande muestra la lectura reconocida (verde cuando está estable).
 5. Lea el resultado:
    - **"Conexión correcta: X de Y tramas reconocidas. Estabilidad: alcanzada."** Todo bien.
    - **"…Estabilidad: no alcanzada."** Hay conexión y lecturas, pero no se asentaron; ver sección 6.
    - **"…Revise el patrón de lectura."** Llegaron tramas, pero ninguna se reconoció: patrón, separación o unidad (ver sección 8).
+   - **"Se conectó, pero no llegó ninguna trama. Revise que el indicador esté encendido y transmitiendo, y la «Separación de tramas» (el RX8 usa «Inicio con '='»)."** (en rojo oscuro). El puerto se abrió, pero no se separó ninguna trama: el indicador no transmite, la velocidad es otra, o la **Separación de tramas** no corresponde (por ejemplo **Fin de línea** con un indicador que no manda salto de línea, como el RX8). No es una conexión correcta: no pulse **Guardar** hasta que lleguen tramas. Ver sección 8.
    - **"No se pudo conectar: …"** El mensaje dice el motivo (puerto, cable, red).
    - **"Prueba cancelada."**
 6. Si todo está bien, pulse **Guardar**. El sistema avisa: "Configuración guardada. La balanza se reinició con la nueva configuración."
@@ -172,10 +173,15 @@ El sistema solo permite capturar un peso cuando es **estable**. Hay tres valores
 | Campo | Rango | Valor de partida | Qué hace |
 | :--- | :--- | :--- | :--- |
 | **Lecturas para estabilidad** | 1 a 50 | 5 | Cuántas lecturas seguidas se miran. |
-| **Tolerancia (kg)** | 0 a 10 | 0,5 | La diferencia máxima permitida entre la mayor y la menor de esas lecturas. |
-| **Tiempo sin datos (ms)** | 500 a 60000 | 3000 | Cuánto espera sin recibir nada antes de contar un "sin datos". |
+| **Tolerancia (kg)** | 0,0 a 10,0 (un decimal) | 0,5 | La diferencia máxima permitida entre la mayor y la menor de esas lecturas. |
+| **Tiempo sin datos (ms)** | 500 a 60000 | 3000 | Cuánto espera una trama antes de contar un vencimiento. También es el tiempo máximo para conectar. |
 
 El peso es **estable** cuando las últimas N lecturas (N = Lecturas para estabilidad) están todas dentro de la tolerancia. Para capturar, además, la lectura debe ser reciente (dentro del tiempo sin datos).
+
+Vigilancia de la conexión (no configurable):
+
+- Tras **3 vencimientos seguidos** del tiempo sin datos (con el valor de partida, unos 9 segundos sin recibir nada), la barra de estado pasa a **"Balanza: sin datos"** y el sistema cierra la conexión y la vuelve a abrir solo, con esperas crecientes de 1, 2, 4, 8 y luego 10 segundos ("Reintentando conexión (intento N)…").
+- Tras **3 tramas seguidas** que el patrón no reconoce, la barra pasa a **"Balanza: tramas no reconocidas"**. Vuelve a la normalidad con la primera trama reconocida.
 
 Ajustes típicos:
 
@@ -238,18 +244,20 @@ Si falla:
 
 ## 8. Problemas y soluciones
 
+En la barra de estado y en **Balanza en uso**, los errores de conexión se muestran como **"Balanza: error — "** seguido del mensaje de la tabla.
+
 | Mensaje o síntoma | Causa | Solución |
 | :--- | :--- | :--- |
 | "No se pudo abrir el puerto COMx. Verifique que el cable o adaptador esté conectado." | El COM no existe o está mal escrito (el adaptador cambió de número), cable o adaptador desconectado, o falta el controlador. | Abra el Administrador de dispositivos y confirme el COM del adaptador (sección 2). Corrija el **Puerto** y pulse **Refrescar** y **Probar conexión**. |
 | "El puerto COMx está en uso por otra aplicación o no hay permiso para abrirlo." | Otro programa (otro software de balanza, un monitor serie) tiene el puerto abierto. | Cierre ese programa y pulse **Reconectar**. |
 | "El driver del puerto COMx rechazó la configuración …" | El controlador del adaptador no permite el formato pedido (típico del CH340). | Use los valores que el mensaje dice que tiene el puerto, o cámbielos en Propiedades del puerto (Administrador de dispositivos). |
-| Barra de estado: **"Balanza: sin datos"** (rojo) | El indicador no transmite: apagado, cable suelto, velocidad equivocada, o el indicador transmite solo bajo pedido. | Revise energía y cable; confirme baudios; pruebe con **Probar conexión** y mire si llegan tramas en la lista. |
+| Barra de estado: **"Balanza: sin datos"** (rojo), o en la prueba "Se conectó, pero no llegó ninguna trama…" | El indicador no transmite: apagado, cable suelto, velocidad equivocada, o el indicador transmite solo bajo pedido. También ocurre si la **Separación de tramas** no corresponde: con **Fin de línea** y un indicador que no manda salto de línea, el sistema nunca corta una trama y descarta todo. | Revise energía y cable; confirme baudios; pruebe con **Probar conexión** y mire si llegan tramas en la lista. Si la lista queda vacía con el indicador encendido, pruebe la separación **Espacio** o **Inicio con '='** (sección 4). |
 | **"Balanza: tramas no reconocidas"** (rojo) o "Revise el patrón de lectura." | Llegan datos, pero el patrón no los entiende: baudios o paridad equivocados (llegan caracteres raros), separación de tramas incorrecta o patrón equivocado. | Mire las tramas en la lista de la prueba. Si son caracteres raros: baudios, bits y paridad. Si son legibles: separación de tramas y patrón (use **Probar patrón**). |
 | El peso dice **INESTABLE** siempre | La carga se mueve; o **Lecturas para estabilidad** y **Tolerancia** no son adecuadas; o el patrón tiene el grupo `estable` y el indicador no manda la marca. | Ver sección 6: ajuste tolerancia y lecturas; revise el grupo `estable`. |
 | El peso sale **mil veces mayor o menor** (por ejemplo 12345,0 en vez de 12,3) | La **Unidad que transmite** no coincide con la del indicador. | Si el indicador transmite gramos, elija **Gramos (g)**; si transmite kilos, **Kilogramos (kg)**. Si el número queda fuera del rango admitido, la trama se rechaza. |
 | Después de reconectar el adaptador, no hay datos o el puerto no se abre | El número de **COM cambió** (por ejemplo de COM3 a COM4) | Vea el nuevo número en el Administrador de dispositivos, corrija **Puerto**, y fíjelo (sección 2). |
-| "No se pudo conectar a host:puerto (…)" (Red) | IP o puerto equivocados, equipo apagado o sin red. | Compruebe la IP y el puerto del indicador y que la computadora lo alcance en la red. |
-| "La balanza cerró la conexión." / "Se perdió la conexión con la balanza." | Cable o red interrumpidos | Revise la conexión; el sistema reintenta solo y se recupera. |
+| "No se pudo conectar a host:puerto (…)" o "Tiempo de espera agotado al conectar con host:puerto." (Red) | IP o puerto equivocados, equipo apagado o sin red. | Compruebe la IP y el puerto del indicador y que la computadora lo alcance en la red. |
+| "Se perdió la conexión con la balanza.", "Se perdió la comunicación con el puerto COMx." (Serie), "La balanza cerró la conexión." o "Se perdió la conexión con host:puerto." (Red) | Cable, adaptador o red interrumpidos | Revise la conexión; el sistema reintenta solo y se recupera. |
 | Barra de estado: **"[SIMULADOR]"** | La balanza está configurada como Simulador | Cambie el **Tipo** a Serie o Red y guarde. |
 
 Dónde buscar más información: **Utilitarios › Visor de logs** (nivel "Advertencias y errores"). Los problemas de balanza se registran allí una vez por cambio, no en cada lectura.
@@ -261,7 +269,7 @@ El simulador es una balanza falsa interna del sistema:
 - Genera un peso que se acerca a un **peso objetivo** con una oscilación que se va amortiguando, para imitar una res que se asienta. También puede simular una desconexión física.
 - Sirve **solo para pruebas y capacitación**. Los pesos **no son reales**.
 - En la barra de estado se ve **`[SIMULADOR]`** con fondo naranja, y en la pantalla de pesaje el aviso "MODO SIMULADOR — los pesos no son reales".
-- Las boletas pesadas con el simulador quedan marcadas **SIMULADO** (grilla, reportes y auditoría) y se imprimen con la leyenda **"PESO SIMULADO — SIN VALOR COMERCIAL"** y una marca de agua `SIMULADO` en media carta.
+- Las boletas pesadas con el simulador quedan marcadas **SIMULADO** (buscador de boletas, historial de pesajes, reportes y auditoría; en los reportes, además, con un asterisco y una nota al pie) y se imprimen con la leyenda **"PESO SIMULADO — SIN VALOR COMERCIAL"** y una marca de agua `SIMULADO` en media carta.
 - **Solo el Administrador** puede capturar y grabar pesajes con el simulador. Para Operador y Supervisor, la captura y el grabado quedan bloqueados.
-- El Administrador controla el simulador en la pantalla de pesaje (**Panel de Simulación de Balanza (Admin)**: **Peso kg**, **Cargar**, **Vaciar**) y en **Configuración de balanza** (grupo **Control del modo simulador**: **Peso objetivo (kg)**, **Aplicar**, **Simular carga**, **Vaciar** y la casilla **Simular desconexión física de la balanza**).
+- El Administrador controla el simulador en la pantalla de pesaje (**Panel de Simulación de Balanza (Admin)**: **Peso kg**, **Cargar**, **Vaciar**) y en **Configuración de balanza** (grupo **Control del modo simulador**: **Peso objetivo (kg)** hasta 2000, **Aplicar**, **Simular carga** —un peso al azar entre 80 y 160 kg—, **Vaciar** y la casilla **Simular desconexión física de la balanza**). Ese grupo solo se habilita cuando la configuración **guardada** es Simulador.
 - Al terminar la capacitación, **vuelva a configurar la balanza real** antes de la jornada de trabajo.

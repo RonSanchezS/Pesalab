@@ -8,6 +8,7 @@ using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Domain.Entities;
 using PesajeFaeneo.Domain.Enums;
 using PesajeFaeneo.Domain.Excepciones;
+using PesajeFaeneo.Domain.Reglas;
 
 namespace PesajeFaeneo.Application.Boletas;
 
@@ -132,22 +133,25 @@ public class ServicioBoletas : IServicioBoletas
             par.TelefonosReclamos,
             rutaLogo);
 
-        var fleteros = (await uow.Fleteros.ListarAsync(incluirInactivos: false, cancellationToken))
-            .OrderBy(f => f.Orden)
-            .Select(f => new FleteroBoleta(f.Orden, f.Nombre, f.Celular))
-            .ToList();
+        // La muestra lleva un fletero de ejemplo para poder revisar dónde se imprime (F10, O9).
+        var fletero = new FleteroBoleta(1, "FLETERO DE MUESTRA", "70012345");
 
         var ahoraUtc = _timeProvider.GetUtcNow().UtcDateTime;
         var ahoraLocal = DateTime.SpecifyKind(TimeZoneInfo.ConvertTimeFromUtc(ahoraUtc, _timeProvider.LocalTimeZone), DateTimeKind.Unspecified);
 
         var observacion = string.IsNullOrWhiteSpace(par.ObservacionPorDefecto) ? "SIN NOVEDAD" : par.ObservacionPorDefecto;
 
+        // F11: la muestra usa el tipo que pesa la empresa (res completa si pesa ambos).
+        var modo = ReglasDesposte.Efectivo(par.ModoDesposte);
+        var tipoMuestra = ReglasDesposte.TipoUnico(modo) ?? TipoDesposte.ResCompleta;
+        var esMedia = tipoMuestra == TipoDesposte.MediaRes;
+
         return new DatosBoleta(
             PesajeId: 0,
             NumeroBoleta: 0,
             FechaHoraLocal: ahoraLocal,
             Empresa: empresa,
-            MarcaGanadero: "AH",
+            CodigoGanadero: "1",
             NombreGanadero: "GANADERO DE MUESTRA",
             Secuencia: 1,
             CodigoCliente: 110,
@@ -155,19 +159,20 @@ public class ServicioBoletas : IServicioBoletas
             Direccion: "DIRECCIÓN DE MUESTRA",
             ColorRaza: "OVERO",
             Sexo: 'M',
-            TipoDesposte: TipoDesposte.ResCompleta,
+            TipoDesposte: tipoMuestra,
             PesoIzquierdo: 120.0m,
-            PesoDerecho: 118.5m,
-            PesoTotal: 238.5m,
+            PesoDerecho: esMedia ? 0m : 118.5m,
+            PesoTotal: esMedia ? 120.0m : 238.5m,
             Observacion: observacion,
             Origen: OrigenPeso.Balanza,
             Estado: EstadoPesaje.Vigente,
             MotivoAnulacion: null,
             NombreOperador: sesion.NombreCompleto,
-            Fleteros: fleteros,
+            Fletero: fletero,
             ImpresionesPrevias: 0,
             GeneradoEnLocal: ahoraLocal,
-            EsMuestra: true);
+            EsMuestra: true,
+            MostrarDesposte: ReglasDesposte.MostrarDesposte(modo, tipoMuestra));
     }
 
     private async Task<DatosBoleta> MapearAsync(IUnidadDeTrabajo uow, Pesaje p, CancellationToken ct)
@@ -194,10 +199,7 @@ public class ServicioBoletas : IServicioBoletas
             par.TelefonosReclamos,
             rutaLogo);
 
-        var fleteros = (await uow.Fleteros.ListarAsync(incluirInactivos: false, ct))
-            .OrderBy(f => f.Orden)
-            .Select(f => new FleteroBoleta(f.Orden, f.Nombre, f.Celular))
-            .ToList();
+        var fletero = p.Fletero is null ? null : new FleteroBoleta(p.Fletero.Codigo, p.Fletero.Nombre, p.Fletero.Celular);
 
         var fechaHoraUtc = DateTime.SpecifyKind(p.FechaHora, DateTimeKind.Utc);
         var fechaHoraLocal = DateTime.SpecifyKind(TimeZoneInfo.ConvertTimeFromUtc(fechaHoraUtc, _timeProvider.LocalTimeZone), DateTimeKind.Unspecified);
@@ -210,7 +212,7 @@ public class ServicioBoletas : IServicioBoletas
             NumeroBoleta: p.NumeroBoleta,
             FechaHoraLocal: fechaHoraLocal,
             Empresa: empresa,
-            MarcaGanadero: p.Ganadero.Marca ?? string.Empty,
+            CodigoGanadero: p.Ganadero.Codigo ?? string.Empty,
             NombreGanadero: p.Ganadero.Nombre ?? string.Empty,
             Secuencia: p.Secuencia,
             CodigoCliente: p.Cliente.Codigo,
@@ -227,9 +229,10 @@ public class ServicioBoletas : IServicioBoletas
             Estado: p.Estado,
             MotivoAnulacion: p.MotivoAnulacion,
             NombreOperador: p.Usuario.NombreCompleto ?? string.Empty,
-            Fleteros: fleteros,
+            Fletero: fletero,
             ImpresionesPrevias: previas,
             GeneradoEnLocal: generadoEnLocal,
-            EsMuestra: false);
+            EsMuestra: false,
+            MostrarDesposte: ReglasDesposte.MostrarDesposte(ReglasDesposte.Efectivo(par.ModoDesposte), p.TipoDesposte));
     }
 }

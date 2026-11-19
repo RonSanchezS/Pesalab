@@ -1,4 +1,4 @@
-; Instalador del Sistema de Pesaje para Faeneo (F9-03).
+; Instalador de Capataz (F9-03).
 ; ASCII puro (regla 0.19 del plan F9). Lo compila scripts\construir-instalador.ps1, que pasa:
 ;   /DVersionApp=x.y.z   /DOrigen=<carpeta de publicacion>   /DSalida=<carpeta del instalador>
 
@@ -15,7 +15,7 @@
   #error Falta /DSalida: use scripts\construir-instalador.ps1
 #endif
 
-#define NombreApp "Sistema de Pesaje para Faeneo"
+#define NombreApp "Capataz"
 #define Editor "Pesalab"
 #define Exe "PesajeFaeneo.WinForms.exe"
 #define CarpetaDatos "{commonappdata}\PesajeFaeneo"
@@ -41,12 +41,15 @@ MinVersion=10.0.17763
 AppMutex=Global\PesajeFaeneo
 CloseApplications=no
 OutputDir={#Salida}
-OutputBaseFilename=PesajeFaeneo-Setup-{#VersionApp}-x64
+OutputBaseFilename=Capataz-Setup-{#VersionApp}-x64
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayName={#NombreApp}
 UninstallDisplayIcon={app}\{#Exe}
+; Marca del producto (logo C con pesa); los genera scripts\generar-marca.py. Rutas relativas a este .iss.
+SetupIconFile=..\src\PesajeFaeneo.WinForms\Recursos\app.ico
+WizardSmallImageFile=instalador-pequeno.bmp
 SetupLogging=yes
 
 [Languages]

@@ -1,0 +1,9 @@
+{
+  "_aviso": "Solo claves de PRUEBA del build de capturas (carpeta de datos de demostracion). Nunca van en los manuales ni son las del sistema real.",
+  "admin": { "nombreCompleto": "CARLOS ROJAS", "password": "Admin-Demo-4827" },
+  "usuarios": [
+    { "nombreUsuario": "operador",   "nombreCompleto": "JUAN PÉREZ",   "rol": "Operador",   "password": "Operador-Demo-3951" },
+    { "nombreUsuario": "supervisor", "nombreCompleto": "MARÍA LÓPEZ",  "rol": "Supervisor", "password": "Supervisor-Demo-6173" },
+    { "nombreUsuario": "nuevo",      "nombreCompleto": "LUIS MENDOZA", "rol": "Operador",   "password": "Nuevo-Demo-1204", "debeCambiar": true }
+  ]
+}

@@ -21,6 +21,7 @@ public class FrmPesaje : FormBase
     private readonly IServicioPesajes _servicioPesajes;
     private readonly IServicioGanaderos _servicioGanaderos;
     private readonly IServicioClientes _servicioClientes;
+    private readonly IServicioFleteros _servicioFleteros;
     private readonly IServicioParametros _servicioParametros;
     private readonly IServicioBalanza _servicioBalanza;
     private readonly ISimuladorBalanza _simuladorBalanza;
@@ -37,7 +38,9 @@ public class FrmPesaje : FormBase
     private string _observacionPorDefecto = string.Empty;
     private bool _grabando;
     private bool _cargando;
+    private ModoDesposte _modoDesposte = ModoDesposte.Ambos;
     private bool _imprimiendo;
+    private int? _ultimoPesajeGrabadoId;
     private string? _mensajePostGrabado;
     private NivelMensajeGuia _nivelPostGrabado;
 
@@ -55,9 +58,11 @@ public class FrmPesaje : FormBase
     internal Label lblInfoSecuencia = null!;
     internal ControlBusquedaCatalogo ctlCliente = null!;
     internal TextBox txtDireccion = null!;
+    internal ControlBusquedaCatalogo ctlFletero = null!;
     internal TextBox txtColorRaza = null!;
     internal ComboBox cmbSexo = null!;
     internal ComboBox cmbDesposte = null!;
+    internal Label lblDesposte = null!;
     internal TextBox txtObservacion = null!;
 
     // Pesos
@@ -66,7 +71,7 @@ public class FrmPesaje : FormBase
     internal TextBox txtPesoTotal = null!;
     internal Button btnCapturarIzquierdo = null!;
     internal Button btnCapturarDerecho = null!;
-    internal Button btnBorrarPesos = null!;
+    internal Button btnBorrarPesaje = null!;
 
     // Acciones y Guía
     internal Button btnGrabar = null!;
@@ -80,8 +85,7 @@ public class FrmPesaje : FormBase
     internal Button btnSimularCarga = null!;
     internal Button btnSimularVaciar = null!;
 
-    // Grilla
-    internal DataGridView dgvHoy = null!;
+    // Validación
     internal ErrorProvider _errorProvider = null!;
 
     // Ganchos para tests
@@ -94,6 +98,7 @@ public class FrmPesaje : FormBase
         IServicioPesajes servicioPesajes,
         IServicioGanaderos servicioGanaderos,
         IServicioClientes servicioClientes,
+        IServicioFleteros servicioFleteros,
         IServicioParametros servicioParametros,
         IServicioBalanza servicioBalanza,
         ISimuladorBalanza simuladorBalanza,
@@ -105,6 +110,7 @@ public class FrmPesaje : FormBase
         _servicioPesajes = servicioPesajes ?? throw new ArgumentNullException(nameof(servicioPesajes));
         _servicioGanaderos = servicioGanaderos ?? throw new ArgumentNullException(nameof(servicioGanaderos));
         _servicioClientes = servicioClientes ?? throw new ArgumentNullException(nameof(servicioClientes));
+        _servicioFleteros = servicioFleteros ?? throw new ArgumentNullException(nameof(servicioFleteros));
         _servicioParametros = servicioParametros ?? throw new ArgumentNullException(nameof(servicioParametros));
         _servicioBalanza = servicioBalanza ?? throw new ArgumentNullException(nameof(servicioBalanza));
         _simuladorBalanza = simuladorBalanza ?? throw new ArgumentNullException(nameof(simuladorBalanza));
@@ -125,6 +131,7 @@ public class FrmPesaje : FormBase
             { CamposPesaje.Ganadero, ctlGanadero },
             { CamposPesaje.Cliente, ctlCliente },
             { CamposPesaje.Direccion, txtDireccion },
+            { CamposPesaje.Fletero, ctlFletero },
             { CamposPesaje.Secuencia, numSecuencia },
             { CamposPesaje.ColorRaza, txtColorRaza },
             { CamposPesaje.Sexo, cmbSexo },
@@ -168,6 +175,16 @@ public class FrmPesaje : FormBase
         };
 
         ctlCliente.AltaRapidaSolicitada += async (_, texto) => await AltaRapidaClienteAsync(texto);
+
+        // F12 (E1): un fletero escrito y no elegido bloquea el grabado; la guía lo dice en cuanto se escribe.
+        ctlFletero.CajaTexto.TextChanged += (_, _) =>
+        {
+            if (ctlFletero.TextoSinElegir)
+            {
+                _mensajePostGrabado = null;
+            }
+            ActualizarEstadoUi();
+        };
 
         cmbDesposte.SelectedIndexChanged += (_, _) =>
         {
@@ -230,7 +247,7 @@ public class FrmPesaje : FormBase
         var pnlIzquierdo = ConstruirPanelIzquierdo();
         mainLayout.Controls.Add(pnlIzquierdo, 0, 2);
 
-        // Panel Derecho: Grilla y Simulador
+        // Panel Derecho: pesos capturados, acciones y simulador
         var pnlDerecho = ConstruirPanelDerecho();
         mainLayout.Controls.Add(pnlDerecho, 1, 2);
 
@@ -338,7 +355,7 @@ public class FrmPesaje : FormBase
             Dock = DockStyle.Top,
             AutoSize = true,
             ColumnCount = 2,
-            RowCount = 12,
+            RowCount = 9,
             Padding = new Padding(0, 6, 12, 6)
         };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120));
@@ -385,6 +402,17 @@ public class FrmPesaje : FormBase
         layout.Controls.Add(lblDir, 0, 3);
         layout.Controls.Add(txtDireccion, 1, 3);
 
+        // Fletero (F10, O5): opcional; se elige al pesar y la boleta imprime solo este fletero.
+        var lblFle = new Label { Text = "Fletero:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight };
+        ctlFletero = new ControlBusquedaCatalogo
+        {
+            Dock = DockStyle.Fill,
+            TabIndex = 4,
+            Placeholder = "Sin fletero (opcional)"
+        };
+        layout.Controls.Add(lblFle, 0, 4);
+        layout.Controls.Add(ctlFletero, 1, 4);
+
         // Color/Raza
         var lblCol = new Label { Text = "Color/Raza:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight };
         txtColorRaza = new TextBox
@@ -392,10 +420,10 @@ public class FrmPesaje : FormBase
             Dock = DockStyle.Fill,
             MaxLength = ReglasPesaje.LongitudMaximaColorRaza,
             CharacterCasing = CharacterCasing.Upper,
-            TabIndex = 4
+            TabIndex = 5
         };
-        layout.Controls.Add(lblCol, 0, 4);
-        layout.Controls.Add(txtColorRaza, 1, 4);
+        layout.Controls.Add(lblCol, 0, 5);
+        layout.Controls.Add(txtColorRaza, 1, 5);
 
         // Sexo
         var lblSex = new Label { Text = "Sexo:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight };
@@ -403,27 +431,27 @@ public class FrmPesaje : FormBase
         {
             Dock = DockStyle.Fill,
             DropDownStyle = ComboBoxStyle.DropDownList,
-            TabIndex = 5
+            TabIndex = 6
         };
         cmbSexo.Items.Add("M - MACHO");
         cmbSexo.Items.Add("H - HEMBRA");
         cmbSexo.SelectedIndex = 0;
-        layout.Controls.Add(lblSex, 0, 5);
-        layout.Controls.Add(cmbSexo, 1, 5);
+        layout.Controls.Add(lblSex, 0, 6);
+        layout.Controls.Add(cmbSexo, 1, 6);
 
         // Tipo Desposte
-        var lblDesp = new Label { Text = "Desposte:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight };
+        lblDesposte = new Label { Text = "Desposte:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight };
         cmbDesposte = new ComboBox
         {
             Dock = DockStyle.Fill,
             DropDownStyle = ComboBoxStyle.DropDownList,
-            TabIndex = 6
+            TabIndex = 7
         };
         cmbDesposte.Items.Add("RES COMPLETA");
         cmbDesposte.Items.Add("MEDIA RES");
         cmbDesposte.SelectedIndex = 0;
-        layout.Controls.Add(lblDesp, 0, 6);
-        layout.Controls.Add(cmbDesposte, 1, 6);
+        layout.Controls.Add(lblDesposte, 0, 7);
+        layout.Controls.Add(cmbDesposte, 1, 7);
 
         // Observación
         var lblObs = new Label { Text = "Observación:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight };
@@ -432,20 +460,10 @@ public class FrmPesaje : FormBase
             Dock = DockStyle.Fill,
             MaxLength = ReglasPesaje.LongitudMaximaObservacion,
             CharacterCasing = CharacterCasing.Upper,
-            TabIndex = 7
+            TabIndex = 8
         };
-        layout.Controls.Add(lblObs, 0, 7);
-        layout.Controls.Add(txtObservacion, 1, 7);
-
-        // Separador / Panel Pesos
-        var pnlPesos = ConstruirPanelPesos();
-        layout.SetColumnSpan(pnlPesos, 2);
-        layout.Controls.Add(pnlPesos, 0, 8);
-
-        // Botones de acción
-        var pnlBotones = ConstruirPanelAcciones();
-        layout.SetColumnSpan(pnlBotones, 2);
-        layout.Controls.Add(pnlBotones, 0, 9);
+        layout.Controls.Add(lblObs, 0, 8);
+        layout.Controls.Add(txtObservacion, 1, 8);
 
         scroll.Controls.Add(layout);
         return scroll;
@@ -529,15 +547,15 @@ public class FrmPesaje : FormBase
         };
         btnCapturarDerecho.Click += (_, _) => CapturarLado(LadoPesaje.Derecho);
 
-        btnBorrarPesos = new Button
+        btnBorrarPesaje = new Button
         {
-            Text = "Borrar pesos (F8)",
+            Text = "Borrar pesaje (F8)",
             Dock = DockStyle.Fill,
             Height = 36,
             TabStop = false,
             Font = new Font("Segoe UI", 9F, FontStyle.Bold)
         };
-        btnBorrarPesos.Click += (_, _) => BorrarPesos();
+        btnBorrarPesaje.Click += (_, _) => BorrarPesaje();
 
         layout.Controls.Add(lblI, 0, 0);
         layout.Controls.Add(lblD, 1, 0);
@@ -549,10 +567,18 @@ public class FrmPesaje : FormBase
 
         layout.Controls.Add(btnCapturarIzquierdo, 0, 2);
         layout.Controls.Add(btnCapturarDerecho, 1, 2);
-        layout.Controls.Add(btnBorrarPesos, 2, 2);
+        layout.Controls.Add(btnBorrarPesaje, 2, 2);
 
         grp.Controls.Add(layout);
         return grp;
+    }
+
+    private static readonly Color ColorGrabarHabilitado = Color.FromArgb(46, 139, 87);
+
+    private void AplicarColoresGrabar()
+    {
+        btnGrabar.BackColor = btnGrabar.Enabled ? ColorGrabarHabilitado : SystemColors.Control;
+        btnGrabar.ForeColor = btnGrabar.Enabled ? Color.White : SystemColors.GrayText;
     }
 
     private Panel ConstruirPanelAcciones()
@@ -576,13 +602,15 @@ public class FrmPesaje : FormBase
 
         btnImprimir = new Button
         {
-            Text = "Imprimir (F9)",
-            Size = new Size(140, 42),
+            Text = "Imprimir último (F9)",
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowOnly,
+            Size = new Size(185, 42),
             TabStop = false,
             Font = new Font("Segoe UI", 10F, FontStyle.Regular),
             Enabled = false
         };
-        btnImprimir.Click += async (_, _) => await ImprimirSeleccionadaAsync();
+        btnImprimir.Click += async (_, _) => await ImprimirUltimoAsync();
 
         btnGrabar = new Button
         {
@@ -590,10 +618,12 @@ public class FrmPesaje : FormBase
             Size = new Size(150, 42),
             TabStop = false,
             Font = new Font("Segoe UI", 11F, FontStyle.Bold),
-            BackColor = Color.FromArgb(46, 139, 87),
+            BackColor = ColorGrabarHabilitado,
             ForeColor = Color.White
         };
         btnGrabar.Click += async (_, _) => await GrabarAsync();
+        // F12 (E2): WinForms no cambia el fondo de un botón deshabilitado; sin esto se ve verde aunque no responda.
+        btnGrabar.EnabledChanged += (_, _) => AplicarColoresGrabar();
 
         pnl.Controls.Add(btnCerrar);
         pnl.Controls.Add(btnImprimir);
@@ -604,48 +634,31 @@ public class FrmPesaje : FormBase
 
     private Control ConstruirPanelDerecho()
     {
+        var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+
         var layout = new TableLayoutPanel
         {
-            Dock = DockStyle.Fill,
+            Dock = DockStyle.Top,
+            AutoSize = true,
             ColumnCount = 1,
-            RowCount = 2
+            RowCount = 3,
+            Padding = new Padding(12, 6, 0, 6)
         };
-        // Sin estilo la columna se dimensiona por su contenido (el ancho actual de la grilla): al escalar por
-        // DPI la grilla crece, la columna la sigue y queda más ancha que el panel, recortando columnas.
+        // Sin estilo la columna se dimensiona por su contenido: al escalar por DPI crece y deja de caber en el panel.
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // Grilla
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 70));  // Simulador
 
-        // Grilla hoy
-        dgvHoy = new DataGridView
-        {
-            Dock = DockStyle.Fill,
-            ReadOnly = true,
-            AllowUserToAddRows = false,
-            AllowUserToDeleteRows = false,
-            AllowUserToResizeRows = false,
-            MultiSelect = false,
-            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-            RowHeadersVisible = false,
-            BackgroundColor = Color.White,
-            TabStop = false,
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-        };
-        dgvHoy.SelectionChanged += (_, _) => ActualizarEstadoUi();
+        // Pesos capturados y acciones (antes compartían el panel izquierdo con los datos; el historial del día
+        // pasó a su propio formulario, FrmHistorialPesajes, y esa columna quedó libre para ellos).
+        var pnlPesos = ConstruirPanelPesos();
+        layout.Controls.Add(pnlPesos, 0, 0);
 
-        dgvHoy.Columns.Add("Boleta", "Boleta");
-        dgvHoy.Columns.Add("Hora", "Hora");
-        dgvHoy.Columns.Add("Marca", "Marca");
-        dgvHoy.Columns.Add("Sec", "Sec.");
-        dgvHoy.Columns.Add("Cliente", "Cliente");
-        dgvHoy.Columns.Add("Desposte", "Desposte");
-        dgvHoy.Columns.Add("Izq", "Izq.");
-        dgvHoy.Columns.Add("Der", "Der.");
-        dgvHoy.Columns.Add("Total", "Total");
-        dgvHoy.Columns.Add("Origen", "Origen");
-        dgvHoy.Columns.Add("Estado", "Estado");
+        var pnlBotones = ConstruirPanelAcciones();
+        layout.Controls.Add(pnlBotones, 0, 1);
 
-        layout.Controls.Add(dgvHoy, 0, 0);
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 70)); // Simulador (solo Administrador con balanza simulada)
+
 
         // Simulador
         grpSimulador = new GroupBox
@@ -696,13 +709,33 @@ public class FrmPesaje : FormBase
         pnlSim.Controls.Add(btnSimularVaciar);
 
         grpSimulador.Controls.Add(pnlSim);
-        layout.Controls.Add(grpSimulador, 0, 1);
+        layout.Controls.Add(grpSimulador, 0, 2);
 
-        return layout;
+        scroll.Controls.Add(layout);
+        return scroll;
     }
 
     private TipoDesposte TipoSeleccionado =>
         cmbDesposte.SelectedIndex == 1 ? TipoDesposte.MediaRes : TipoDesposte.ResCompleta;
+
+    internal ModoDesposte ModoDesposteActual => _modoDesposte;
+
+    /// <summary>
+    /// F11 (D8): con un modo de un solo tipo, la fila "Desposte" se oculta (la fila AutoSize colapsa) y el combo queda
+    /// fijo en ese tipo; con Ambos se elige en cada pesaje como siempre.
+    /// </summary>
+    private void AplicarModoDesposte(ModoDesposte modo)
+    {
+        _modoDesposte = modo;
+        var unico = ReglasDesposte.TipoUnico(modo);
+        if (unico is { } tipo)
+        {
+            cmbDesposte.SelectedIndex = tipo == TipoDesposte.MediaRes ? 1 : 0;
+        }
+
+        lblDesposte.Visible = unico is null;
+        cmbDesposte.Visible = unico is null;
+    }
 
     private char SexoSeleccionado =>
         cmbSexo.SelectedIndex == 1 ? ReglasPesaje.SexoHembra : ReglasPesaje.SexoMacho;
@@ -731,12 +764,13 @@ public class FrmPesaje : FormBase
             var clientes = await _servicioClientes.ListarParaBusquedaAsync();
             ctlCliente.EstablecerElementos(clientes);
 
+            ctlFletero.EstablecerElementos(await _servicioFleteros.ListarParaBusquedaAsync());
+
             var parametros = await _servicioParametros.ObtenerAsync();
             _observacionPorDefecto = parametros.ObservacionPorDefecto ?? string.Empty;
             txtObservacion.Text = _observacionPorDefecto;
             lblProximaBoleta.Text = $"Próxima boleta: {parametros.SiguienteNumeroBoleta}";
-
-            await CargarGrillaHoyAsync();
+            AplicarModoDesposte(await _servicioParametros.ObtenerModoDesposteAsync());
 
             ActiveControl = ctlGanadero;
         }
@@ -747,42 +781,9 @@ public class FrmPesaje : FormBase
         }
     }
 
-    private async Task CargarGrillaHoyAsync()
-    {
-        var pesajes = await _servicioPesajes.ListarDelDiaAsync();
-        dgvHoy.Rows.Clear();
-        var zonaLocal = _timeProvider.LocalTimeZone;
-        foreach (var p in pesajes)
-        {
-            var localHora = TimeZoneInfo.ConvertTimeFromUtc(p.FechaHoraUtc, zonaLocal).ToString("HH:mm");
-            var origenStr = p.Origen == OrigenPeso.Simulador ? "SIMULADO" : string.Empty;
-            var desposteStr = p.TipoDesposte == TipoDesposte.ResCompleta ? "RES COMPLETA" : "MEDIA RES";
-            var izqStr = p.PesoIzquierdo > 0 ? p.PesoIzquierdo.ToString("0.0", CultureInfo.CurrentCulture) : "-";
-            var derStr = p.PesoDerecho > 0 ? p.PesoDerecho.ToString("0.0", CultureInfo.CurrentCulture) : "-";
-            var totalStr = p.PesoTotal.ToString("0.0", CultureInfo.CurrentCulture);
-
-            var i = dgvHoy.Rows.Add(
-                p.NumeroBoleta,
-                localHora,
-                p.Marca,
-                p.Secuencia,
-                p.NombreCliente,
-                desposteStr,
-                izqStr,
-                derStr,
-                totalStr,
-                origenStr,
-                p.Estado.ToString()
-            );
-            dgvHoy.Rows[i].Tag = p.Id;
-        }
-    }
-
-    private int? IdBoletaParaImprimir()
-    {
-        var fila = dgvHoy.CurrentRow ?? (dgvHoy.Rows.Count > 0 ? dgvHoy.Rows[0] : null);
-        return fila?.Tag as int?;
-    }
+    // F9 imprime el último pesaje grabado en esta pantalla (ya no hay grilla con filas seleccionables):
+    // para cualquier otro, el historial de pesajes o la reimpresión por número.
+    private int? IdBoletaParaImprimir() => _ultimoPesajeGrabadoId;
 
     private async Task ActualizarSugerenciaAsync(int ganaderoId)
     {
@@ -849,9 +850,9 @@ public class FrmPesaje : FormBase
         ActualizarEstadoUi();
     }
 
-    private void BorrarPesos()
+    private void BorrarPesaje()
     {
-        _capturas.BorrarPesos();
+        _capturas.BorrarPesaje();
         _mensajePostGrabado = null;
         MostrarPesos();
         ActualizarEstadoUi();
@@ -896,14 +897,16 @@ public class FrmPesaje : FormBase
             TipoDesposte: TipoSeleccionado,
             Capturas: _capturas,
             PuedeUsarSimulador: _puedeUsarSimulador,
-            Ocupado: ocupado);
+            Ocupado: ocupado,
+            DesposteFijo: ReglasDesposte.TipoUnico(_modoDesposte) is not null,
+            FleteroSinElegir: ctlFletero.TextoSinElegir);
 
         var estado = EvaluadorPantallaPesaje.Evaluar(datos);
         EstadoUiActual = estado;
 
         btnCapturarIzquierdo.Enabled = estado.PuedeCapturarIzquierdo;
         btnCapturarDerecho.Enabled = estado.PuedeCapturarDerecho;
-        btnBorrarPesos.Enabled = estado.PuedeBorrarPesos;
+        btnBorrarPesaje.Enabled = estado.PuedeBorrarPesaje;
         btnGrabar.Enabled = estado.PuedeGrabar;
         btnImprimir.Enabled = !ocupado && IdBoletaParaImprimir() is not null;
 
@@ -950,16 +953,16 @@ public class FrmPesaje : FormBase
                 return true;
 
             case Keys.F8:
-                if (btnBorrarPesos.Enabled)
+                if (btnBorrarPesaje.Enabled)
                 {
-                    BorrarPesos();
+                    BorrarPesaje();
                 }
                 return true;
 
             case Keys.F9:
                 if (btnImprimir.Enabled)
                 {
-                    _ = ImprimirSeleccionadaAsync();
+                    _ = ImprimirUltimoAsync();
                 }
                 return true;
 
@@ -1086,7 +1089,7 @@ public class FrmPesaje : FormBase
         }
     }
 
-    private async Task ImprimirSeleccionadaAsync()
+    private async Task ImprimirUltimoAsync()
     {
         var id = IdBoletaParaImprimir();
         if (id is null) { try { System.Media.SystemSounds.Beep.Play(); } catch { } return; }
@@ -1123,6 +1126,7 @@ public class FrmPesaje : FormBase
         return new RegistrarPesaje(
             GanaderoId: ganaderoId,
             ClienteId: clienteId,
+            FleteroId: ctlFletero.Seleccion?.Id,
             Direccion: txtDireccion.Text,
             Secuencia: secuencia,
             ColorRaza: txtColorRaza.Text,
@@ -1136,9 +1140,11 @@ public class FrmPesaje : FormBase
 
     private void AplicarPostGrabado(PesajeRegistrado r)
     {
+        _ultimoPesajeGrabadoId = r.Id;
         _capturas.ReiniciarTrasGrabar();
         MostrarPesos();
         txtColorRaza.Clear();
+        ctlFletero.Limpiar(); // el fletero cambia de un animal a otro: se elige en cada pesaje
         txtObservacion.Text = _observacionPorDefecto;
         _errorProvider.Clear();
 
@@ -1156,7 +1162,6 @@ public class FrmPesaje : FormBase
         _cargando = true;
         try
         {
-            await CargarGrillaHoyAsync();
             var parametros = await _servicioParametros.ObtenerAsync();
             lblProximaBoleta.Text = $"Próxima boleta: {parametros.SiguienteNumeroBoleta}";
         }
@@ -1199,16 +1204,10 @@ public class FrmPesaje : FormBase
     private async Task AltaRapidaClienteAsync(string texto)
     {
         int? idNuevo = null;
-        int codigoSugerido = 1;
-        await EjecutarAsync(async () =>
-        {
-            codigoSugerido = await _servicioClientes.SugerirSiguienteCodigoAsync();
-        });
-
         Ejecutar(() =>
         {
             using var frm = _formFactory.Crear<FrmClienteEdicion>();
-            frm.ConfigurarAltaRapida(codigoSugerido, texto);
+            frm.ConfigurarAltaRapida(texto);
             var resultado = MostrarDialogoParaTest != null
                 ? MostrarDialogoParaTest(frm)
                 : frm.ShowDialog(this);
@@ -1270,7 +1269,7 @@ public class FrmPesaje : FormBase
     internal void SondearBalanzaParaTest() => _monitor.Sondear();
     internal void CapturarParaTest(LadoPesaje lado) => CapturarLado(lado);
     internal Task GrabarParaTestAsync() => GrabarAsync();
-    internal Task ImprimirParaTestAsync() => ImprimirSeleccionadaAsync();
+    internal Task ImprimirParaTestAsync() => ImprimirUltimoAsync();
     internal int? IdBoletaParaImprimirParaTest => IdBoletaParaImprimir();
     internal void SimularFormClosingParaTest(FormClosingEventArgs e) => OnFormClosing(e);
     internal bool ProcesarTeclaParaTest(Keys keyData)

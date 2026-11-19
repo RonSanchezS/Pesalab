@@ -14,7 +14,8 @@ public sealed class ServicioPuestaEnMarchaFalso : IServicioPuestaEnMarcha
         TipoConexionBalanza: TipoConexion.Simulador,
         ImpresionConfigurada: false,
         FleterosActivos: 0,
-        UsuariosNoAdministradoresActivos: 0);
+        UsuariosNoAdministradoresActivos: 0,
+        ModoDesposte: null);
 
     public int LlamadasObtenerEstado { get; private set; }
     public List<bool> LlamadasMarcarCompleta { get; } = new();

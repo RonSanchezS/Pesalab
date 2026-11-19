@@ -302,7 +302,7 @@ public class LayoutFormulariosTests
         {
             var rutaLarga = @"C:\" + new string('A', 190);
             var appPaths = new PesajeFaeneo.Infrastructure.Common.AppPaths(rutaLarga);
-            using var form = new PesajeFaeneo.WinForms.Formularios.Ayuda.FrmAcercaDe(appPaths);
+            using var form = new PesajeFaeneo.WinForms.Formularios.Ayuda.FrmAcercaDe(appPaths, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
             form.Show();
 
             VerificadorLayout.Verificar(form);

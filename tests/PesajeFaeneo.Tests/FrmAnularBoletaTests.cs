@@ -83,12 +83,38 @@ public class FrmAnularBoletaTests
             form.Configurar(DatosGestionDePrueba.CrearBoletaEncontrada());
 
             form.ConfirmarParaTest = _ => true;
-            form.txtMotivo.Text = "123";
+            form.txtMotivo.Text = "MOTIVO VALIDO"; // pasa la validación previa del formulario; el error lo da el servicio
 
             form.AnularParaTestAsync().GetAwaiter().GetResult();
 
             Assert.NotEqual(DialogResult.OK, form.DialogResult);
             Assert.Equal("El motivo es demasiado corto.", form._errorProvider.GetError(form.txtMotivo));
+        });
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("123")]
+    [InlineData("    ")]
+    public void Anular_MotivoCorto_MuestraErrorSinConfirmarNiLlamarServicio(string motivo)
+    {
+        // F12 (E5): el motivo se valida antes de la confirmación.
+        HiloSta.Ejecutar(() =>
+        {
+            var falso = new ServicioGestionPesajesFalso();
+            using var form = new FrmAnularBoleta(falso);
+            form.Configurar(DatosGestionDePrueba.CrearBoletaEncontrada());
+
+            var confirmaciones = 0;
+            form.ConfirmarParaTest = _ => { confirmaciones++; return true; };
+            form.txtMotivo.Text = motivo;
+
+            form.AnularParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Equal(0, confirmaciones);
+            Assert.Empty(falso.AnulacionesRecibidas);
+            Assert.NotEqual(DialogResult.OK, form.DialogResult);
+            Assert.Equal("Ingrese el motivo de la anulación (mínimo 5 caracteres).", form._errorProvider.GetError(form.txtMotivo));
         });
     }
 

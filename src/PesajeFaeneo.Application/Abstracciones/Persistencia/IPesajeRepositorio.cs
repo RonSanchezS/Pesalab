@@ -44,4 +44,15 @@ public interface IPesajeRepositorio
     /// Sin tracking; Include Ganadero, Cliente y AnuladoPor; orden FechaHora y NumeroBoleta ascendentes; Take(maximo).
     /// </summary>
     Task<IReadOnlyList<Pesaje>> ListarParaReporteAsync(CriteriosReporte criterios, int maximo, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Valores distintos de Color/Raza de TODOS los pesajes (vigentes y anulados), normalizados (Trim + mayúsculas), sin vacíos
+    /// y ordenados alfabéticamente (F10, O8).
+    /// </summary>
+    Task<IReadOnlyList<string>> ListarRazasAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// F11: cantidad de pesajes VIGENTES por tipo de desposte (res completa, media res). Un COUNT por tipo, sin cargar filas.
+    /// </summary>
+    Task<(int ResCompleta, int MediaRes)> ContarVigentesPorTipoDesposteAsync(CancellationToken cancellationToken = default);
 }

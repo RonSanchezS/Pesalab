@@ -28,8 +28,10 @@ public class FrmReportes : FormBase
     private int _versionGeneracion;
     private ReportePesajes? _reporte;
     private bool? _columnasAnuladas;
+    private bool? _columnasConDesposte;   // F11: la columna "Tipo Corte" depende de cada reporte generado
     private bool _inicializando = true;
     private bool _sincronizandoFechas;
+    private bool _cargandoRazas;
 
     // Exportar/Vista previa/Imprimir muestran un diálogo ANTES de entrar en EjecutarAsync (regla 0.10). Mientras una de
     // esas acciones sigue en curso, otra no puede abrir su propio diálogo: el EjecutarAsync posterior se descartaría en
@@ -43,6 +45,7 @@ public class FrmReportes : FormBase
     internal readonly Button btnGenerar;
     internal readonly ControlBusquedaCatalogo ctlGanadero;
     internal readonly ControlBusquedaCatalogo ctlCliente;
+    internal readonly ComboBox cmbRaza;
     internal readonly DataGridView dgvVista;
     internal readonly Label lblTotales;
     internal readonly Label lblAviso;
@@ -111,6 +114,7 @@ public class FrmReportes : FormBase
         cmbTipo.Items.Add(new OpcionTipo(TipoReporte.PesajesEntreFechas, TextosReporte.NombreTipo(TipoReporte.PesajesEntreFechas)));
         cmbTipo.Items.Add(new OpcionTipo(TipoReporte.PorGanadero, TextosReporte.NombreTipo(TipoReporte.PorGanadero)));
         cmbTipo.Items.Add(new OpcionTipo(TipoReporte.PorCliente, TextosReporte.NombreTipo(TipoReporte.PorCliente)));
+        cmbTipo.Items.Add(new OpcionTipo(TipoReporte.PorRaza, TextosReporte.NombreTipo(TipoReporte.PorRaza)));
         cmbTipo.Items.Add(new OpcionTipo(TipoReporte.Anuladas, TextosReporte.NombreTipo(TipoReporte.Anuladas)));
         cmbTipo.SelectedIndex = 0;
 
@@ -135,6 +139,14 @@ public class FrmReportes : FormBase
             Placeholder = "Seleccione…"
         };
 
+        // F10 (O8): razas (Color/Raza) existentes en los pesajes; solo se usa en "Pesajes por raza".
+        cmbRaza = new ComboBox
+        {
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Width = 220,
+            Anchor = AnchorStyles.Left
+        };
+
         panelFiltros.Controls.Add(DisenoFiltros.Etiqueta("Tipo de reporte:"));
         panelFiltros.Controls.Add(cmbTipo);
         panelFiltros.Controls.Add(DisenoFiltros.Etiqueta("Desde:"));
@@ -148,6 +160,8 @@ public class FrmReportes : FormBase
         panelFiltros.Controls.Add(ctlGanadero);
         panelFiltros.Controls.Add(DisenoFiltros.Etiqueta("Cliente:"));
         panelFiltros.Controls.Add(ctlCliente);
+        panelFiltros.Controls.Add(DisenoFiltros.Etiqueta("Raza:"));
+        panelFiltros.Controls.Add(cmbRaza);
 
         // Grilla
         dgvVista = new DataGridView
@@ -215,7 +229,8 @@ public class FrmReportes : FormBase
             [CamposReportes.FechaDesde] = dtpDesde,
             [CamposReportes.FechaHasta] = dtpHasta,
             [CamposReportes.Ganadero] = ctlGanadero,
-            [CamposReportes.Cliente] = ctlCliente
+            [CamposReportes.Cliente] = ctlCliente,
+            [CamposReportes.Raza] = cmbRaza
         };
 
         // Agregar en orden específico (DGV, Totales, Acciones, Filtros)
@@ -299,6 +314,14 @@ public class FrmReportes : FormBase
             }
         };
 
+        cmbRaza.SelectedIndexChanged += (_, _) =>
+        {
+            if (!_inicializando && !_cargandoRazas)
+            {
+                InvalidarReporte();
+            }
+        };
+
         btnGenerar.Click += async (_, _) => await EjecutarAsync(GenerarInternoAsync, btnGenerar);
         btnPdf.Click += async (_, _) => await ExportarAsync(pdf: true);
         btnExcel.Click += async (_, _) => await ExportarAsync(pdf: false);
@@ -331,6 +354,7 @@ public class FrmReportes : FormBase
         dtpHasta.Enabled = tipo != TipoReporte.PesajesDelDia;
         ctlGanadero.Enabled = tipo == TipoReporte.PorGanadero;
         ctlCliente.Enabled = tipo == TipoReporte.PorCliente;
+        cmbRaza.Enabled = tipo == TipoReporte.PorRaza;
 
         if (tipo == TipoReporte.PesajesDelDia)
         {
@@ -386,7 +410,29 @@ public class FrmReportes : FormBase
             DateOnly.FromDateTime(dtpDesde.Value),
             DateOnly.FromDateTime(dtpHasta.Value),
             tipo == TipoReporte.PorGanadero ? ctlGanadero.Seleccion?.Id : null,
-            tipo == TipoReporte.PorCliente ? ctlCliente.Seleccion?.Id : null);
+            tipo == TipoReporte.PorCliente ? ctlCliente.Seleccion?.Id : null,
+            tipo == TipoReporte.PorRaza ? cmbRaza.SelectedItem as string : null);
+    }
+
+    private void EstablecerRazas(IReadOnlyList<string> razas)
+    {
+        _cargandoRazas = true;
+        try
+        {
+            var seleccionada = cmbRaza.SelectedItem as string;
+            cmbRaza.Items.Clear();
+            foreach (var raza in razas)
+            {
+                cmbRaza.Items.Add(raza);
+            }
+
+            // Conserva la raza elegida si sigue existiendo; si no, queda sin seleccionar (el servicio pide elegirla).
+            cmbRaza.SelectedItem = seleccionada is not null && razas.Contains(seleccionada) ? seleccionada : null;
+        }
+        finally
+        {
+            _cargandoRazas = false;
+        }
     }
 
     private async Task CargarInternoAsync()
@@ -394,6 +440,7 @@ public class FrmReportes : FormBase
         var opciones = await _servicio.ObtenerOpcionesAsync();
         ctlGanadero.EstablecerElementos(opciones.Ganaderos);
         ctlCliente.EstablecerElementos(opciones.Clientes);
+        EstablecerRazas(opciones.Razas ?? Array.Empty<string>());
     }
 
     private async Task GenerarInternoAsync()
@@ -432,12 +479,12 @@ public class FrmReportes : FormBase
     {
         _reporte = reporte;
 
-        if (_columnasAnuladas != reporte.EsAnuladas || dgvVista.Columns.Count == 0)
+        if (_columnasAnuladas != reporte.EsAnuladas || _columnasConDesposte != reporte.MostrarDesposte || dgvVista.Columns.Count == 0)
         {
-            ReconstruirColumnas(reporte.EsAnuladas);
+            ReconstruirColumnas(reporte.EsAnuladas, reporte.MostrarDesposte);
         }
 
-        var columnas = ColumnasReporte.Para(reporte.EsAnuladas);
+        var columnas = ColumnasReporte.Para(reporte.EsAnuladas, reporte.MostrarDesposte);
         int idxFecha = -1;
         for (int i = 0; i < columnas.Count; i++)
         {
@@ -453,7 +500,7 @@ public class FrmReportes : FormBase
 
         foreach (var fila in reporte.Filas.Take(ReglasReportes.MaximoFilasVista))
         {
-            var textos = ColumnasReporte.Textos(fila, reporte.EsAnuladas).ToArray();
+            var textos = ColumnasReporte.Textos(fila, reporte.EsAnuladas, reporte.MostrarDesposte).ToArray();
             if (idxFecha >= 0)
             {
                 textos[idxFecha] = TextosReporte.FechaHora(fila.FechaHoraLocal);
@@ -470,7 +517,7 @@ public class FrmReportes : FormBase
         {
             lblTotales.Text = TextosReporte.TotalPesoNeto(t) + "    " +
                               TextosReporte.CantidadReses(t) + "    " +
-                              TextosReporte.DetalleBoletas(t);
+                              TextosReporte.DetalleBoletas(t, reporte.MostrarDesposte);
         }
         else
         {
@@ -507,12 +554,13 @@ public class FrmReportes : FormBase
         ActualizarAcciones();
     }
 
-    private void ReconstruirColumnas(bool anuladas)
+    private void ReconstruirColumnas(bool anuladas, bool mostrarDesposte)
     {
         _columnasAnuladas = anuladas;
+        _columnasConDesposte = mostrarDesposte;
         dgvVista.Columns.Clear();
 
-        var columnasDef = ColumnasReporte.Para(anuladas);
+        var columnasDef = ColumnasReporte.Para(anuladas, mostrarDesposte);
         foreach (var col in columnasDef)
         {
             string headerText = col.Grupo != null
@@ -543,8 +591,9 @@ public class FrmReportes : FormBase
                 case "Numero": gridCol.Width = 80; break;
                 case "Fecha": gridCol.Width = 130; break;
                 case "Secuencia": gridCol.Width = 60; break;
-                case "Marca": gridCol.Width = 65; break;
+                case "Codigo": gridCol.Width = 70; break;
                 case "Cliente": gridCol.Width = 65; break;
+                case "Fletero": gridCol.Width = 140; break;
                 case "Izquierdo": gridCol.Width = 85; break;
                 case "Derecho": gridCol.Width = 85; break;
                 case "Total": gridCol.Width = 95; break;

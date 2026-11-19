@@ -52,7 +52,7 @@ public class PlanConsultasReportesFixture : IAsyncLifetime
         var ganaderos = new List<Ganadero>(60);
         for (int i = 1; i <= 60; i++)
         {
-            ganaderos.Add(new GanaderoBuilder().ConMarca("G" + i).Build());
+            ganaderos.Add(new GanaderoBuilder().ConCodigo("G" + i).Build());
         }
         ctx.Ganaderos.AddRange(ganaderos);
 

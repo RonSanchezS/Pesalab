@@ -13,6 +13,7 @@ public static class DependencyInjection
         services.AddTransient<Catalogos.IServicioClientes, Catalogos.ServicioClientes>();
         services.AddTransient<Catalogos.IServicioFleteros, Catalogos.ServicioFleteros>();
         services.AddTransient<Parametros.IServicioParametros, Parametros.ServicioParametros>();
+        services.AddSingleton<Licencias.IServicioLicencia, Licencias.ServicioLicencia>();
         services.AddSingleton<Balanza.IServicioBalanza, Balanza.ServicioBalanza>();
         services.AddTransient<Balanza.IServicioConfiguracionBalanza, Balanza.ServicioConfiguracionBalanza>();
         services.AddTransient<Pesajes.IServicioPesajes, Pesajes.ServicioPesajes>();

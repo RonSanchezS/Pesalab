@@ -15,7 +15,8 @@ public class ColumnasReporteTests
         TipoDesposte desposte = TipoDesposte.MediaRes,
         DateTime? anuladoEn = null,
         string? anuladoPor = null,
-        string? motivo = null)
+        string? motivo = null,
+        string nombreFletero = "FLETERO SIETE")
     {
         return new FilaReporte(
             Item: item,
@@ -23,7 +24,7 @@ public class ColumnasReporteTests
             NumeroBoleta: 5001,
             FechaHoraLocal: new DateTime(2026, 10, 1, 8, 30, 0, DateTimeKind.Unspecified),
             Secuencia: 15,
-            MarcaGanadero: "CAB",
+            CodigoGanadero: "CAB",
             NombreGanadero: "GANADERO CAB",
             CodigoCliente: 202,
             NombreCliente: "CARNICERIA CENTRAL",
@@ -35,7 +36,8 @@ public class ColumnasReporteTests
             Origen: OrigenPeso.Balanza,
             AnuladoEnLocal: anuladoEn,
             AnuladoPor: anuladoPor,
-            MotivoAnulacion: motivo);
+            MotivoAnulacion: motivo,
+            NombreFletero: nombreFletero);
     }
 
     [Fact]
@@ -44,14 +46,14 @@ public class ColumnasReporteTests
         var colNormal = ColumnasReporte.Para(anuladas: false);
         var colAnulada = ColumnasReporte.Para(anuladas: true);
 
-        Assert.Equal(11, colNormal.Count);
+        Assert.Equal(12, colNormal.Count);
         Assert.Equal(10, colAnulada.Count);
 
         var clavesNormales = colNormal.Select(c => c.Clave).ToArray();
-        Assert.Equal(new[] { "Item", "Numero", "Fecha", "Secuencia", "Marca", "Cliente", "Direccion", "Izquierdo", "Derecho", "Total", "Desposte" }, clavesNormales);
+        Assert.Equal(new[] { "Item", "Numero", "Fecha", "Secuencia", "Codigo", "Cliente", "Fletero", "Direccion", "Izquierdo", "Derecho", "Total", "Desposte" }, clavesNormales);
 
         var clavesAnuladas = colAnulada.Select(c => c.Clave).ToArray();
-        Assert.Equal(new[] { "Item", "Numero", "Fecha", "Marca", "Cliente", "Desposte", "Total", "AnuladaEl", "AnuladaPor", "Motivo" }, clavesAnuladas);
+        Assert.Equal(new[] { "Item", "Numero", "Fecha", "Codigo", "Cliente", "Desposte", "Total", "AnuladaEl", "AnuladaPor", "Motivo" }, clavesAnuladas);
     }
 
     [Fact]
@@ -64,8 +66,9 @@ public class ColumnasReporteTests
             ("Numero", "N° Bol.", null, 40f, false),
             ("Fecha", "Fecha", null, 44f, false),
             ("Secuencia", "N° Res", null, 26f, false),
-            ("Marca", "Marca", null, 30f, false),
+            ("Codigo", "Código", null, 34f, false),
             ("Cliente", "Cliente", null, 30f, false),
+            ("Fletero", "Fletero", null, 64f, false),
             ("Direccion", "Dirección", null, 0f, false),
             ("Izquierdo", "IZQ.", "PESO KG.", 34f, true),
             ("Derecho", "DER.", "PESO KG.", 34f, true),
@@ -77,7 +80,7 @@ public class ColumnasReporteTests
             ("Item", "Item", null, 24f, false),
             ("Numero", "N° Bol.", null, 40f, false),
             ("Fecha", "Fecha", null, 44f, false),
-            ("Marca", "Marca", null, 30f, false),
+            ("Codigo", "Código", null, 34f, false),
             ("Cliente", "Cliente", null, 30f, false),
             ("Desposte", "Tipo Corte", null, 58f, false),
             ("Total", "TOTAL\nNETO", null, 40f, true),
@@ -111,7 +114,7 @@ public class ColumnasReporteTests
     }
 
     [Fact]
-    public void Para_SumaDeAnchosFijos_Es360Y386()
+    public void Para_SumaDeAnchosFijos_Es428Y390()
     {
         var colNormal = ColumnasReporte.Para(anuladas: false);
         var colAnulada = ColumnasReporte.Para(anuladas: true);
@@ -119,8 +122,8 @@ public class ColumnasReporteTests
         var sumaNormal = colNormal.Sum(c => c.AnchoPt);
         var sumaAnulada = colAnulada.Sum(c => c.AnchoPt);
 
-        Assert.Equal(360f, sumaNormal);
-        Assert.Equal(386f, sumaAnulada);
+        Assert.Equal(428f, sumaNormal);
+        Assert.Equal(390f, sumaAnulada);
     }
 
     [Fact]
@@ -150,13 +153,14 @@ public class ColumnasReporteTests
         Assert.Equal("5001", textos[1]);            // Numero
         Assert.Equal("01/10/2026", textos[2]);      // Fecha
         Assert.Equal("15", textos[3]);              // Secuencia
-        Assert.Equal("CAB", textos[4]);             // Marca
+        Assert.Equal("CAB", textos[4]);             // Código del ganadero
         Assert.Equal("202", textos[5]);             // Cliente
-        Assert.Equal("AV. PRINCIPAL #45", textos[6]);// Direccion
-        Assert.Equal("106,0", textos[7]);           // Izquierdo
-        Assert.Equal("0,0", textos[8]);             // Derecho
-        Assert.Equal("106,0", textos[9]);           // Total
-        Assert.Equal("MEDIA RES", textos[10]);      // Desposte
+        Assert.Equal("FLETERO SIETE", textos[6]);   // Fletero
+        Assert.Equal("AV. PRINCIPAL #45", textos[7]);// Direccion
+        Assert.Equal("106,0", textos[8]);           // Izquierdo
+        Assert.Equal("0,0", textos[9]);             // Derecho
+        Assert.Equal("106,0", textos[10]);          // Total
+        Assert.Equal("MEDIA RES", textos[11]);      // Desposte
     }
 
     [Fact]

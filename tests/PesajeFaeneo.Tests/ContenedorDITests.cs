@@ -112,6 +112,16 @@ public class ContenedorDITests
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.PuestaEnMarcha.IServicioPuestaEnMarcha>());
             Assert.NotNull(proveedor.GetService<PesajeFaeneo.Application.Seguridad.IServicioRecuperacionAdministrador>());
 
+            // F13: licencias (el servicio es singleton; almacén, identificador y servidor son los reales de Windows)
+            var licencia1 = proveedor.GetService<PesajeFaeneo.Application.Licencias.IServicioLicencia>();
+            var licencia2 = proveedor.GetService<PesajeFaeneo.Application.Licencias.IServicioLicencia>();
+            Assert.NotNull(licencia1);
+            Assert.Same(licencia1, licencia2);
+            Assert.IsType<PesajeFaeneo.Application.Licencias.ServicioLicencia>(licencia1);
+            Assert.IsType<PesajeFaeneo.Infrastructure.Licencias.ServidorLicenciasSupabase>(proveedor.GetService<PesajeFaeneo.Application.Licencias.IServidorLicencias>());
+            Assert.IsType<PesajeFaeneo.Infrastructure.Licencias.AlmacenLicenciaRegistro>(proveedor.GetService<PesajeFaeneo.Application.Licencias.IAlmacenLicenciaLocal>());
+            Assert.IsType<PesajeFaeneo.Infrastructure.Licencias.IdentificadorEquipoWindows>(proveedor.GetService<PesajeFaeneo.Application.Licencias.IIdentificadorEquipo>());
+
             using (var scope = proveedor.CreateScope())
             {
                 Assert.NotNull(scope.ServiceProvider.GetService<IDatabaseInitializer>());
@@ -204,6 +214,17 @@ public class ContenedorDITests
 
                 using var frmVisorLogs = formFactory.Crear<FrmVisorLogs>();
                 Assert.NotNull(frmVisorLogs);
+
+                // F10: historial de pesajes en su propio apartado (el login con IServicioParametros ya se resuelve arriba)
+                using var frmHistorial = formFactory.Crear<FrmHistorialPesajes>();
+                Assert.NotNull(frmHistorial);
+
+                // F13: pantalla de activación
+                using var frmActivacion = formFactory.Crear<PesajeFaeneo.WinForms.Formularios.Licencias.FrmActivacion>();
+                Assert.NotNull(frmActivacion);
+
+                using var frmAcercaDe = formFactory.Crear<PesajeFaeneo.WinForms.Formularios.Ayuda.FrmAcercaDe>();
+                Assert.NotNull(frmAcercaDe);
             });
         }
         finally

@@ -20,7 +20,7 @@ public class TextosBoletaTests
             NumeroBoleta: esMuestra ? 0 : 32779,
             FechaHoraLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
             Empresa: new EmpresaBoleta("FRIGORÍFICO CENTRAL", "CALLE 1", "SANTA CRUZ", "70000000", "REG-1", "80000000", null),
-            MarcaGanadero: "AH",
+            CodigoGanadero: "AH",
             NombreGanadero: "GANADERO EJEMPLO",
             Secuencia: 1,
             CodigoCliente: 110,
@@ -37,7 +37,7 @@ public class TextosBoletaTests
             Estado: estado,
             MotivoAnulacion: motivoAnulacion,
             NombreOperador: "OPERADOR",
-            Fleteros: Array.Empty<FleteroBoleta>(),
+            Fletero: null,
             ImpresionesPrevias: impresionesPrevias,
             GeneradoEnLocal: new DateTime(2026, 9, 26, 22, 30, 0, DateTimeKind.Unspecified),
             EsMuestra: esMuestra);
@@ -98,16 +98,16 @@ public class TextosBoletaTests
     }
 
     [Fact]
-    public void Fletero_ConY认SinCelular()
+    public void Fletero_ConYSinCelular_NombreYCelularSinCodigo()
     {
         var f1 = new FleteroBoleta(1, "JUAN PEREZ", "71234567");
-        Assert.Equal("F1: JUAN PEREZ - 71234567", TextosBoleta.Fletero(f1));
+        Assert.Equal("JUAN PEREZ — Cel. 71234567", TextosBoleta.Fletero(f1));
 
         var f2 = new FleteroBoleta(2, "PEDRO GOMEZ", "");
-        Assert.Equal("F2: PEDRO GOMEZ", TextosBoleta.Fletero(f2));
+        Assert.Equal("PEDRO GOMEZ", TextosBoleta.Fletero(f2));
 
         var f3 = new FleteroBoleta(3, "MARIO LOPEZ", "   ");
-        Assert.Equal("F3: MARIO LOPEZ", TextosBoleta.Fletero(f3));
+        Assert.Equal("MARIO LOPEZ", TextosBoleta.Fletero(f3));
     }
 
     [Fact]

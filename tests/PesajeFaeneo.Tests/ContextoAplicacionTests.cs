@@ -11,7 +11,7 @@ namespace PesajeFaeneo.Tests;
 public class ContextoAplicacionTests
 {
     private static EstadoPuestaEnMarcha Estado(bool completa) =>
-        new(completa, true, "FRIGORIFICO X", TipoConexion.Serial, true, 0, 0);
+        new(completa, true, "FRIGORIFICO X", TipoConexion.Serial, true, 0, 0, ModoDesposte.Ambos);
 
     [Fact]
     public void DebeMostrarAsistente_SinPermiso_NoSeMuestra()

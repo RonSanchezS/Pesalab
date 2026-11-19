@@ -43,7 +43,7 @@ internal static class DisenoPdfReporte
             {
                 col.Item().Border(1).Table(t =>
                 {
-                    var columnas = ColumnasReporte.Para(r.EsAnuladas);
+                    var columnas = ColumnasReporte.Para(r.EsAnuladas, r.MostrarDesposte);
 
                     t.ColumnsDefinition(cd =>
                     {
@@ -135,7 +135,7 @@ internal static class DisenoPdfReporte
                     {
                         foreach (var fila in r.Filas)
                         {
-                            var textos = ColumnasReporte.Textos(fila, r.EsAnuladas);
+                            var textos = ColumnasReporte.Textos(fila, r.EsAnuladas, r.MostrarDesposte);
                             for (int i = 0; i < columnas.Count; i++)
                             {
                                 var celda = t.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1).PaddingVertical(2).PaddingHorizontal(2);
@@ -161,7 +161,7 @@ internal static class DisenoPdfReporte
                         row.RelativeItem().Text(TextosReporte.TotalPesoNeto(r.Totales)).Bold().FontSize(10);
                         row.RelativeItem().AlignRight().Text(TextosReporte.CantidadReses(r.Totales)).Bold().FontSize(10);
                     });
-                    col.Item().Text(TextosReporte.DetalleBoletas(r.Totales)).FontSize(8);
+                    col.Item().Text(TextosReporte.DetalleBoletas(r.Totales, r.MostrarDesposte)).FontSize(8);
                 }
                 else
                 {

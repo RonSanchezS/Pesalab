@@ -36,10 +36,9 @@ public class ServicioClientesTests
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ListarAsync(true));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ObtenerAsync(1));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ListarParaBusquedaAsync());
-        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.SugerirSiguienteCodigoAsync());
-        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearAsync(new CrearCliente(100, "Cliente", null)));
-        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearRapidoAsync(new CrearCliente(100, "Cliente", null)));
-        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.EditarAsync(new EditarCliente(1, 100, "Cliente", null)));
+        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearAsync(new CrearCliente("Cliente", null)));
+        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearRapidoAsync(new CrearCliente("Cliente", null)));
+        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.EditarAsync(new EditarCliente(1, "Cliente", null)));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CambiarEstadoAsync(1, false));
     }
 
@@ -52,33 +51,86 @@ public class ServicioClientesTests
 
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ListarAsync(true));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.ObtenerAsync(1));
-        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearAsync(new CrearCliente(100, "Cliente", null)));
-        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.EditarAsync(new EditarCliente(1, 100, "Cliente", null)));
+        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CrearAsync(new CrearCliente("Cliente", null)));
+        await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.EditarAsync(new EditarCliente(1, "Cliente", null)));
         await Assert.ThrowsAsync<NoAutorizadoException>(() => servicio.CambiarEstadoAsync(1, false));
-
-        var siguienteCodigo = await servicio.SugerirSiguienteCodigoAsync();
-        Assert.True(siguienteCodigo >= 1);
 
         var listaBusqueda = await servicio.ListarParaBusquedaAsync();
         Assert.NotNull(listaBusqueda);
     }
 
     [Fact]
-    public async Task SugerirSiguienteCodigoAsync_BaseVaciaDevuelveUno_ConInactivosDevuelveMaxMasUno()
+    public async Task CrearAsync_AsignaCodigosCorrelativos_IncluyendoInactivos()
     {
         await using var db = await BaseDatosEnMemoria.CrearAsync();
         var (servicio, sesion, _) = CrearServicio(db);
         await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
 
-        var primero = await servicio.SugerirSiguienteCodigoAsync();
-        Assert.Equal(1, primero);
+        var id1 = await servicio.CrearAsync(new CrearCliente("CLIENTE UNO", null));
+        var id2 = await servicio.CrearAsync(new CrearCliente("CLIENTE DOS", null));
+        await servicio.CambiarEstadoAsync(id2, false); // el código 2 no se reutiliza
+        var id3 = await servicio.CrearAsync(new CrearCliente("CLIENTE TRES", null));
 
-        var id1 = await servicio.CrearAsync(new CrearCliente(50, "CLIENTE 50", null));
-        var id2 = await servicio.CrearAsync(new CrearCliente(100, "CLIENTE 100", null));
-        await servicio.CambiarEstadoAsync(id2, false); // Desactivar el 100
+        Assert.Equal(1, (await servicio.ObtenerAsync(id1)).Codigo);
+        Assert.Equal(2, (await servicio.ObtenerAsync(id2)).Codigo);
+        Assert.Equal(3, (await servicio.ObtenerAsync(id3)).Codigo);
+    }
 
-        var siguiente = await servicio.SugerirSiguienteCodigoAsync();
-        Assert.Equal(101, siguiente);
+    [Fact]
+    public async Task CrearAsync_ContinuaDespuesDelMayorCodigoExistente()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _) = CrearServicio(db);
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
+
+        await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
+        {
+            ctx.Clientes.Add(new ClienteBuilder().ConCodigo(50).ConNombre("IMPORTADO 50").Build());
+            ctx.Clientes.Add(new ClienteBuilder().ConCodigo(110).ConNombre("IMPORTADO 110").Inactivo().Build());
+            await ctx.SaveChangesAsync();
+        }
+
+        var id = await servicio.CrearAsync(new CrearCliente("NUEVO", null));
+
+        Assert.Equal(111, (await servicio.ObtenerAsync(id)).Codigo);
+    }
+
+    [Fact]
+    public async Task CrearAsync_AlAgotarseElUltimoCodigo_LanzaReglaNegocioException()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _) = CrearServicio(db);
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
+
+        await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
+        {
+            ctx.Clientes.Add(new ClienteBuilder().ConCodigo(ReglasCatalogos.CodigoClienteMaximo).Build());
+            await ctx.SaveChangesAsync();
+        }
+
+        var ex = await Assert.ThrowsAsync<ReglaNegocioException>(() => servicio.CrearAsync(new CrearCliente("SIN CODIGO", null)));
+        Assert.Equal("CLI_CODIGO_AGOTADO", ex.Codigo);
+    }
+
+    [Fact]
+    public async Task CrearAsync_ConflictoPorCodigoRepetido_ReintentaUnaVezConElSiguienteCodigo()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (_, sesion, tiempo) = CrearServicio(db);
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
+
+        var factory = new UowFactoryConConflictoEnAlta(db.UnidadDeTrabajoFactory, fallos: 1, alFallar: async () =>
+        {
+            await using var otro = await db.ContextFactory.CreateDbContextAsync();
+            await otro.Database.ExecuteSqlRawAsync(
+                "INSERT INTO Clientes (Codigo, Nombre, Direccion, Activo, CreadoEn) VALUES (1, 'GANADOR', '', 1, '2026-01-01 00:00:00')");
+        });
+        var servicio = new ServicioClientes(factory, sesion, tiempo, NullLogger<ServicioClientes>.Instance);
+
+        var id = await servicio.CrearAsync(new CrearCliente("PERDEDOR", null));
+
+        Assert.Equal(2, (await servicio.ObtenerAsync(id)).Codigo);
+        Assert.Equal(3, factory.LlamadasAGuardar); // intento fallido + reintento + guardado de la auditoría
     }
 
     [Fact]
@@ -89,13 +141,13 @@ public class ServicioClientesTests
         var (servicio, sesion, _) = CrearServicio(db, fechaEsperada);
         var usuarioSesion = await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
 
-        var id = await servicio.CrearAsync(new CrearCliente(150, "  frial   los   amigos ", " calle   1 "));
+        var id = await servicio.CrearAsync(new CrearCliente("  frial   los   amigos ", " calle   1 "));
         Assert.True(id > 0);
 
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
         var cliente = await ctx.Clientes.FindAsync(id);
         Assert.NotNull(cliente);
-        Assert.Equal(150, cliente.Codigo);
+        Assert.Equal(1, cliente.Codigo);
         Assert.Equal("FRIAL LOS AMIGOS", cliente.Nombre);
         Assert.Equal("CALLE 1", cliente.Direccion);
         Assert.True(cliente.Activo);
@@ -105,34 +157,19 @@ public class ServicioClientesTests
         Assert.NotNull(auditoria);
         Assert.Equal(AccionAuditoria.Crear, auditoria.Accion);
         Assert.Equal(usuarioSesion.Id, auditoria.UsuarioId);
-        Assert.Contains("\"Codigo\":150", auditoria.DatosDespuesJson);
+        Assert.Contains("\"Codigo\":1", auditoria.DatosDespuesJson);
     }
 
     [Fact]
-    public async Task CrearAsync_CodigoDuplicado_LanzaValidacionException()
+    public async Task CrearAsync_NombreInvalido_LanzaValidacionException()
     {
         await using var db = await BaseDatosEnMemoria.CrearAsync();
         var (servicio, sesion, _) = CrearServicio(db);
         await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
 
-        await servicio.CrearAsync(new CrearCliente(200, "CLIENTE 200", null));
-
-        var ex = await Assert.ThrowsAsync<ValidacionException>(() => servicio.CrearAsync(new CrearCliente(200, "OTRO CLIENTE", null)));
-        Assert.Contains(ex.Errores, e => e.Campo == CamposCatalogo.Codigo && e.Mensaje.Contains("Ya existe un cliente"));
-    }
-
-    [Fact]
-    public async Task CrearAsync_CodigoPerteneceAInactivo_LanzaValidacionExceptionConMensajeReactivar()
-    {
-        await using var db = await BaseDatosEnMemoria.CrearAsync();
-        var (servicio, sesion, _) = CrearServicio(db);
-        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
-
-        var id = await servicio.CrearAsync(new CrearCliente(200, "CLIENTE A DESACTIVAR", null));
-        await servicio.CambiarEstadoAsync(id, false);
-
-        var ex = await Assert.ThrowsAsync<ValidacionException>(() => servicio.CrearAsync(new CrearCliente(200, "NUEVO CLIENTE", null)));
-        Assert.Contains(ex.Errores, e => e.Campo == CamposCatalogo.Codigo && e.Mensaje.Contains("Reactívelo en lugar de crear uno nuevo."));
+        var ex = await Assert.ThrowsAsync<ValidacionException>(() => servicio.CrearAsync(new CrearCliente("12", null)));
+        Assert.Contains(ex.Errores, e => e.Campo == CamposCatalogo.Nombre);
+        Assert.DoesNotContain(ex.Errores, e => e.Campo == CamposCatalogo.Codigo);
     }
 
     [Fact]
@@ -142,13 +179,13 @@ public class ServicioClientesTests
         var (servicio, sesion, _) = CrearServicio(db);
         var usr = await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Operador);
 
-        var id = await servicio.CrearRapidoAsync(new CrearCliente(350, "CLIENTE RAPIDO", null));
+        var id = await servicio.CrearRapidoAsync(new CrearCliente("CLIENTE RAPIDO", null));
         Assert.True(id > 0);
 
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
         var cliente = await ctx.Clientes.FindAsync(id);
         Assert.NotNull(cliente);
-        Assert.Equal(350, cliente.Codigo);
+        Assert.Equal(1, cliente.Codigo);
         Assert.Equal("CLIENTE RAPIDO", cliente.Nombre);
 
         var auditoria = await ctx.Auditorias.FirstOrDefaultAsync(a => a.EntidadId == id.ToString() && a.Entidad == EntidadesAuditoria.Cliente);
@@ -159,34 +196,20 @@ public class ServicioClientesTests
     }
 
     [Fact]
-    public async Task CrearRapidoAsync_CodigoPerteneceAInactivo_LanzaValidacionExceptionConMensajePidaASupervisor()
-    {
-        await using var db = await BaseDatosEnMemoria.CrearAsync();
-        var (servicio, sesion, _) = CrearServicio(db);
-        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador, "admin_inactivo");
-
-        var id = await servicio.CrearAsync(new CrearCliente(400, "CLIENTE INACTIVO", null));
-        await servicio.CambiarEstadoAsync(id, false);
-
-        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Operador, "operador_inactivo");
-        var ex = await Assert.ThrowsAsync<ValidacionException>(() => servicio.CrearRapidoAsync(new CrearCliente(400, "CLIENTE REPETIDO", null)));
-        Assert.Contains(ex.Errores, e => e.Campo == CamposCatalogo.Codigo && e.Mensaje.Contains("Pida a un supervisor que lo reactive."));
-    }
-
-    [Fact]
-    public async Task EditarAsync_ModificaDatos_RegistraAuditoria()
+    public async Task EditarAsync_ModificaDatos_NoCambiaElCodigo_RegistraAuditoria()
     {
         await using var db = await BaseDatosEnMemoria.CrearAsync();
         var (servicio, sesion, _) = CrearServicio(db);
         await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
 
-        var id = await servicio.CrearAsync(new CrearCliente(200, "CLIENTE ORIGINAL", "DIR ANT"));
+        var id = await servicio.CrearAsync(new CrearCliente("CLIENTE ORIGINAL", "DIR ANT"));
 
-        await servicio.EditarAsync(new EditarCliente(id, 200, "CLIENTE EDITADO", "DIR NUEVA"));
+        await servicio.EditarAsync(new EditarCliente(id, "CLIENTE EDITADO", "DIR NUEVA"));
 
         var obtenido = await servicio.ObtenerAsync(id);
         Assert.Equal("CLIENTE EDITADO", obtenido.Nombre);
         Assert.Equal("DIR NUEVA", obtenido.Direccion);
+        Assert.Equal(1, obtenido.Codigo);
 
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
         var auditorias = await ctx.Auditorias
@@ -205,9 +228,9 @@ public class ServicioClientesTests
         var (servicio, sesion, _) = CrearServicio(db);
         await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
 
-        var id = await servicio.CrearAsync(new CrearCliente(200, "CLIENTE FIJO", "DIRECCION FIJA"));
+        var id = await servicio.CrearAsync(new CrearCliente("CLIENTE FIJO", "DIRECCION FIJA"));
 
-        await servicio.EditarAsync(new EditarCliente(id, 200, "  cliente   fijo  ", "  direccion   fija  "));
+        await servicio.EditarAsync(new EditarCliente(id, "  cliente   fijo  ", "  direccion   fija  "));
 
         await using var ctx = await db.ContextFactory.CreateDbContextAsync();
         var conteo = await ctx.Auditorias.CountAsync(a => a.EntidadId == id.ToString() && a.Entidad == EntidadesAuditoria.Cliente);
@@ -215,32 +238,34 @@ public class ServicioClientesTests
     }
 
     [Fact]
-    public async Task EditarAsync_CambioCodigoConPesajes_LanzaReglaNegocioExceptionCLI_CODIGO_EN_USO()
+    public async Task EditarAsync_ConPesajes_PermiteCambiarElNombre()
     {
         await using var db = await BaseDatosEnMemoria.CrearAsync();
         var (servicio, sesion, _) = CrearServicio(db);
         var usr = await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
 
-        var id = await servicio.CrearAsync(new CrearCliente(200, "CLIENTE CON PESAJES", null));
+        var id = await servicio.CrearAsync(new CrearCliente("CLIENTE CON PESAJES", null));
 
         await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
         {
-            var ganadero = new GanaderoBuilder().ConMarca("GAN").Build();
+            var ganadero = new GanaderoBuilder().ConCodigo("GAN").Build();
             ctx.Ganaderos.Add(ganadero);
             await ctx.SaveChangesAsync();
 
-            var pesaje = new PesajeBuilder()
+            ctx.Pesajes.Add(new PesajeBuilder()
                 .ConNumeroBoleta(9001)
                 .ConGanaderoId(ganadero.Id)
                 .ConClienteId(id)
                 .ConUsuarioId(usr.Id)
-                .Build();
-            ctx.Pesajes.Add(pesaje);
+                .Build());
             await ctx.SaveChangesAsync();
         }
 
-        var ex = await Assert.ThrowsAsync<ReglaNegocioException>(() => servicio.EditarAsync(new EditarCliente(id, 201, "CLIENTE CON PESAJES", null)));
-        Assert.Equal("CLI_CODIGO_EN_USO", ex.Codigo);
+        await servicio.EditarAsync(new EditarCliente(id, "CLIENTE RENOMBRADO", null));
+
+        var obtenido = await servicio.ObtenerAsync(id);
+        Assert.Equal("CLIENTE RENOMBRADO", obtenido.Nombre);
+        Assert.Equal(1, obtenido.Codigo);
     }
 
     [Fact]
@@ -250,7 +275,7 @@ public class ServicioClientesTests
         var (servicio, sesion, _) = CrearServicio(db);
         await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
 
-        var id = await servicio.CrearAsync(new CrearCliente(300, "CLIENTE ESTADO", null));
+        var id = await servicio.CrearAsync(new CrearCliente("CLIENTE ESTADO", null));
 
         await servicio.CambiarEstadoAsync(id, false);
         var listadoSinInactivos = await servicio.ListarAsync(false);

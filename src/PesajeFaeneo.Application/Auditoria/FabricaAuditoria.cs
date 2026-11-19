@@ -34,9 +34,9 @@ public sealed record UsuarioAuditoria(
     bool Activo,
     bool DebeCambiarPassword);
 
-public sealed record GanaderoAuditoria(int Id, string Marca, string Nombre, bool Activo);
+public sealed record GanaderoAuditoria(int Id, string Codigo, string Nombre, bool Activo);
 public sealed record ClienteAuditoria(int Id, int Codigo, string Nombre, string Direccion, bool Activo);
-public sealed record FleteroAuditoria(int Id, int Orden, string Nombre, string Celular, bool Activo);
+public sealed record FleteroAuditoria(int Id, int Codigo, string Nombre, string Celular, bool Activo);
 public sealed record ParametrosAuditoria(
     string NombreEmpresa,
     string Direccion,
@@ -85,10 +85,13 @@ public sealed record PesajeAuditoria(
     string? MotivoAnulacion = null,
     int? AnuladoPorId = null,
     DateTime? AnuladoEn = null,
-    string? MarcaGanadero = null,
+    string? CodigoGanadero = null,
     string? NombreGanadero = null,
     int? CodigoCliente = null,
-    string? NombreCliente = null);
+    string? NombreCliente = null,
+    int? FleteroId = null,
+    int? CodigoFletero = null,
+    string? NombreFletero = null);
 
 public sealed record ConfiguracionImpresionAuditoria(
     string NombreEquipo,
@@ -169,7 +172,7 @@ public static class FabricaAuditoria
         ArgumentNullException.ThrowIfNull(ganadero);
         return new GanaderoAuditoria(
             ganadero.Id,
-            ganadero.Marca,
+            ganadero.Codigo,
             ganadero.Nombre,
             ganadero.Activo);
     }
@@ -190,7 +193,7 @@ public static class FabricaAuditoria
         ArgumentNullException.ThrowIfNull(fletero);
         return new FleteroAuditoria(
             fletero.Id,
-            fletero.Orden,
+            fletero.Codigo,
             fletero.Nombre,
             fletero.Celular,
             fletero.Activo);
@@ -231,7 +234,7 @@ public static class FabricaAuditoria
             config.UnidadPeso);
     }
 
-    public static PesajeAuditoria CrearSnapshot(Pesaje pesaje, Ganadero? ganadero, Cliente? cliente)
+    public static PesajeAuditoria CrearSnapshot(Pesaje pesaje, Ganadero? ganadero, Cliente? cliente, Fletero? fletero = null)
     {
         ArgumentNullException.ThrowIfNull(pesaje);
         return new PesajeAuditoria(
@@ -255,16 +258,19 @@ public static class FabricaAuditoria
             pesaje.MotivoAnulacion,
             pesaje.AnuladoPorId,
             pesaje.AnuladoEn,
-            ganadero?.Marca,
+            ganadero?.Codigo,
             ganadero?.Nombre,
             cliente?.Codigo,
-            cliente?.Nombre);
+            cliente?.Nombre,
+            pesaje.FleteroId,
+            fletero?.Codigo,
+            fletero?.Nombre);
     }
 
     public static PesajeAuditoria CrearSnapshot(Pesaje pesaje)
     {
         ArgumentNullException.ThrowIfNull(pesaje);
-        return CrearSnapshot(pesaje, pesaje.Ganadero, pesaje.Cliente);
+        return CrearSnapshot(pesaje, pesaje.Ganadero, pesaje.Cliente, pesaje.Fletero);
     }
 
     public static ConfiguracionImpresionAuditoria CrearSnapshot(ConfiguracionImpresion c, string nombreEquipo)

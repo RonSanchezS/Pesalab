@@ -8,6 +8,9 @@ public class FrmParametros : FormBase
     private readonly IServicioParametros _servicioParametros;
     private readonly Dictionary<string, Control> _controlesPorCampo;
 
+    private const string NotaNumeracionAutomatica = "Se asigna automáticamente al grabar cada pesaje.";
+    private const string NotaNumeracionInicial = "Solo puede fijarse antes de emitir la primera boleta.";
+
     private long _siguienteNumeroBoletaOriginal;
     private AccionLogo _accionLogo = AccionLogo.SinCambio;
     private string? _rutaLogoNueva;
@@ -32,6 +35,7 @@ public class FrmParametros : FormBase
     internal Label lblSiguienteBoleta = null!;
     internal NumericUpDown numSiguienteBoleta = null!;
     internal Label lblUltimaBoleta = null!;
+    internal Label lblNotaNumeracion = null!;
 
     internal GroupBox grpLogo = null!;
     internal PictureBox picLogo = null!;
@@ -89,7 +93,7 @@ public class FrmParametros : FormBase
         mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
         mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 45));
+        mainLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
 
         lblTitulo = new Label
         {
@@ -170,7 +174,7 @@ public class FrmParametros : FormBase
             ColumnCount = 1,
             RowCount = 2
         };
-        pnlDerecho.RowStyles.Add(new RowStyle(SizeType.Absolute, 130));
+        pnlDerecho.RowStyles.Add(new RowStyle(SizeType.Absolute, 160));
         pnlDerecho.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         // GroupBox Boleta
@@ -184,11 +188,12 @@ public class FrmParametros : FormBase
         {
             Dock = DockStyle.Fill,
             ColumnCount = 2,
-            RowCount = 2
+            RowCount = 3
         };
         pnlBoleta.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
         pnlBoleta.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         pnlBoleta.RowStyles.Add(new RowStyle(SizeType.Absolute, 35));
+        pnlBoleta.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
         pnlBoleta.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         lblSiguienteBoleta = new Label { Text = "Siguiente:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight };
@@ -211,6 +216,17 @@ public class FrmParametros : FormBase
         };
         pnlBoleta.SetColumnSpan(lblUltimaBoleta, 2);
         pnlBoleta.Controls.Add(lblUltimaBoleta, 0, 1);
+
+        // D1 (F10): el número solo se fija a mano antes de emitir la primera boleta; después lo asigna el sistema.
+        lblNotaNumeracion = new Label
+        {
+            Dock = DockStyle.Fill,
+            ForeColor = Color.DimGray,
+            TextAlign = ContentAlignment.TopLeft,
+            Text = NotaNumeracionAutomatica
+        };
+        pnlBoleta.SetColumnSpan(lblNotaNumeracion, 2);
+        pnlBoleta.Controls.Add(lblNotaNumeracion, 0, 2);
         grpBoleta.Controls.Add(pnlBoleta);
 
         pnlDerecho.Controls.Add(grpBoleta, 0, 0);
@@ -273,7 +289,7 @@ public class FrmParametros : FormBase
         {
             Dock = DockStyle.Fill,
             FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(0, 5, 0, 0)
+            Padding = new Padding(0, 2, 0, 0)
         };
 
         btnCancelar = new Button
@@ -318,6 +334,9 @@ public class FrmParametros : FormBase
         var boletaValida = Math.Clamp(dto.SiguienteNumeroBoleta, ReglasParametros.SiguienteNumeroBoletaMinimo, ReglasParametros.SiguienteNumeroBoletaMaximo);
         numSiguienteBoleta.Value = boletaValida;
         _siguienteNumeroBoletaOriginal = boletaValida;
+
+        numSiguienteBoleta.Enabled = dto.NumeracionEditable;
+        lblNotaNumeracion.Text = dto.NumeracionEditable ? NotaNumeracionInicial : NotaNumeracionAutomatica;
 
         lblUltimaBoleta.Text = dto.UltimoNumeroBoletaEmitido.HasValue
             ? $"Último número emitido: {dto.UltimoNumeroBoletaEmitido.Value}"
@@ -453,6 +472,7 @@ public class FrmParametros : FormBase
     internal TextBox TxtObservacionPorDefecto => txtObservacionPorDefecto;
     internal NumericUpDown NumSiguienteBoleta => numSiguienteBoleta;
     internal Label LblUltimaBoleta => lblUltimaBoleta;
+    internal Label LblNotaNumeracion => lblNotaNumeracion;
     internal PictureBox PicLogo => picLogo;
     internal Button BtnCambiarLogo => btnCambiarLogo;
     internal Button BtnQuitarLogo => btnQuitarLogo;

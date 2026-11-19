@@ -1,19 +1,24 @@
 namespace PesajeFaeneo.WinForms.Formularios.Ayuda;
 
 using System.Runtime.InteropServices;
+using PesajeFaeneo.Application.Licencias;
 using PesajeFaeneo.Infrastructure.Common;
+using PesajeFaeneo.WinForms.Infraestructura;
 
 public sealed class FrmAcercaDe : FormBase
 {
     private readonly AppPaths _appPaths;
+    private readonly IServicioLicencia _licencia;
     internal Action<string>? CopiarAlPortapapelesParaTest { get; set; }
     internal string TextoSoporte { get; }
     internal Button BtnCopiar { get; private set; } = null!;
     internal Button BtnCerrar { get; private set; } = null!;
+    private PictureBox? picMarca;
 
-    public FrmAcercaDe(AppPaths appPaths)
+    public FrmAcercaDe(AppPaths appPaths, IServicioLicencia licencia)
     {
         _appPaths = appPaths ?? throw new ArgumentNullException(nameof(appPaths));
+        _licencia = licencia ?? throw new ArgumentNullException(nameof(licencia));
 
         Text = "Acerca de";
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -30,6 +35,9 @@ public sealed class FrmAcercaDe : FormBase
             ("Compilación", InfoVersion.Informativa),
             (".NET", RuntimeInformation.FrameworkDescription),
             ("Proceso", Environment.Is64BitProcess ? "64 bits" : "32 bits"),
+            // F13 (D10): estado de la licencia y código de equipo (para que soporte ubique la fila en el servidor).
+            ("Licencia", _licencia.ObtenerEstado().Texto),
+            ("Código de equipo", _licencia.CodigoEquipo),
             ("Equipo", Environment.MachineName),
             ("Carpeta de datos", _appPaths.BaseDir),
             ("Carpeta del programa", AppContext.BaseDirectory.TrimEnd('\\'))
@@ -66,9 +74,33 @@ public sealed class FrmAcercaDe : FormBase
             Text = InfoVersion.Producto,
             Font = new Font(Font.FontFamily, 12f, FontStyle.Bold),
             AutoSize = true,
+            Anchor = AnchorStyles.Left,
+            Margin = new Padding(0)
+        };
+
+        var encabezado = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            WrapContents = false,
             Margin = new Padding(0, 0, 0, 15)
         };
-        mainLayout.Controls.Add(lblTitulo, 0, 0);
+        var marca = MarcaVisual.CargarIconoMarca();
+        if (marca is not null)
+        {
+            picMarca = new PictureBox
+            {
+                Image = marca,
+                SizeMode = PictureBoxSizeMode.Zoom,
+                Size = new Size(44, 44),
+                Margin = new Padding(0, 0, 12, 0),
+                TabStop = false,
+                AccessibleName = "Logo del producto"
+            };
+            encabezado.Controls.Add(picMarca);
+        }
+        encabezado.Controls.Add(lblTitulo);
+        mainLayout.Controls.Add(encabezado, 0, 0);
 
         var tlpTabla = new TableLayoutPanel
         {
@@ -142,6 +174,15 @@ public sealed class FrmAcercaDe : FormBase
         Controls.Add(mainLayout);
         AcceptButton = BtnCerrar;
         CancelButton = BtnCerrar;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            picMarca?.Image?.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     private void CopiarAlPortapapeles(string texto)

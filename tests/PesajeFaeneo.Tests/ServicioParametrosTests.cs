@@ -190,7 +190,7 @@ public class ServicioParametrosTests
     }
 
     [Fact]
-    public async Task ActualizarAsync_NumeroBoletaMenorOIgualAUltimoPesaje_LanzaValidacionException()
+    public async Task ActualizarAsync_NumeroBoletaConPesajes_NoSePuedeCambiarAMano()
     {
         await using var db = await BaseDatosEnMemoria.CrearAsync();
         var (servicio, sesion, _, _) = CrearServicio(db);
@@ -215,14 +215,67 @@ public class ServicioParametrosTests
             await ctx.SaveChangesAsync();
         }
 
-        // Intentar cambiar a 500 debe fallar
-        var ex500 = await Assert.ThrowsAsync<ValidacionException>(() => servicio.ActualizarAsync(new ActualizarParametros("Empresa", null, null, null, null, null, null, 500)));
-        Assert.Contains(ex500.Errores, e => e.Campo == CamposParametros.SiguienteNumeroBoleta && e.Mensaje.Contains("Debe ser mayor que el último número"));
+        // D1 (F10): con pesajes emitidos el número es automático; ni 500 ni 501 (ni ningún otro) se aceptan a mano.
+        var ex500 = await Assert.ThrowsAsync<ReglaNegocioException>(() => servicio.ActualizarAsync(new ActualizarParametros("Empresa", null, null, null, null, null, null, 500)));
+        Assert.Equal("PAR_NUMERACION_AUTOMATICA", ex500.Codigo);
+        var ex501 = await Assert.ThrowsAsync<ReglaNegocioException>(() => servicio.ActualizarAsync(new ActualizarParametros("Empresa", null, null, null, null, null, null, 501)));
+        Assert.Equal("PAR_NUMERACION_AUTOMATICA", ex501.Codigo);
+        var exAtras = await Assert.ThrowsAsync<ReglaNegocioException>(() => servicio.ActualizarAsync(new ActualizarParametros("Empresa", null, null, null, null, null, null, 2)));
+        Assert.Equal("PAR_NUMERACION_AUTOMATICA", exAtras.Codigo);
 
-        // Cambiar a 501 debe tener éxito
-        await servicio.ActualizarAsync(new ActualizarParametros("Empresa", null, null, null, null, null, null, 501));
         var obtenido = await servicio.ObtenerAsync();
-        Assert.Equal(501, obtenido.SiguienteNumeroBoleta);
+        Assert.Equal(1, obtenido.SiguienteNumeroBoleta);
+        Assert.False(obtenido.NumeracionEditable);
+    }
+
+    [Fact]
+    public async Task ActualizarAsync_NumeroBoletaConSoloPesajeAnulado_TambienSeRechaza()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _, _) = CrearServicio(db);
+        var usr = await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
+
+        await using (var ctx = await db.ContextFactory.CreateDbContextAsync())
+        {
+            var g = new GanaderoBuilder().Build();
+            var c = new ClienteBuilder().Build();
+            ctx.Ganaderos.Add(g);
+            ctx.Clientes.Add(c);
+            await ctx.SaveChangesAsync();
+
+            ctx.Pesajes.Add(new PesajeBuilder()
+                .ConNumeroBoleta(7)
+                .ConGanaderoId(g.Id)
+                .ConClienteId(c.Id)
+                .ConUsuarioId(usr.Id)
+                .Anulado("ERROR DE DIGITACION", usr.Id)
+                .Build());
+            await ctx.SaveChangesAsync();
+        }
+
+        var ex = await Assert.ThrowsAsync<ReglaNegocioException>(() => servicio.ActualizarAsync(new ActualizarParametros("Empresa", null, null, null, null, null, null, 50)));
+        Assert.Equal("PAR_NUMERACION_AUTOMATICA", ex.Codigo);
+    }
+
+    [Fact]
+    public async Task ActualizarAsync_SinPesajes_PermiteFijarNumeroInicialYAudita()
+    {
+        await using var db = await BaseDatosEnMemoria.CrearAsync();
+        var (servicio, sesion, _, _) = CrearServicio(db);
+        await SesionesDePrueba.IniciarAsync(db, sesion, Rol.Administrador);
+
+        var antes = await servicio.ObtenerAsync();
+        Assert.True(antes.NumeracionEditable);
+
+        await servicio.ActualizarAsync(new ActualizarParametros("Empresa", null, null, null, null, null, null, 5000));
+
+        var obtenido = await servicio.ObtenerAsync();
+        Assert.Equal(5000, obtenido.SiguienteNumeroBoleta);
+        Assert.True(obtenido.NumeracionEditable);
+
+        await using var ctx = await db.ContextFactory.CreateDbContextAsync();
+        var aud = await ctx.Auditorias.SingleAsync(a => a.Entidad == EntidadesAuditoria.ParametrosSistema && a.Accion == AccionAuditoria.CambioParametros);
+        Assert.Contains("numeración", aud.Motivo);
     }
 
     [Fact]

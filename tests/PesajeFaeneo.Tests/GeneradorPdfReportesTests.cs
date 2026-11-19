@@ -266,7 +266,7 @@ public class GeneradorPdfReportesTests : IDisposable
         var filas = baseReporte.Filas
             .Select(f => f with
             {
-                MarcaGanadero = "WWWWW",
+                CodigoGanadero = "WWWWW",
                 CodigoCliente = 999999,
                 PesoIzquierdo = 600.0m,
                 PesoDerecho = 600.0m,
@@ -319,7 +319,7 @@ public class GeneradorPdfReportesTests : IDisposable
                 Subtitulo = "Del día — " + especial,
                 Filas = baseReporte.Filas.Select(f => f with
                 {
-                    MarcaGanadero = "Ñ&./",
+                    CodigoGanadero = "Ñ&./",
                     NombreGanadero = especial,
                     NombreCliente = especial,
                     Direccion = especial,

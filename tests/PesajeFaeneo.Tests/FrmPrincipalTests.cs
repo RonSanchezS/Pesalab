@@ -37,6 +37,18 @@ public class FrmPrincipalTests
         public Task<ParametrosDto> ObtenerAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(Dto);
 
+        public Task<IdentidadEmpresa> ObtenerIdentidadEmpresaAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new IdentidadEmpresa(Dto.NombreEmpresa, Dto.RutaLogoCompleta));
+
+        public Task<PesajeFaeneo.Domain.Enums.ModoDesposte> ObtenerModoDesposteAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(PesajeFaeneo.Domain.Enums.ModoDesposte.Ambos);
+
+        public Task<ConfiguracionDesposte> ObtenerConfiguracionDesposteAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new ConfiguracionDesposte(PesajeFaeneo.Domain.Enums.ModoDesposte.Ambos, 0, 0));
+
+        public Task CambiarModoDesposteAsync(PesajeFaeneo.Domain.Enums.ModoDesposte modo, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
         public Task ActualizarAsync(ActualizarParametros dto, CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
     }
@@ -53,7 +65,7 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAdmin = null;
             foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
@@ -82,7 +94,7 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAdmin = null;
             foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
@@ -124,7 +136,7 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuCatalogos = null;
             ToolStripMenuItem? mnuAdmin = null;
@@ -184,7 +196,7 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAdmin = null;
             foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
@@ -227,12 +239,188 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             principal.ActualizarEmpresaParaTestAsync().GetAwaiter().GetResult();
 
             Assert.Equal("MATADERO CENTRAL", principal.LblStatusEmpresa.Text);
         });
+    }
+
+    [Fact]
+    public void FrmPrincipal_Inicio_MuestraNombreDetalleYLogoDeLaEmpresa()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var ruta = Path.Combine(Path.GetTempPath(), $"logo-inicio-{Guid.NewGuid():N}.png");
+            try
+            {
+                using (var bmp = new Bitmap(40, 20))
+                {
+                    bmp.Save(ruta, System.Drawing.Imaging.ImageFormat.Png);
+                }
+
+                var sesion = new SesionActual();
+                sesion.Iniciar(new UsuarioSesion(1, "admin", "Administrador Uno", Rol.Administrador, false));
+                var paramService = new FalsoServicioParametros();
+                paramService.Dto = paramService.Dto with { RutaLogoCompleta = ruta };
+
+                using var principal = new FrmPrincipal(sesion, new FalsaFormFactory(), TimeProvider.System, paramService, new ServicioBalanzaFalso(), new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
+
+                // Antes de cargar: título genérico y sin logo.
+                Assert.Equal("Capataz", principal.LblEmpresaInicio.Text);
+                Assert.Null(principal.PicLogoInicio.Image);
+
+                principal.ActualizarEmpresaParaTestAsync().GetAwaiter().GetResult();
+
+                Assert.Equal("MATADERO CENTRAL", principal.LblEmpresaInicio.Text);
+                Assert.Equal("AV PRINCIPAL 100  ·  CARACAS", principal.LblDetalleInicio.Text);
+                Assert.NotNull(principal.PicLogoInicio.Image);
+
+                // El archivo no queda bloqueado por la pantalla de inicio.
+                File.Delete(ruta);
+                Assert.False(File.Exists(ruta));
+            }
+            finally
+            {
+                if (File.Exists(ruta))
+                {
+                    File.Delete(ruta);
+                }
+            }
+        });
+    }
+
+    [Fact]
+    public void FrmPrincipal_Inicio_SinLogoNiDireccion_OcultaLogoYDetalle()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "admin", "Administrador Uno", Rol.Administrador, false));
+            var paramService = new FalsoServicioParametros();
+            paramService.Dto = paramService.Dto with { Direccion = " ", Ciudad = string.Empty, RutaLogoCompleta = Path.Combine(Path.GetTempPath(), "no-existe.png") };
+
+            using var principal = new FrmPrincipal(sesion, new FalsaFormFactory(), TimeProvider.System, paramService, new ServicioBalanzaFalso(), new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
+            principal.ActualizarEmpresaParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Null(principal.PicLogoInicio.Image);
+            Assert.Equal(string.Empty, principal.LblDetalleInicio.Text);
+            Assert.Equal("MATADERO CENTRAL", principal.LblEmpresaInicio.Text);
+        });
+    }
+
+    [Theory]
+    [InlineData(Rol.Operador)]
+    [InlineData(Rol.Supervisor)]
+    [InlineData(Rol.Administrador)]
+    public void FrmPrincipal_Inicio_TarjetasDisponiblesParaTodosLosRoles(Rol rol)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "usuario", "Usuario", rol, false));
+
+            using var principal = new FrmPrincipal(sesion, new FalsaFormFactory(), TimeProvider.System, new FalsoServicioParametros(), new ServicioBalanzaFalso(), new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
+
+            Assert.True(principal.TarjetaPesaje.Enabled);
+            Assert.True(principal.TarjetaTicket.Enabled);
+            Assert.Equal("Control de peso", principal.TarjetaPesaje.Text);
+            Assert.Equal("Imprimir ticket", principal.TarjetaTicket.Text);
+            Assert.True(principal.TarjetaPesaje.Principal);
+            Assert.False(principal.TarjetaTicket.Principal);
+        });
+    }
+
+    [Theory]
+    [InlineData(Rol.Operador, "Atajos: F2 Control de peso   ·   F3 Imprimir ticket   ·   F4 Historial")]
+    [InlineData(Rol.Supervisor, "Atajos: F2 Control de peso   ·   F3 Imprimir ticket   ·   F4 Historial   ·   F6 Buscar boletas")]
+    [InlineData(Rol.Administrador, "Atajos: F2 Control de peso   ·   F3 Imprimir ticket   ·   F4 Historial   ·   F6 Buscar boletas")]
+    public void FrmPrincipal_Inicio_LineaDeAtajosSegunPermisos(Rol rol, string esperado)
+    {
+        // F12 (E3): el Operador no tiene EditarBoleta, así que F6 no figura en su línea de atajos.
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "usuario", "Usuario", rol, false));
+
+            using var principal = new FrmPrincipal(sesion, new FalsaFormFactory(), TimeProvider.System, new FalsoServicioParametros(), new ServicioBalanzaFalso(), new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
+
+            Assert.Equal(esperado, principal.lblAtajos.Text);
+        });
+    }
+
+    [Fact]
+    public void FrmPrincipal_Inicio_ClicEnLasTarjetasAbreLosFormulariosDePesajeYReimpresion()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "operador", "Operador Uno", Rol.Operador, false));
+            var fabrica = new FabricaRegistradora();
+
+            using var principal = new FrmPrincipal(sesion, fabrica, TimeProvider.System, new FalsoServicioParametros(), new ServicioBalanzaFalso(), new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
+
+            // PerformClick no actúa si el formulario aún no se mostró: se dispara el evento Click directamente.
+            foreach (var tarjeta in new[] { principal.TarjetaPesaje, principal.TarjetaTicket })
+            {
+                typeof(Control)
+                    .GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(tarjeta, new object[] { EventArgs.Empty });
+            }
+
+            Assert.Equal(
+                new[] { typeof(PesajeFaeneo.WinForms.Formularios.Pesaje.FrmPesaje), typeof(PesajeFaeneo.WinForms.Formularios.Boletas.FrmReimprimirBoleta) },
+                fabrica.Solicitados);
+        });
+    }
+
+    [Theory]
+    [InlineData(Rol.Operador)]
+    [InlineData(Rol.Supervisor)]
+    [InlineData(Rol.Administrador)]
+    public void FrmPrincipal_Historial_TarjetaYMenuDisponiblesYAbrenElHistorial(Rol rol)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "usuario", "Usuario", rol, false));
+            var fabrica = new FabricaRegistradora();
+
+            using var principal = new FrmPrincipal(sesion, fabrica, TimeProvider.System, new FalsoServicioParametros(), new ServicioBalanzaFalso(), new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
+
+            Assert.True(principal.TarjetaHistorial.Enabled);
+            Assert.Equal("Historial de pesajes", principal.TarjetaHistorial.Text);
+            Assert.False(principal.TarjetaHistorial.Principal);
+
+            var menuPesaje = principal.MenuPrincipal.Items.OfType<ToolStripMenuItem>().First(m => m.Text == "&Pesaje");
+            var item = menuPesaje.DropDownItems.OfType<ToolStripMenuItem>().Single(m => m.Text == "&Historial de pesajes");
+            Assert.True(item.Available);
+            Assert.Equal(Keys.F4, item.ShortcutKeys);
+
+            // PerformClick no actúa si el formulario aún no se mostró: se dispara el evento Click directamente.
+            typeof(Control)
+                .GetMethod("OnClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                .Invoke(principal.TarjetaHistorial, new object[] { EventArgs.Empty });
+            item.PerformClick();
+
+            Assert.Equal(
+                new[] { typeof(PesajeFaeneo.WinForms.Formularios.Pesaje.FrmHistorialPesajes), typeof(PesajeFaeneo.WinForms.Formularios.Pesaje.FrmHistorialPesajes) },
+                fabrica.Solicitados);
+        });
+    }
+
+    private sealed class FabricaRegistradora : IFormFactory
+    {
+        public List<Type> Solicitados { get; } = new();
+
+        // Se registra el tipo pedido y se corta con una cancelación (sin log ni MessageBox, ver ClasificadorErrores):
+        // no hace falta construir el formulario real.
+        public T Crear<T>() where T : Form
+        {
+            Solicitados.Add(typeof(T));
+            throw new OperationCanceledException();
+        }
     }
 
     [Fact]
@@ -247,7 +435,7 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             balanza.Instantanea = new PesajeFaeneo.Application.Balanza.Dtos.InstantaneaBalanza(
                 1, EstadoBalanza.Conectada, 125.5m, true, DateTimeOffset.UtcNow, null, "COM1", false);
@@ -272,7 +460,7 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             balanza.Instantanea = new PesajeFaeneo.Application.Balanza.Dtos.InstantaneaBalanza(
                 1, EstadoBalanza.Conectada, 100m, true, DateTimeOffset.UtcNow, null, "Simulador", true);
@@ -297,7 +485,7 @@ public class FrmPrincipalTests
             // 1. Con Administrador: disponible y habilitado
             var sesionAdmin = new SesionActual();
             sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
-            using var principalAdmin = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza);
+            using var principalAdmin = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAdmin = null;
             foreach (ToolStripMenuItem item in principalAdmin.MenuPrincipal.Items)
@@ -323,7 +511,7 @@ public class FrmPrincipalTests
             // 2. Con Supervisor: no disponible
             var sesionSupervisor = new SesionActual();
             sesionSupervisor.Iniciar(new UsuarioSesion(2, "supervisor", "Supervisor", Rol.Supervisor, false));
-            using var principalSupervisor = new FrmPrincipal(sesionSupervisor, formFactory, tiempo, paramService, balanza);
+            using var principalSupervisor = new FrmPrincipal(sesionSupervisor, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAdminSup = null;
             foreach (ToolStripMenuItem item in principalSupervisor.MenuPrincipal.Items)
@@ -350,7 +538,7 @@ public class FrmPrincipalTests
             // 3. Con Operador: menú Administración no disponible
             var sesionOperador = new SesionActual();
             sesionOperador.Iniciar(new UsuarioSesion(3, "operador", "Operador", Rol.Operador, false));
-            using var principalOperador = new FrmPrincipal(sesionOperador, formFactory, tiempo, paramService, balanza);
+            using var principalOperador = new FrmPrincipal(sesionOperador, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAdminOp = null;
             foreach (ToolStripMenuItem item in principalOperador.MenuPrincipal.Items)
@@ -377,7 +565,7 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuPesaje = null;
             foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
@@ -421,7 +609,7 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuBoletas = null;
             foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
@@ -464,7 +652,7 @@ public class FrmPrincipalTests
             // 1. Con Administrador: disponible y habilitado
             var sesionAdmin = new SesionActual();
             sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
-            using var principalAdmin = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza);
+            using var principalAdmin = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAdmin = null;
             foreach (ToolStripMenuItem item in principalAdmin.MenuPrincipal.Items)
@@ -490,7 +678,7 @@ public class FrmPrincipalTests
             // 2. Con Supervisor: no disponible
             var sesionSupervisor = new SesionActual();
             sesionSupervisor.Iniciar(new UsuarioSesion(2, "supervisor", "Supervisor", Rol.Supervisor, false));
-            using var principalSupervisor = new FrmPrincipal(sesionSupervisor, formFactory, tiempo, paramService, balanza);
+            using var principalSupervisor = new FrmPrincipal(sesionSupervisor, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAdminSup = null;
             foreach (ToolStripMenuItem item in principalSupervisor.MenuPrincipal.Items)
@@ -517,7 +705,7 @@ public class FrmPrincipalTests
             // 3. Con Operador: menú Administración no disponible
             var sesionOperador = new SesionActual();
             sesionOperador.Iniciar(new UsuarioSesion(3, "operador", "Operador", Rol.Operador, false));
-            using var principalOperador = new FrmPrincipal(sesionOperador, formFactory, tiempo, paramService, balanza);
+            using var principalOperador = new FrmPrincipal(sesionOperador, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAdminOp = null;
             foreach (ToolStripMenuItem item in principalOperador.MenuPrincipal.Items)
@@ -542,7 +730,7 @@ public class FrmPrincipalTests
             // 1. Administrador: disponibles, habilitados y con atajo F6
             var sesionAdmin = new SesionActual();
             sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
-            using (var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza))
+            using (var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso()))
             {
                 var (itemBuscar, itemAnular, itemAuditoria) = ObtenerItemsF6(principal);
                 Assert.NotNull(itemBuscar);
@@ -563,7 +751,7 @@ public class FrmPrincipalTests
             // 2. Supervisor: disponibles, habilitados y con atajo F6
             var sesionSupervisor = new SesionActual();
             sesionSupervisor.Iniciar(new UsuarioSesion(2, "supervisor", "Supervisor", Rol.Supervisor, false));
-            using (var principal = new FrmPrincipal(sesionSupervisor, formFactory, tiempo, paramService, balanza))
+            using (var principal = new FrmPrincipal(sesionSupervisor, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso()))
             {
                 var (itemBuscar, itemAnular, itemAuditoria) = ObtenerItemsF6(principal);
                 Assert.NotNull(itemBuscar);
@@ -583,7 +771,7 @@ public class FrmPrincipalTests
             // 3. Operador: no disponibles
             var sesionOperador = new SesionActual();
             sesionOperador.Iniciar(new UsuarioSesion(3, "operador", "Operador", Rol.Operador, false));
-            using (var principal = new FrmPrincipal(sesionOperador, formFactory, tiempo, paramService, balanza))
+            using (var principal = new FrmPrincipal(sesionOperador, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso()))
             {
                 var (itemBuscar, itemAnular, itemAuditoria) = ObtenerItemsF6(principal);
                 Assert.NotNull(itemBuscar);
@@ -613,7 +801,7 @@ public class FrmPrincipalTests
 
             var sesionAdmin = new SesionActual();
             sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
-            using var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuUtilitarios = null;
             foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
@@ -647,7 +835,7 @@ public class FrmPrincipalTests
 
             var sesion = new SesionActual();
             sesion.Iniciar(new UsuarioSesion(2, "usuario", "Usuario", rol, false));
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuUtilitarios = null;
             foreach (ToolStripMenuItem item in principal.MenuPrincipal.Items)
@@ -693,7 +881,7 @@ public class FrmPrincipalTests
             // 1. Administrador: disponibles, habilitados y sin tooltip de fase futura
             var sesionAdmin = new SesionActual();
             sesionAdmin.Iniciar(new UsuarioSesion(1, "admin", "Admin", Rol.Administrador, false));
-            using (var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza))
+            using (var principal = new FrmPrincipal(sesionAdmin, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso()))
             {
                 var (itemPesajes, itemAnuladas, mnuReportes) = ObtenerItemsReportes(principal);
                 Assert.NotNull(mnuReportes);
@@ -713,7 +901,7 @@ public class FrmPrincipalTests
             // 2. Supervisor: disponibles y habilitados
             var sesionSup = new SesionActual();
             sesionSup.Iniciar(new UsuarioSesion(2, "sup", "Supervisor", Rol.Supervisor, false));
-            using (var principal = new FrmPrincipal(sesionSup, formFactory, tiempo, paramService, balanza))
+            using (var principal = new FrmPrincipal(sesionSup, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso()))
             {
                 var (itemPesajes, itemAnuladas, mnuReportes) = ObtenerItemsReportes(principal);
                 Assert.NotNull(mnuReportes);
@@ -731,7 +919,7 @@ public class FrmPrincipalTests
             // 3. Operador: menú Reportes no disponible
             var sesionOp = new SesionActual();
             sesionOp.Iniciar(new UsuarioSesion(3, "op", "Operador", Rol.Operador, false));
-            using (var principal = new FrmPrincipal(sesionOp, formFactory, tiempo, paramService, balanza))
+            using (var principal = new FrmPrincipal(sesionOp, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso()))
             {
                 var (_, _, mnuReportes) = ObtenerItemsReportes(principal);
                 Assert.NotNull(mnuReportes);
@@ -787,7 +975,7 @@ public class FrmPrincipalTests
             var paramService = new FalsoServicioParametros();
             var balanza = new ServicioBalanzaFalso();
 
-            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza);
+            using var principal = new FrmPrincipal(sesion, formFactory, tiempo, paramService, balanza, new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAyuda = null;
             ToolStripMenuItem? itemAcercaDe = null;
@@ -825,7 +1013,7 @@ public class FrmPrincipalTests
             var sesion = new SesionActual();
             sesion.Iniciar(new UsuarioSesion(1, "usuario", "Usuario Prueba", rol, false));
 
-            using var principal = new FrmPrincipal(sesion, new FalsaFormFactory(), TimeProvider.System, new FalsoServicioParametros(), new ServicioBalanzaFalso());
+            using var principal = new FrmPrincipal(sesion, new FalsaFormFactory(), TimeProvider.System, new FalsoServicioParametros(), new ServicioBalanzaFalso(), new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
 
             ToolStripMenuItem? mnuAyuda = null;
             foreach (ToolStripMenuItem top in principal.MenuPrincipal.Items)
@@ -844,6 +1032,25 @@ public class FrmPrincipalTests
 
             Assert.Equal(veAsistente, asistente.Available);
             Assert.True(acercaDe.Available);
+        });
+    }
+
+    [Theory]
+    [InlineData(Rol.Administrador, true)]
+    [InlineData(Rol.Supervisor, false)]
+    [InlineData(Rol.Operador, false)]
+    public void FrmPrincipal_TipoDePesaje_SoloDisponibleParaQuienGestionaParametros(Rol rol, bool disponible)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var sesion = new SesionActual();
+            sesion.Iniciar(new UsuarioSesion(1, "usuario", "Usuario Uno", rol, false));
+            using var principal = new FrmPrincipal(sesion, new FalsaFormFactory(), TimeProvider.System, new FalsoServicioParametros(), new ServicioBalanzaFalso(), new PesajeFaeneo.Tests.Utilidades.Licencias.ServicioLicenciaFalso());
+
+            var mnuAdmin = principal.MenuPrincipal.Items.OfType<ToolStripMenuItem>().Single(i => i.Text!.Contains("Administración"));
+            var item = mnuAdmin.DropDownItems.OfType<ToolStripMenuItem>().Single(i => i.Text == "&Tipo de pesaje");
+
+            Assert.Equal(disponible, item.Available);
         });
     }
 }

@@ -16,7 +16,7 @@ public sealed record BoletaEncontrada(
     long NumeroBoleta,
     int Version,
     DateTime FechaHoraLocal,          // Kind = Unspecified, hora local (regla 0.6)
-    string Marca,
+    string Codigo,
     string NombreGanadero,
     int Secuencia,
     string NombreCliente,
@@ -26,11 +26,13 @@ public sealed record BoletaEncontrada(
     decimal PesoTotal,
     OrigenPeso Origen,
     EstadoPesaje Estado,
-    string? MotivoAnulacion);
+    string? MotivoAnulacion,
+    string? NombreFletero = null);
 
 public sealed record ResultadoBusquedaBoletas(
     IReadOnlyList<BoletaEncontrada> Boletas,
-    bool Truncado);                   // true si había más de BusquedaMaximoFilas
+    bool Truncado,                    // true si había más de BusquedaMaximoFilas
+    ModoDesposte ModoDesposte = ModoDesposte.Ambos);   // F11: tipo de pesaje efectivo, para ocultar el desposte (D6)
 
 public sealed record OpcionesBusquedaBoletas(
     IReadOnlyList<ElementoBusqueda> Ganaderos,    // incluye inactivos
@@ -55,7 +57,10 @@ public sealed record BoletaParaEdicion(
     OrigenPeso Origen,                // solo lectura
     string NombreOperador,            // solo lectura
     IReadOnlyList<ElementoBusqueda> Ganaderos,    // activos + el actual aunque esté inactivo
-    IReadOnlyList<ElementoBusqueda> Clientes);    // ídem
+    IReadOnlyList<ElementoBusqueda> Clientes,     // ídem
+    int? FleteroId = null,
+    IReadOnlyList<ElementoBusqueda>? Fleteros = null,    // activos + el actual aunque esté inactivo (F10)
+    bool MostrarDesposte = true);                        // F11 (D6): false si coincide con el único tipo que pesa la empresa
 
 public sealed record EditarPesaje(
     int PesajeId,
@@ -67,7 +72,8 @@ public sealed record EditarPesaje(
     string? ColorRaza,
     char Sexo,
     string? Observacion,
-    string? Motivo);
+    string? Motivo,
+    int? FleteroId = null);
 
 public sealed record ResultadoEdicion(
     bool HuboCambios,

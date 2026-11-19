@@ -137,7 +137,7 @@ public class ControlCapturasTests
     }
 
     [Fact]
-    public void BorrarPesos_LimpiaPesosYLevantaRetornoACero()
+    public void BorrarPesaje_LimpiaPesosYLevantaRetornoACero()
     {
         var control = new ControlCapturas(puedeUsarSimulador: true);
         var ahora = DateTimeOffset.UtcNow;
@@ -148,7 +148,7 @@ public class ControlCapturasTests
         Assert.True(control.CapturadoConSimulador);
         Assert.True(control.EsperandoRetornoACero);
 
-        control.BorrarPesos();
+        control.BorrarPesaje();
 
         Assert.False(control.TienePesos);
         Assert.Null(control.PesoIzquierdo);

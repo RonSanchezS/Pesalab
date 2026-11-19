@@ -52,6 +52,23 @@ public class ServicioPesajesFalso : IServicioPesajes
         return ResultadoSugerencia;
     }
 
+    /// <summary>Días consultados con <see cref="ListarPorDiaAsync"/>, en orden.</summary>
+    public List<DateOnly> DiasConsultados { get; } = new();
+
+    /// <summary>Respuesta por día; por omisión devuelve <see cref="PesajesDelDia"/> para cualquier día.</summary>
+    public Func<DateOnly, Task<IReadOnlyList<PesajeResumen>>>? AlListarPorDiaAsync { get; set; }
+
+    public async Task<IReadOnlyList<PesajeResumen>> ListarPorDiaAsync(DateOnly dia, CancellationToken cancellationToken = default)
+    {
+        DiasConsultados.Add(dia);
+        if (AlListarPorDiaAsync != null)
+        {
+            return await AlListarPorDiaAsync(dia);
+        }
+
+        return PesajesDelDia.ToList();
+    }
+
     public Task<IReadOnlyList<PesajeResumen>> ListarDelDiaAsync(CancellationToken cancellationToken = default)
     {
         VecesListarDelDiaLlamado++;

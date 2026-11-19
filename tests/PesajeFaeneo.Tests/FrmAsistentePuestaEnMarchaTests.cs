@@ -39,8 +39,9 @@ public class FrmAsistentePuestaEnMarchaTests
         return form;
     }
 
-    private static EstadoPuestaEnMarcha Estado(bool empresa, TipoConexion tipo, int fleteros = 0, int usuarios = 0, bool impresion = false) =>
-        new(false, empresa, empresa ? "FRIGORIFICO X" : "NOMBRE DE EMPRESA", tipo, impresion, fleteros, usuarios);
+    private static EstadoPuestaEnMarcha Estado(
+        bool empresa, TipoConexion tipo, int fleteros = 0, int usuarios = 0, bool impresion = false, ModoDesposte? modo = ModoDesposte.Ambos) =>
+        new(false, empresa, empresa ? "FRIGORIFICO X" : "NOMBRE DE EMPRESA", tipo, impresion, fleteros, usuarios, modo);
 
     [Fact]
     public void Carga_EstadoInicial_MuestraPendientesYSimulador()
@@ -57,7 +58,9 @@ public class FrmAsistentePuestaEnMarchaTests
             Assert.Equal("0 activos", form.EstadoPaso(PasoPuestaEnMarcha.Fleteros).Text);
             Assert.True(form.ChkSimulador.Visible);
             Assert.False(form.BtnFinalizar.Enabled);
-            Assert.Equal("Falta: datos de la empresa.", form.LblResumen.Text);
+            Assert.Equal(
+                "Falta: datos de la empresa. El nombre sigue siendo «NOMBRE DE EMPRESA»; cámbielo por el nombre real.",
+                form.LblResumen.Text);
         });
     }
 
@@ -217,6 +220,93 @@ public class FrmAsistentePuestaEnMarchaTests
 
             Assert.Null(form.AcceptButton);
             Assert.Empty(servicio.LlamadasMarcarCompleta);
+        });
+    }
+
+    [Fact]
+    public void TipoPesaje_SinDefinir_PendienteYBloqueaFinalizar()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new ServicioPuestaEnMarchaFalso { Estado = Estado(true, TipoConexion.Serial, modo: null) };
+            using var form = Crear(servicio);
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Equal("Pendiente", form.EstadoPaso(PasoPuestaEnMarcha.TipoPesaje).Text);
+            Assert.False(form.BtnFinalizar.Enabled);
+            Assert.Equal("Falta: elegir el tipo de pesaje (res completa, media res o ambos).", form.LblResumen.Text);
+        });
+    }
+
+    [Theory]
+    [InlineData(ModoDesposte.SoloResCompleta, "Listo (res completa)")]
+    [InlineData(ModoDesposte.SoloMediaRes, "Listo (media res)")]
+    [InlineData(ModoDesposte.Ambos, "Listo (ambos)")]
+    public void TipoPesaje_Definido_MuestraElModoYPermiteFinalizar(ModoDesposte modo, string esperado)
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new ServicioPuestaEnMarchaFalso { Estado = Estado(true, TipoConexion.Serial, modo: modo) };
+            using var form = Crear(servicio);
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.Equal(esperado, form.EstadoPaso(PasoPuestaEnMarcha.TipoPesaje).Text);
+            Assert.True(form.BtnFinalizar.Enabled);
+        });
+    }
+
+    [Fact]
+    public void TipoPesaje_EsElTercerPaso_YAbreSuFormulario()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new ServicioPuestaEnMarchaFalso { Estado = Estado(true, TipoConexion.Serial, modo: null) };
+            PasoPuestaEnMarcha? abierto = null;
+            using var form = Crear(servicio, gancho: p =>
+            {
+                abierto = p;
+                return false;
+            });
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            var boton = form.BotonPaso(PasoPuestaEnMarcha.TipoPesaje);
+            var tabla = Assert.IsType<TableLayoutPanel>(boton.Parent);
+            Assert.Equal(2, tabla.GetRow(boton));
+            Assert.Equal(1, tabla.GetRow(form.BotonPaso(PasoPuestaEnMarcha.Empresa)));
+            Assert.Equal(3, tabla.GetRow(form.BotonPaso(PasoPuestaEnMarcha.Balanza)));
+            Assert.True(boton.Enabled);
+
+            boton.PerformClick();
+
+            Assert.Equal(PasoPuestaEnMarcha.TipoPesaje, abierto);
+        });
+    }
+
+    [Fact]
+    public void TipoPesaje_Supervisor_NoPuedeAbrirElPaso()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new ServicioPuestaEnMarchaFalso { Estado = Estado(true, TipoConexion.Serial) };
+            using var form = Crear(servicio, Rol.Supervisor);
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+
+            Assert.False(form.BotonPaso(PasoPuestaEnMarcha.TipoPesaje).Enabled);
+        });
+    }
+
+    [Fact]
+    public void Layout_ConElPasoNuevo_SinRecortesA96DpiYConEscalado()
+    {
+        HiloSta.Ejecutar(() =>
+        {
+            var servicio = new ServicioPuestaEnMarchaFalso { Estado = Estado(false, TipoConexion.Simulador, modo: null) };
+            using var form = Crear(servicio);
+            form.CargarParaTestAsync().GetAwaiter().GetResult();
+            System.Windows.Forms.Application.DoEvents();
+
+            VerificadorLayout.Verificar(form);
+            VerificadorLayout.VerificarEscalado(form);
         });
     }
 }

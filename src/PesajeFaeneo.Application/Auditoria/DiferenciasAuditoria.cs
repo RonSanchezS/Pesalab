@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using PesajeFaeneo.Application.Boletas.Diseno;
+using PesajeFaeneo.Domain.Enums;
+using PesajeFaeneo.Domain.Reglas;
 
 namespace PesajeFaeneo.Application.Auditoria;
 
@@ -66,7 +68,7 @@ public static class DiferenciasAuditoria
                 foreach (var prop in docAntes.RootElement.EnumerateObject())
                 {
                     camposOrdenados.Add(prop.Name);
-                    valoresAntes[prop.Name] = ExtraerValor(prop.Value, zona);
+                    valoresAntes[prop.Name] = TraducirValor(prop.Name, ExtraerValor(prop.Value, zona));
                 }
             }
 
@@ -78,7 +80,7 @@ public static class DiferenciasAuditoria
                     {
                         camposOrdenados.Add(prop.Name);
                     }
-                    valoresDespues[prop.Name] = ExtraerValor(prop.Value, zona);
+                    valoresDespues[prop.Name] = TraducirValor(prop.Name, ExtraerValor(prop.Value, zona));
                 }
             }
 
@@ -99,6 +101,24 @@ public static class DiferenciasAuditoria
             docAntes?.Dispose();
             docDespues?.Dispose();
         }
+    }
+
+    // F11: el tipo de pesaje se guarda como nombre del enum (SoloResCompleta); se muestra con el texto de la UI.
+    private static string? TraducirValor(string campo, string? valor)
+    {
+        if (campo != "ModoDesposte")
+        {
+            return valor;
+        }
+
+        if (valor is null)
+        {
+            return ReglasDesposte.Texto(null);
+        }
+
+        return Enum.TryParse<ModoDesposte>(valor, out var modo) && ReglasDesposte.EsValido(modo)
+            ? ReglasDesposte.Texto(modo)
+            : valor;
     }
 
     private static string? ExtraerValor(JsonElement element, TimeZoneInfo zona)
@@ -148,11 +168,15 @@ public static class DiferenciasAuditoria
                 "NumeroBoleta" => "N° de boleta",
                 "FechaHora" => "Fecha y hora",
                 "GanaderoId" => "Ganadero (id)",
-                "MarcaGanadero" => "Ganadero (marca)",
+                // "MarcaGanadero" es la clave de los registros históricos (antes de F10 "Marca" pasó a "Código").
+                "CodigoGanadero" or "MarcaGanadero" => "Ganadero (código)",
                 "NombreGanadero" => "Ganadero (nombre)",
                 "ClienteId" => "Cliente (id)",
                 "CodigoCliente" => "Cliente (código)",
                 "NombreCliente" => "Cliente (nombre)",
+                "FleteroId" => "Fletero (id)",
+                "CodigoFletero" => "Fletero (código)",
+                "NombreFletero" => "Fletero (nombre)",
                 "Direccion" => "Dirección",
                 "Secuencia" => "Secuencia",
                 "ColorRaza" => "Color/raza",
@@ -170,6 +194,22 @@ public static class DiferenciasAuditoria
                 "AnuladoEn" => "Anulado en",
                 _ => campo
             };
+        }
+
+        if (string.Equals(entidad, "ParametrosSistema", StringComparison.OrdinalIgnoreCase) && campo == "ModoDesposte")
+        {
+            return "Tipo de pesaje";
+        }
+
+        // Los registros anteriores a F10 guardaron el código del ganadero como "Marca" y el del fletero como "Orden".
+        if (string.Equals(entidad, "Ganadero", StringComparison.OrdinalIgnoreCase) && campo == "Marca")
+        {
+            return "Codigo";
+        }
+
+        if (string.Equals(entidad, "Fletero", StringComparison.OrdinalIgnoreCase) && campo == "Orden")
+        {
+            return "Codigo";
         }
 
         return campo;

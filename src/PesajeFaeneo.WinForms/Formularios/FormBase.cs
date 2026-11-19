@@ -14,6 +14,7 @@ public class FormBase : Form
     {
         Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
         StartPosition = FormStartPosition.CenterScreen;
+        Icon = Infraestructura.MarcaVisual.Icono ?? Icon;
     }
 
     protected override void OnLoad(EventArgs e)

@@ -7,6 +7,7 @@ using PesajeFaeneo.Application;
 using PesajeFaeneo.Application.Abstracciones;
 using PesajeFaeneo.Application.Arranque;
 using PesajeFaeneo.Application.Boletas.Diseno;
+using PesajeFaeneo.Application.Licencias;
 using PesajeFaeneo.Application.Seguridad;
 using PesajeFaeneo.Application.Utilitarios.Backup;
 using PesajeFaeneo.Application.Utilitarios.Backup.Dtos;
@@ -14,6 +15,7 @@ using PesajeFaeneo.Infrastructure;
 using PesajeFaeneo.Infrastructure.Common;
 using PesajeFaeneo.Infrastructure.Instalacion;
 using PesajeFaeneo.WinForms.Formularios;
+using PesajeFaeneo.WinForms.Formularios.Licencias;
 using PesajeFaeneo.WinForms.Infraestructura;
 using Serilog;
 using WinFormsApp = System.Windows.Forms.Application;
@@ -27,7 +29,33 @@ public static class Program
     [STAThread]
     public static int Main(string[] args)
     {
+#if CAPTURAS_MANUAL
+        // Build de capturas para los manuales (nunca en la publicación): --datos usa una carpeta de datos de demostración y
+        // --capturas corre el guion de capturas. Con capturas el proceso no escala por DPI: las imágenes salen a 96 DPI (100 %).
+        var capturas = Capturas.ArgumentosCapturas.Leer(args);
+        if (capturas is null)
+        {
+            // Este ejecutable usa la balanza de demostración: nunca debe abrir los datos reales de ProgramData.
+            Console.Error.WriteLine("El build de capturas exige --datos \"<carpeta de demostración>\".");
+            return 4;
+        }
+
+        var modoCapturas = capturas.Salida is not null;
+        if (modoCapturas)
+        {
+            WinFormsApp.EnableVisualStyles();
+            WinFormsApp.SetCompatibleTextRenderingDefault(false);
+            WinFormsApp.SetHighDpiMode(HighDpiMode.DpiUnaware);
+            Directory.CreateDirectory(capturas.Salida!);
+            Console.SetOut(new StreamWriter(Path.Combine(capturas.Salida!, "capturas.log"), capturas.SinPesajes) { AutoFlush = true });
+        }
+        else
+        {
+            ApplicationConfiguration.Initialize();
+        }
+#else
         ApplicationConfiguration.Initialize();
+#endif
 
         // Autoprueba de la instalación (F9-01, D5): no toma el mutex, no toca ProgramData y nunca muestra diálogos.
         var indiceAutoprueba = Array.FindIndex(args, a => string.Equals(a, ArgumentoAutoprueba, StringComparison.OrdinalIgnoreCase));
@@ -58,7 +86,14 @@ public static class Program
             return 3;
         }
 
-        using var instancia = InstanciaUnica.Adquirir(MutexName, esReinicio, TimeSpan.FromSeconds(30));
+#if CAPTURAS_MANUAL
+        // Con --datos el mutex es otro: el build de capturas puede correr aunque el sistema real esté abierto.
+        var nombreMutex = @"Global\PesajeFaeneo-Capturas";
+        argsHost = Capturas.ArgumentosCapturas.QuitarDe(argsHost);
+#else
+        var nombreMutex = MutexName;
+#endif
+        using var instancia = InstanciaUnica.Adquirir(nombreMutex, esReinicio, TimeSpan.FromSeconds(30));
         if (instancia is null)
         {
             MessageBox.Show(
@@ -110,7 +145,11 @@ public static class Program
             e.SetObserved();
         };
 
+#if CAPTURAS_MANUAL
+        var appPaths = new AppPaths(capturas.Datos);
+#else
         var appPaths = new AppPaths();
+#endif
         appPaths.AsegurarDirectorios();
 
         // 3. Configurar Serilog (logger de arranque: cubre el tramo previo a que exista el Host;
@@ -163,11 +202,32 @@ public static class Program
             restauracion = InicializarBaseDeDatos(host.Services, aplicador, restauracion);
             AvisarRestauracion(restauracion, host.Services.GetRequiredService<TimeProvider>().LocalTimeZone);
 
+#if CAPTURAS_MANUAL
+            // Datos de demostración (solo con --datos y una carpeta nueva): siembra con los servicios reales antes de abrir la balanza.
+            var configDemo = Capturas.ConfigDemo.Cargar(capturas.Config);
+            configDemo.SinPesajes = capturas.SinPesajes;
+            if (!Capturas.SembradorDemo.YaSembrado(appPaths))
+            {
+                new Capturas.SembradorDemo(host.Services, appPaths, configDemo).SembrarAsync().GetAwaiter().GetResult();
+            }
+#endif
+
             if (restablecerAdmin)
             {
                 var codigo = RestablecerAdministrador(host.Services);
                 host.StopAsync().GetAwaiter().GetResult();
                 return codigo;
+            }
+
+            // 6b. Licencia (F13, D5): con la prueba sin iniciar o vencida se pide activar antes del inicio de sesión.
+            // Quedan fuera --autoprueba y --restablecer-admin (salen antes) y el build de capturas (D11).
+#if CAPTURAS_MANUAL
+            if (!modoCapturas)
+#endif
+            if (!ControlarLicencia(host.Services))
+            {
+                host.StopAsync().GetAwaiter().GetResult();
+                return 0;
             }
 
             // 7. Balanza: se inicia después de migrar (lee su configuración de la BD) y nunca impide abrir la
@@ -184,12 +244,28 @@ public static class Program
 
             // 8. Backup automático diario (F8-02): nunca impide abrir la aplicación.
             var programador = host.Services.GetRequiredService<IProgramadorBackupAutomatico>();
+#if CAPTURAS_MANUAL
+            // Capturas: sin backups automáticos (no deben aparecer copias que no sembró el guion).
+            if (!modoCapturas)
+#endif
             programador.Iniciar();
 
             // 9. Ciclo de aplicación
             bool reiniciar;
+            var codigoSalida = 0;
+#if CAPTURAS_MANUAL
+            if (modoCapturas)
+            {
+                using var contextoCapturas = new Capturas.ContextoCapturas(host.Services, capturas, configDemo);
+                WinFormsApp.Run(contextoCapturas);
+                codigoSalida = contextoCapturas.CodigoSalida;
+                reiniciar = false;
+            }
+            else
+#endif
             using (var contexto = ActivatorUtilities.CreateInstance<ContextoAplicacion>(host.Services))
             {
+                IniciarSincronizacionLicencia(host.Services);
                 WinFormsApp.Run(contexto);
                 reiniciar = contexto.ReinicioSolicitado;
             }
@@ -205,7 +281,11 @@ public static class Program
             }
 
             // En un try propio: que DetenerAsync agote su espera no debe saltarse el backup de cierre.
+#if CAPTURAS_MANUAL
+            if (!reiniciar && !modoCapturas)
+#else
             if (!reiniciar)
+#endif
             {
                 try
                 {
@@ -235,7 +315,7 @@ public static class Program
                 IniciarNuevaInstancia();
             }
 
-            return 0;
+            return codigoSalida;
         }
         catch (ArranqueBaseDatosException ex)
         {
@@ -310,6 +390,43 @@ public static class Program
         {
             Log.Warning(ex, "No se pudo auditar la actualización de la base de datos.");
         }
+    }
+
+    /// <summary>
+    /// F13 (D5): muestra la activación con la prueba sin iniciar o vencida. Devuelve false si el usuario eligió Salir
+    /// (o cerró la ventana), y entonces la aplicación termina sin llegar al inicio de sesión.
+    /// </summary>
+    private static bool ControlarLicencia(IServiceProvider servicios)
+    {
+        var licencia = servicios.GetRequiredService<IServicioLicencia>();
+        var estado = licencia.ObtenerEstado();
+        if (estado.Tipo is not (TipoEstadoLicencia.NoIniciada or TipoEstadoLicencia.Vencida))
+        {
+            return true;
+        }
+
+        Log.Information("Licencia: {Estado}. Se muestra la pantalla de activación.", estado.Texto);
+        using var frm = servicios.GetRequiredService<IFormFactory>().Crear<FrmActivacion>();
+        frm.Configurar(estado.Tipo == TipoEstadoLicencia.NoIniciada ? ModoActivacion.NoIniciada : ModoActivacion.Vencida, estado.Motivo);
+        frm.ShowDialog();
+        return frm.Resultado != ResultadoActivacion.Salir;
+    }
+
+    /// <summary>F13 (D7): una sincronización por arranque, en segundo plano. Los errores solo se registran.</summary>
+    private static void IniciarSincronizacionLicencia(IServiceProvider servicios)
+    {
+        var licencia = servicios.GetRequiredService<IServicioLicencia>();
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await licencia.SincronizarAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "No se pudo sincronizar la licencia.");
+            }
+        });
     }
 
     private static void AvisarRestauracion(ResultadoRestauracionArranque r, TimeZoneInfo zona)

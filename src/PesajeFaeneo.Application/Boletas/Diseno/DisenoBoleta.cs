@@ -8,6 +8,12 @@ public static class DisenoBoleta
     public const float AltoMediaCartaMm = 140f;
     public const float AnchoTicketMm = 80f;
 
+    /// <summary>Perfil fijo del cliente: dibuja el logo de la empresa como marca de agua en la media carta.</summary>
+    public const bool LogoComoFondo = true;
+
+    /// <summary>Opacidad del logo de fondo (0 a 1); baja para no estorbar la lectura ni la tinta.</summary>
+    public const float OpacidadFondoLogo = 0.13f;
+
     public static PaginaBoleta Crear(DatosBoleta datos, FormatoBoleta formato, int numeroCopia, int totalCopias)
     {
         ArgumentNullException.ThrowIfNull(datos);
@@ -34,7 +40,14 @@ public static class DisenoBoleta
     {
         var elementos = new List<ElementoBoleta>();
 
-        // 1. Marca de agua (si aplica) - primer elemento en el orden de dibujo
+        // 0. Logo de la empresa como fondo atenuado (solo media carta; perfil fijo de este cliente). Va primero
+        //    para quedar detrás de todo; la marca de agua de texto (ANULADA, etc.) se dibuja encima.
+        if (LogoComoFondo && datos.Empresa.RutaLogo is not null)
+        {
+            elementos.Add(new FondoLogoBoleta(48f, 37f, 120f, 92f, OpacidadFondoLogo));
+        }
+
+        // 1. Marca de agua (si aplica)
         var marca = TextosBoleta.MarcaDeAgua(datos);
         if (marca is not null)
         {
@@ -161,8 +174,13 @@ public static class DisenoBoleta
         // Fila 2: Y = 52
         elementos.Add(new TextoBoleta(8f, 52f, 26f, 5.5f, "Secuencia:", 9f, Negrita: true));
         elementos.Add(new TextoBoleta(34f, 52f, 88f, 5.5f, datos.Secuencia.ToString(TextosBoleta.Cultura), 10f));
-        elementos.Add(new TextoBoleta(126f, 52f, 24f, 5.5f, "Desposte:", 9f, Negrita: true));
-        elementos.Add(new TextoBoleta(150f, 52f, 58f, 5.5f, TextosBoleta.Desposte(datos.TipoDesposte), 10f));
+        // F11 (D6): sin desposte (la empresa pesa un solo tipo) queda el hueco; no se mueven las demás filas para no
+        // alterar la calibración del papel.
+        if (datos.MostrarDesposte)
+        {
+            elementos.Add(new TextoBoleta(126f, 52f, 24f, 5.5f, "Desposte:", 9f, Negrita: true));
+            elementos.Add(new TextoBoleta(150f, 52f, 58f, 5.5f, TextosBoleta.Desposte(datos.TipoDesposte), 10f));
+        }
 
         // Fila 3: Y = 58.5
         elementos.Add(new TextoBoleta(8f, 58.5f, 26f, 5.5f, "Cliente:", 9f, Negrita: true));
@@ -173,6 +191,13 @@ public static class DisenoBoleta
         // Fila 4: Y = 65
         elementos.Add(new TextoBoleta(8f, 65f, 26f, 5.5f, "Dirección:", 9f, Negrita: true));
         elementos.Add(new TextoBoleta(34f, 65f, 88f, 5.5f, datos.Direccion ?? string.Empty, 10f));
+
+        // Fletero (F10, O9): en la zona de datos, junto a la dirección. Si el pesaje no tiene fletero no se imprime la fila.
+        if (datos.Fletero is not null)
+        {
+            elementos.Add(new TextoBoleta(126f, 65f, 24f, 5.5f, "Fletero:", 9f, Negrita: true));
+            elementos.Add(new TextoBoleta(150f, 65f, 58f, 7.5f, TextosBoleta.Fletero(datos.Fletero), 8f, VariasLineas: true));
+        }
 
         // 12. Recuadros y títulos de pesos
         elementos.Add(new RectanguloBoleta(8f, 73f, 64f, 20f));
@@ -194,56 +219,68 @@ public static class DisenoBoleta
             elementos.Add(new TextoBoleta(34f, 96f, 174f, 10f, datos.Observacion.Trim(), 9f, VariasLineas: true));
         }
 
-        // 14. Bloque inferior del formato legado: firma del Jefe de Despacho | fleteros con casilla para
-        //     marcar quién lleva la carne | firma del Médico Veterinario.
+        // 14. Bloque inferior del formato legado: firma del Jefe de Despacho | firma del Fletero (con su nombre sobre la
+        //     línea si el pesaje lo tiene) | firma del Médico Veterinario. El fletero también figura en la zona de datos.
         const float yBloque = 107f;
         const float altoBloque = 23f;
         elementos.Add(new RectanguloBoleta(8f, yBloque, 60f, altoBloque));
         elementos.Add(new RectanguloBoleta(68f, yBloque, 80f, altoBloque));
         elementos.Add(new RectanguloBoleta(148f, yBloque, 60f, altoBloque));
 
-        AgregarFirma(elementos, 8f, yBloque, altoBloque, TextosBoleta.FirmaJefeDespacho);
-        AgregarFirma(elementos, 148f, yBloque, altoBloque, TextosBoleta.FirmaMedicoVeterinario);
+        AgregarFirma(elementos, 8f, yBloque, 60f, altoBloque, TextosBoleta.FirmaJefeDespacho);
+        AgregarFirma(elementos, 68f, yBloque, 80f, altoBloque, TextosBoleta.FirmaFletero, datos.Fletero?.Nombre);
+        AgregarFirma(elementos, 148f, yBloque, 60f, altoBloque, TextosBoleta.FirmaMedicoVeterinario);
 
-        // 15. Fleteros (F1..F4) y "Otros"
-        if (datos.Fleteros.Count > 0)
-        {
-            elementos.Add(new TextoBoleta(70f, 107.5f, 76f, 3.5f, "Fleteros:", 7.5f, Negrita: true));
-
-            var fleteros = datos.Fleteros.Take(4).ToList();
-            for (int i = 0; i < fleteros.Count; i++)
-            {
-                var y = 111f + i * 3.5f;
-                elementos.Add(new TextoBoleta(70f, y, 68f, 3.5f, TextosBoleta.Fletero(fleteros[i]), 8f));
-                elementos.Add(new RectanguloBoleta(141f, y + 0.25f, 3f, 3f));
-            }
-
-            elementos.Add(new TextoBoleta(70f, 125.5f, 76f, 3.5f, TextosBoleta.OtrosFleteros, 8f));
-        }
-        else
-        {
-            elementos.Add(new TextoBoleta(70f, 111f, 76f, 3.5f, TextosBoleta.SinFletero, 8f));
-        }
-
-        // 16. Reclamos
+        // 15. Reclamos
         if (!string.IsNullOrWhiteSpace(datos.Empresa.TelefonosReclamos))
         {
             elementos.Add(new TextoBoleta(8f, 131f, 200f, 4f, "Reclamos: " + datos.Empresa.TelefonosReclamos.Trim(), 8f, Alineacion: AlineacionTexto.Centro));
         }
 
-        // 17. Pie
+        // 16. Pie
         elementos.Add(new TextoBoleta(8f, 135.5f, 100f, 4f, TextosBoleta.PieImpreso(datos), 7f, Alineacion: AlineacionTexto.Izquierda));
-        elementos.Add(new TextoBoleta(108f, 135.5f, 100f, 4f, "Sistema de Pesaje para Faeneo", 7f, Alineacion: AlineacionTexto.Derecha));
+        elementos.Add(new TextoBoleta(108f, 135.5f, 100f, 4f, "Capataz", 7f, Alineacion: AlineacionTexto.Derecha));
 
         return new PaginaBoleta(AnchoMediaCartaMm, AltoMediaCartaMm, elementos);
     }
 
-    // Línea de firma y nombre del cargo al pie de un recuadro del bloque inferior.
-    private static void AgregarFirma(List<ElementoBoleta> elementos, float x, float y, float alto, string cargo)
+    // Línea de firma y cargo al pie de un recuadro del bloque inferior; el nombre (si hay) va sobre la línea.
+    private static void AgregarFirma(List<ElementoBoleta> elementos, float x, float y, float ancho, float alto, string cargo, string? nombre = null)
     {
         var yLinea = y + alto - 6f;
-        elementos.Add(new LineaBoleta(x + 6f, yLinea, x + 54f, yLinea));
-        elementos.Add(new TextoBoleta(x, yLinea + 1f, 60f, 4.5f, cargo, 9f, Negrita: true, Alineacion: AlineacionTexto.Centro));
+        elementos.Add(new LineaBoleta(x + 6f, yLinea, x + ancho - 6f, yLinea));
+        elementos.Add(new TextoBoleta(x, yLinea + 1f, ancho, 4.5f, cargo, 9f, Negrita: true, Alineacion: AlineacionTexto.Centro));
+
+        if (!string.IsNullOrWhiteSpace(nombre))
+        {
+            elementos.Add(new TextoBoleta(x + 2f, yLinea - 5f, ancho - 4f, 4.5f, nombre.Trim(), 9f, Alineacion: AlineacionTexto.Centro));
+        }
+    }
+
+    // El diseño no usa System.Drawing (no puede medir texto): el alto de una caja de varias líneas se estima por
+    // caracteres, con un ancho medio de 0,65 em (Arial en mayúsculas, más ancho que el promedio) para sobrar alto
+    // antes que recortar una línea. Una sola línea cuesta "alto de línea" y cada línea extra lo suma.
+    private static (float Alto, bool VariasLineas) CajaTexto(string texto, float tamanoPt, float anchoMm, bool negrita = false, int maximoLineas = 3)
+    {
+        var emMm = tamanoPt * 0.3528f;
+        var caracteresPorLinea = Math.Max(1, (int)Math.Floor(anchoMm / (emMm * (negrita ? 0.7f : 0.65f))));
+        var lineas = Math.Clamp((int)Math.Ceiling((texto?.Length ?? 0) / (double)caracteresPorLinea), 1, maximoLineas);
+        return (lineas * emMm * 1.25f + 0.5f, lineas > 1);
+    }
+
+    // Agrega un texto del ticket con el alto justo y devuelve la posición vertical siguiente.
+    private static float AgregarTextoTicket(List<ElementoBoleta> elementos, float y, string texto, float tamanoPt, bool negrita = false, AlineacionTexto alineacion = AlineacionTexto.Izquierda, int maximoLineas = 3)
+    {
+        var (alto, varias) = CajaTexto(texto, tamanoPt, 72f, negrita, maximoLineas);
+        elementos.Add(new TextoBoleta(4f, y, 72f, alto, texto, tamanoPt, negrita, alineacion, varias));
+        return y + alto + 0.8f;
+    }
+
+    private static float AgregarSeparadorTicket(List<ElementoBoleta> elementos, float y)
+    {
+        y += 0.7f;
+        elementos.Add(new LineaBoleta(4f, y, 76f, y));
+        return y + 2f;
     }
 
     private static PaginaBoleta CrearTicket80mm(DatosBoleta datos, int numeroCopia, int totalCopias)
@@ -261,15 +298,13 @@ public static class DisenoBoleta
         // 2. Empresa
         if (!string.IsNullOrWhiteSpace(datos.Empresa.Nombre))
         {
-            elementos.Add(new TextoBoleta(4f, y, 72f, 12f, datos.Empresa.Nombre.Trim(), 12f, Negrita: true, Alineacion: AlineacionTexto.Centro, VariasLineas: true));
-            y += 12.5f;
+            y = AgregarTextoTicket(elementos, y, datos.Empresa.Nombre.Trim(), 12f, negrita: true, alineacion: AlineacionTexto.Centro, maximoLineas: 2);
         }
 
         var dirCiudad = TextosBoleta.UnirNoVacios(" — ", datos.Empresa.Direccion, datos.Empresa.Ciudad);
         if (!string.IsNullOrWhiteSpace(dirCiudad))
         {
-            elementos.Add(new TextoBoleta(4f, y, 72f, 8f, dirCiudad, 8f, Alineacion: AlineacionTexto.Centro, VariasLineas: true));
-            y += 8.5f;
+            y = AgregarTextoTicket(elementos, y, dirCiudad, 8f, alineacion: AlineacionTexto.Centro, maximoLineas: 2);
         }
 
         var tel = string.IsNullOrWhiteSpace(datos.Empresa.Telefono) ? null : "Tel.: " + datos.Empresa.Telefono.Trim();
@@ -277,125 +312,96 @@ public static class DisenoBoleta
         var telReg = TextosBoleta.UnirNoVacios("   ", tel, reg);
         if (!string.IsNullOrWhiteSpace(telReg))
         {
-            elementos.Add(new TextoBoleta(4f, y, 72f, 8f, telReg, 8f, Alineacion: AlineacionTexto.Centro, VariasLineas: true));
-            y += 8.5f;
+            y = AgregarTextoTicket(elementos, y, telReg, 8f, alineacion: AlineacionTexto.Centro, maximoLineas: 2);
         }
 
         // 3. Línea separadora
-        elementos.Add(new LineaBoleta(4f, y, 76f, y));
-        y += 1.5f;
+        y = AgregarSeparadorTicket(elementos, y);
 
         // 4. Título y número
-        elementos.Add(new TextoBoleta(4f, y, 72f, 5f, "BOLETA DE PESAJE", 10f, Negrita: true, Alineacion: AlineacionTexto.Centro));
-        y += 5.5f;
-        elementos.Add(new TextoBoleta(4f, y, 72f, 8f, TextosBoleta.Numero(datos), 16f, Negrita: true, Alineacion: AlineacionTexto.Centro));
-        y += 8.5f;
+        y = AgregarTextoTicket(elementos, y, "BOLETA DE PESAJE", 10f, negrita: true, alineacion: AlineacionTexto.Centro, maximoLineas: 1);
+        y = AgregarTextoTicket(elementos, y, TextosBoleta.Numero(datos), 16f, negrita: true, alineacion: AlineacionTexto.Centro, maximoLineas: 1);
 
         // 5. Leyendas
         var leyendas = TextosBoleta.Leyendas(datos, numeroCopia, totalCopias);
         foreach (var ley in leyendas)
         {
-            elementos.Add(new TextoBoleta(4f, y, 72f, 9f, ley, 9f, Negrita: true, Alineacion: AlineacionTexto.Centro, VariasLineas: true));
-            y += 9.5f;
+            y = AgregarTextoTicket(elementos, y, ley, 9f, negrita: true, alineacion: AlineacionTexto.Centro, maximoLineas: 3);
         }
 
         // 6. Línea separadora
-        elementos.Add(new LineaBoleta(4f, y, 76f, y));
-        y += 1.5f;
+        y = AgregarSeparadorTicket(elementos, y);
 
         // 7. Datos
-        elementos.Add(new TextoBoleta(4f, y, 72f, 4.5f, "Fecha y hora: " + TextosBoleta.FechaHora(datos.FechaHoraLocal), 9f));
-        y += 5.0f;
+        y = AgregarTextoTicket(elementos, y, "Fecha y hora: " + TextosBoleta.FechaHora(datos.FechaHoraLocal), 9f);
+        y = AgregarTextoTicket(elementos, y, "Ganadero: " + TextosBoleta.Ganadero(datos), 9f);
+        y = AgregarTextoTicket(elementos, y, "Secuencia: " + datos.Secuencia.ToString(TextosBoleta.Cultura), 9f);
+        y = AgregarTextoTicket(elementos, y, "Cliente: " + TextosBoleta.Cliente(datos), 9f);
+        y = AgregarTextoTicket(elementos, y, "Dirección: " + (datos.Direccion ?? string.Empty), 9f);
 
-        elementos.Add(new TextoBoleta(4f, y, 72f, 9f, "Ganadero: " + TextosBoleta.Ganadero(datos), 9f, VariasLineas: true));
-        y += 9.5f;
+        // El fletero va con los datos del pesaje (F10, O9); sin fletero no se imprime la línea.
+        if (datos.Fletero is not null)
+        {
+            y = AgregarTextoTicket(elementos, y, "Fletero: " + TextosBoleta.Fletero(datos.Fletero), 9f);
+        }
 
-        elementos.Add(new TextoBoleta(4f, y, 72f, 4.5f, "Secuencia: " + datos.Secuencia.ToString(TextosBoleta.Cultura), 9f));
-        y += 5.0f;
-
-        elementos.Add(new TextoBoleta(4f, y, 72f, 9f, "Cliente: " + TextosBoleta.Cliente(datos), 9f, VariasLineas: true));
-        y += 9.5f;
-
-        elementos.Add(new TextoBoleta(4f, y, 72f, 9f, "Dirección: " + (datos.Direccion ?? string.Empty), 9f, VariasLineas: true));
-        y += 9.5f;
-
-        elementos.Add(new TextoBoleta(4f, y, 72f, 4.5f, "Color/Raza: " + (datos.ColorRaza ?? string.Empty), 9f));
-        y += 5.0f;
-
-        elementos.Add(new TextoBoleta(4f, y, 72f, 4.5f, "Sexo: " + TextosBoleta.Sexo(datos.Sexo), 9f));
-        y += 5.0f;
-
-        elementos.Add(new TextoBoleta(4f, y, 72f, 4.5f, "Desposte: " + TextosBoleta.Desposte(datos.TipoDesposte), 9f));
-        y += 5.0f;
+        y = AgregarTextoTicket(elementos, y, "Color/Raza: " + (datos.ColorRaza ?? string.Empty), 9f);
+        y = AgregarTextoTicket(elementos, y, "Sexo: " + TextosBoleta.Sexo(datos.Sexo), 9f);
+        if (datos.MostrarDesposte)
+        {
+            y = AgregarTextoTicket(elementos, y, "Desposte: " + TextosBoleta.Desposte(datos.TipoDesposte), 9f);
+        }
 
         // 8. Línea separadora
-        elementos.Add(new LineaBoleta(4f, y, 76f, y));
-        y += 1.5f;
+        y = AgregarSeparadorTicket(elementos, y);
 
         // 9. Pesos
-        elementos.Add(new TextoBoleta(4f, y, 72f, 5f, "Izquierdo: " + TextosBoleta.Peso(datos.PesoIzquierdo), 10f));
-        y += 5.5f;
-        elementos.Add(new TextoBoleta(4f, y, 72f, 5f, "Derecho: " + TextosBoleta.Peso(datos.PesoDerecho), 10f));
-        y += 5.5f;
-        elementos.Add(new TextoBoleta(4f, y, 72f, 7f, "TOTAL: " + TextosBoleta.Peso(datos.PesoTotal), 14f, Negrita: true));
-        y += 7.5f;
+        y = AgregarTextoTicket(elementos, y, "Izquierdo: " + TextosBoleta.Peso(datos.PesoIzquierdo), 10f, maximoLineas: 1);
+        y = AgregarTextoTicket(elementos, y, "Derecho: " + TextosBoleta.Peso(datos.PesoDerecho), 10f, maximoLineas: 1);
+        y = AgregarTextoTicket(elementos, y, "TOTAL: " + TextosBoleta.Peso(datos.PesoTotal), 14f, negrita: true, maximoLineas: 1);
 
         // 10. Marca como texto destacado
         var marca = TextosBoleta.MarcaDeAgua(datos);
         if (marca is not null)
         {
-            elementos.Add(new TextoBoleta(4f, y, 72f, 6f, "*** " + marca + " ***", 12f, Negrita: true, Alineacion: AlineacionTexto.Centro));
-            y += 6.5f;
+            y = AgregarTextoTicket(elementos, y, "*** " + marca + " ***", 12f, negrita: true, alineacion: AlineacionTexto.Centro, maximoLineas: 1);
         }
 
         // 11. Línea separadora
-        elementos.Add(new LineaBoleta(4f, y, 76f, y));
-        y += 1.5f;
+        y = AgregarSeparadorTicket(elementos, y);
 
         // 12. Observación
-        elementos.Add(new TextoBoleta(4f, y, 72f, 13.5f, "Observación: " + (datos.Observacion ?? string.Empty), 9f, VariasLineas: true));
-        y += 14.0f;
+        y = AgregarTextoTicket(elementos, y, "Observación: " + (datos.Observacion ?? string.Empty), 9f);
 
-        // 13. Fleteros
-        if (datos.Fleteros.Count > 0)
-        {
-            elementos.Add(new TextoBoleta(4f, y, 72f, 4f, "Fleteros:", 8f, Negrita: true));
-            y += 4.5f;
-            foreach (var f in datos.Fleteros)
-            {
-                elementos.Add(new TextoBoleta(4f, y, 72f, 4f, TextosBoleta.FleteroConCasilla(f), 8f));
-                y += 4.5f;
-            }
-
-            elementos.Add(new TextoBoleta(4f, y, 72f, 4f, TextosBoleta.OtrosFleteros, 8f));
-            y += 4.5f;
-        }
-
-        // 14. Reclamos y pie
+        // 13. Reclamos y operador
         if (!string.IsNullOrWhiteSpace(datos.Empresa.TelefonosReclamos))
         {
-            elementos.Add(new TextoBoleta(4f, y, 72f, 8f, "Reclamos: " + datos.Empresa.TelefonosReclamos.Trim(), 8f, VariasLineas: true));
-            y += 8.5f;
+            y = AgregarTextoTicket(elementos, y, "Reclamos: " + datos.Empresa.TelefonosReclamos.Trim(), 8f, maximoLineas: 2);
         }
 
-        elementos.Add(new TextoBoleta(4f, y, 72f, 4f, "Operador: " + (datos.NombreOperador ?? string.Empty), 8f));
-        y += 4.5f;
+        y = AgregarTextoTicket(elementos, y, "Operador: " + (datos.NombreOperador ?? string.Empty), 8f, maximoLineas: 2);
 
-        // 15. Firmas (espacio para firmar sobre cada línea)
-        foreach (var cargo in new[] { TextosBoleta.FirmaJefeDespacho, TextosBoleta.FirmaMedicoVeterinario })
+        // 14. Firmas (espacio para firmar sobre cada línea): Jefe de Despacho, Fletero y Médico Veterinario.
+        foreach (var cargo in new[] { TextosBoleta.FirmaJefeDespacho, TextosBoleta.FirmaFletero, TextosBoleta.FirmaMedicoVeterinario })
         {
-            y += 12f;
+            y += 11f;
             elementos.Add(new LineaBoleta(12f, y, 68f, y));
-            y += 0.5f;
-            elementos.Add(new TextoBoleta(4f, y, 72f, 4f, cargo, 8f, Negrita: true, Alineacion: AlineacionTexto.Centro));
-            y += 4.5f;
+            y += 0.6f;
+            elementos.Add(new TextoBoleta(4f, y, 72f, 4.2f, cargo, 8f, Negrita: true, Alineacion: AlineacionTexto.Centro));
+            y += 4.2f;
+
+            // El nombre del fletero va bajo el cargo cuando el pesaje lo tiene.
+            if (cargo == TextosBoleta.FirmaFletero && !string.IsNullOrWhiteSpace(datos.Fletero?.Nombre))
+            {
+                y = AgregarTextoTicket(elementos, y, datos.Fletero!.Nombre.Trim(), 8f, alineacion: AlineacionTexto.Centro, maximoLineas: 2);
+            }
         }
 
-
+        y += 1.5f;
         elementos.Add(new TextoBoleta(4f, y, 72f, 3.5f, TextosBoleta.PieImpreso(datos), 7f));
         y += 4.0f;
 
-        // 16. Margen de corte
+        // 15. Margen de corte
         float altoMm = y + 10f;
 
         return new PaginaBoleta(AnchoTicketMm, altoMm, elementos);

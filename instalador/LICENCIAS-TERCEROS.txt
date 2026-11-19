@@ -1,4 +1,4 @@
-Sistema de Pesaje para Faeneo - Componentes de terceros
+Capataz - Componentes de terceros
 
 - ClosedXML 0.102.3: MIT
 - CsvHelper 33.0.1: MS-PL OR Apache-2.0

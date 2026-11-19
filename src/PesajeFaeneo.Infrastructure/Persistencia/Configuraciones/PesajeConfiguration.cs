@@ -109,6 +109,13 @@ public class PesajeConfiguration : IEntityTypeConfiguration<Pesaje>
             .HasForeignKey(p => p.ClienteId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // F10 (O5): fletero opcional elegido al pesar.
+        builder.HasOne(p => p.Fletero)
+            .WithMany()
+            .HasForeignKey(p => p.FleteroId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
         builder.HasOne(p => p.Usuario)
             .WithMany()
             .HasForeignKey(p => p.UsuarioId)

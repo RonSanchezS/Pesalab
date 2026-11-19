@@ -37,6 +37,40 @@ public class ControlBusquedaCatalogoTests
     }
 
     [Fact]
+    public void TextoSinElegir_SoloConTextoYSinSeleccion()
+    {
+        // F12 (E1): base del aviso "Elija el fletero de la lista o borre el texto."
+        HiloSta.Ejecutar(() =>
+        {
+            using var form = new Form();
+            using var control = new ControlBusquedaCatalogo();
+            form.Controls.Add(control);
+            form.Show();
+            control.EstablecerElementos(ElementosPrueba);
+
+            Assert.False(control.TextoSinElegir);
+
+            control.CajaTexto.Text = "   ";
+            Assert.False(control.TextoSinElegir);
+
+            control.CajaTexto.Text = "CLIENTE"; // varias coincidencias: no se elige solo
+            control.SimularSalida();
+            Assert.Null(control.Seleccion);
+            Assert.True(control.TextoSinElegir);
+
+            control.Seleccionar(2);
+            Assert.False(control.TextoSinElegir);
+
+            control.CajaTexto.Text = "NO EXISTE";
+            control.SimularSalida();
+            Assert.True(control.TextoSinElegir);
+
+            control.Limpiar();
+            Assert.False(control.TextoSinElegir);
+        });
+    }
+
+    [Fact]
     public void DownMasEnter_SeleccionaElementoYDisparaEventoUnaVez()
     {
         HiloSta.Ejecutar(() =>

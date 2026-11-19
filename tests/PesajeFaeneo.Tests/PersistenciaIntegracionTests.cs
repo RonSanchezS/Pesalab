@@ -17,12 +17,12 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
     }
 
     [Fact]
-    public async Task Ganadero_MarcaDuplicada_LanzaDbUpdateException()
+    public async Task Ganadero_CodigoDuplicado_LanzaDbUpdateException()
     {
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
 
-        var g1 = new GanaderoBuilder().ConMarca("AH").ConNombre("Ganadero 1").Build();
-        var g2 = new GanaderoBuilder().ConMarca("AH").ConNombre("Ganadero 2").Build();
+        var g1 = new GanaderoBuilder().ConCodigo("AH").ConNombre("Ganadero 1").Build();
+        var g2 = new GanaderoBuilder().ConCodigo("AH").ConNombre("Ganadero 2").Build();
 
         ctx.Ganaderos.Add(g1);
         await ctx.SaveChangesAsync();
@@ -47,13 +47,13 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
     }
 
     [Fact]
-    public async Task Fletero_OrdenFueraDeRango_LanzaDbUpdateException()
+    public async Task Fletero_CodigoMenorAUno_LanzaDbUpdateException()
     {
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
 
         var fleteroInvalido = new Fletero
         {
-            Orden = 5, // Inválido: CHECK es BETWEEN 1 AND 4
+            Codigo = 0, // Inválido: CHECK es Codigo >= 1
             Nombre = "Fletero Inválido",
             Celular = "77712345",
             Activo = true,
@@ -65,19 +65,83 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
     }
 
     [Fact]
-    public async Task Fletero_IndiceFiltrado_PermiteDosInactivosConMismoOrdenPeroNoDosActivos()
+    public async Task Fletero_CodigoMayorACuatro_EsValido_SinLimiteDeFleteros()
     {
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
 
-        var fActivo1 = new Fletero { Orden = 2, Nombre = "F1", Celular = "70000001", Activo = true, CreadoEn = DateTime.UtcNow };
-        var fInactivo1 = new Fletero { Orden = 2, Nombre = "F2", Celular = "70000002", Activo = false, CreadoEn = DateTime.UtcNow };
-        var fActivo2 = new Fletero { Orden = 2, Nombre = "F3", Celular = "70000003", Activo = true, CreadoEn = DateTime.UtcNow };
+        ctx.Fleteros.Add(new Fletero { Codigo = 5, Nombre = "F5", Celular = "70000005", Activo = true, CreadoEn = DateTime.UtcNow });
+        ctx.Fleteros.Add(new Fletero { Codigo = 250, Nombre = "F250", Celular = "70000250", Activo = true, CreadoEn = DateTime.UtcNow });
 
-        ctx.Fleteros.AddRange(fActivo1, fInactivo1);
-        await ctx.SaveChangesAsync(); // Debe permitir activo + inactivo con mismo orden
+        await ctx.SaveChangesAsync();
+        Assert.Equal(2, await ctx.Fleteros.CountAsync());
+    }
 
-        ctx.Fleteros.Add(fActivo2);
-        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync()); // Debe fallar segundo activo con orden 2
+    [Fact]
+    public async Task Fletero_IndiceUnico_NoPermiteRepetirCodigoNiSiquieraEntreInactivos()
+    {
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+
+        ctx.Fleteros.Add(new Fletero { Codigo = 2, Nombre = "F1", Celular = "70000001", Activo = true, CreadoEn = DateTime.UtcNow });
+        await ctx.SaveChangesAsync();
+
+        // F10 (O6): el índice ya no es filtrado por Activo = 1: un código no se repite jamás.
+        ctx.Fleteros.Add(new Fletero { Codigo = 2, Nombre = "F2", Celular = "70000002", Activo = false, CreadoEn = DateTime.UtcNow });
+        await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Pesaje_FleteroOpcional_ConservaElFleteroYSePuedeDejarNulo()
+    {
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+
+        var ganadero = new GanaderoBuilder().ConCodigo("FL").ConNombre("Ganadero FL").Build();
+        var cliente = new ClienteBuilder().ConCodigo(777).ConNombre("Cliente 777").Build();
+        var usuario = new UsuarioBuilder().ConNombreUsuario("pesador_fle").Build();
+        var fletero = new Fletero { Codigo = 8, Nombre = "FLETERO OCHO", Celular = "70000008", Activo = true, CreadoEn = DateTime.UtcNow };
+        ctx.Ganaderos.Add(ganadero);
+        ctx.Clientes.Add(cliente);
+        ctx.Usuarios.Add(usuario);
+        ctx.Fleteros.Add(fletero);
+        await ctx.SaveChangesAsync();
+
+        var conFletero = new PesajeBuilder().ConNumeroBoleta(70001).ConGanaderoId(ganadero.Id).ConClienteId(cliente.Id).ConUsuarioId(usuario.Id).Build();
+        conFletero.FleteroId = fletero.Id;
+        var sinFletero = new PesajeBuilder().ConNumeroBoleta(70002).ConGanaderoId(ganadero.Id).ConClienteId(cliente.Id).ConUsuarioId(usuario.Id).Build();
+        ctx.Pesajes.AddRange(conFletero, sinFletero);
+        await ctx.SaveChangesAsync();
+
+        ctx.ChangeTracker.Clear();
+        var leidoCon = await ctx.Pesajes.Include(p => p.Fletero).SingleAsync(p => p.NumeroBoleta == 70001);
+        var leidoSin = await ctx.Pesajes.Include(p => p.Fletero).SingleAsync(p => p.NumeroBoleta == 70002);
+        Assert.Equal("FLETERO OCHO", leidoCon.Fletero!.Nombre);
+        Assert.Null(leidoSin.FleteroId);
+        Assert.Null(leidoSin.Fletero);
+    }
+
+    [Fact]
+    public async Task Fletero_ConPesajes_NoSePuedeEliminarFisicamente()
+    {
+        await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
+
+        var ganadero = new GanaderoBuilder().ConCodigo("FM").ConNombre("Ganadero FM").Build();
+        var cliente = new ClienteBuilder().ConCodigo(778).ConNombre("Cliente 778").Build();
+        var usuario = new UsuarioBuilder().ConNombreUsuario("pesador_fm").Build();
+        var fletero = new Fletero { Codigo = 9, Nombre = "FLETERO NUEVE", Celular = "70000009", Activo = true, CreadoEn = DateTime.UtcNow };
+        ctx.Ganaderos.Add(ganadero);
+        ctx.Clientes.Add(cliente);
+        ctx.Usuarios.Add(usuario);
+        ctx.Fleteros.Add(fletero);
+        await ctx.SaveChangesAsync();
+
+        var pesaje = new PesajeBuilder().ConNumeroBoleta(70003).ConGanaderoId(ganadero.Id).ConClienteId(cliente.Id).ConUsuarioId(usuario.Id).Build();
+        pesaje.FleteroId = fletero.Id;
+        ctx.Pesajes.Add(pesaje);
+        await ctx.SaveChangesAsync();
+
+        // FK con Restrict: la base rechaza borrar un fletero que tiene pesajes (SQL directo: EF no interviene).
+        var idFletero = fletero.Id;
+        await Assert.ThrowsAsync<Microsoft.Data.Sqlite.SqliteException>(() =>
+            ctx.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM Fleteros WHERE Id = {idFletero}"));
     }
 
     [Fact]
@@ -85,7 +149,7 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
     {
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
 
-        var ganadero = new GanaderoBuilder().ConMarca("ZZ").ConNombre("Ganadero ZZ").Build();
+        var ganadero = new GanaderoBuilder().ConCodigo("ZZ").ConNombre("Ganadero ZZ").Build();
         var cliente = new ClienteBuilder().ConCodigo(888).ConNombre("Cliente 888").Build();
         var usuario = new UsuarioBuilder().ConNombreUsuario("pesador1").Build();
 
@@ -426,15 +490,15 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
     }
 
     [Fact]
-    public async Task Ganadero_MarcaDuplicadaPorMayusculas_LanzaDbUpdateException()
+    public async Task Ganadero_CodigoDuplicadoPorMayusculas_LanzaDbUpdateException()
     {
-        // UseCollation("NOCASE") en Marca: "ah" y "AH" deben tratarse como la misma marca.
+        // UseCollation("NOCASE") en Codigo: "ah" y "AH" deben tratarse como el mismo código.
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
 
-        ctx.Ganaderos.Add(new GanaderoBuilder().ConMarca("QW").ConNombre("Ganadero QW").Build());
+        ctx.Ganaderos.Add(new GanaderoBuilder().ConCodigo("QW").ConNombre("Ganadero QW").Build());
         await ctx.SaveChangesAsync();
 
-        ctx.Ganaderos.Add(new GanaderoBuilder().ConMarca("qw").ConNombre("Ganadero qw minúscula").Build());
+        ctx.Ganaderos.Add(new GanaderoBuilder().ConCodigo("qw").ConNombre("Ganadero qw minúscula").Build());
         await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
     }
 
@@ -444,7 +508,7 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
         var fechaOriginal = new DateTime(2026, 3, 10, 14, 30, 0, DateTimeKind.Utc);
 
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
-        var ganadero = new GanaderoBuilder().ConMarca("DT").ConNombre("Ganadero DT").ConFechaHora(fechaOriginal).Build();
+        var ganadero = new GanaderoBuilder().ConCodigo("DT").ConNombre("Ganadero DT").ConFechaHora(fechaOriginal).Build();
 
         ctx.Ganaderos.Add(ganadero);
         await ctx.SaveChangesAsync();
@@ -494,22 +558,22 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
     }
 
     [Fact]
-    public async Task Ganadero_MarcaVacia_LanzaDbUpdateException()
+    public async Task Ganadero_CodigoVacio_LanzaDbUpdateException()
     {
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
 
-        var ganadero = new GanaderoBuilder().ConMarca("").ConNombre("Ganadero Sin Marca").Build();
+        var ganadero = new GanaderoBuilder().ConCodigo("").ConNombre("Ganadero Sin Codigo").Build();
 
         ctx.Ganaderos.Add(ganadero);
         await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
     }
 
     [Fact]
-    public async Task Ganadero_MarcaDeSeisCaracteres_LanzaDbUpdateException()
+    public async Task Ganadero_CodigoDeSeisCaracteres_LanzaDbUpdateException()
     {
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
 
-        var ganadero = new GanaderoBuilder().ConMarca("ABCDEF").ConNombre("Ganadero Marca Larga").Build();
+        var ganadero = new GanaderoBuilder().ConCodigo("ABCDEF").ConNombre("Ganadero Codigo Largo").Build();
 
         ctx.Ganaderos.Add(ganadero);
         await Assert.ThrowsAsync<DbUpdateException>(() => ctx.SaveChangesAsync());
@@ -604,7 +668,7 @@ public class PersistenciaIntegracionTests : IClassFixture<SqliteDbFixture>
     {
         await using var ctx = await _fixture.ContextFactory.CreateDbContextAsync();
 
-        var ganadero = new GanaderoBuilder().ConMarca(marcaGanadero).ConNombre($"Ganadero {marcaGanadero}").Build();
+        var ganadero = new GanaderoBuilder().ConCodigo(marcaGanadero).ConNombre($"Ganadero {marcaGanadero}").Build();
         var cliente = new ClienteBuilder().ConCodigo(codigoCliente).ConNombre($"Cliente {codigoCliente}").Build();
         var usuario = new UsuarioBuilder().ConNombreUsuario(nombreUsuario).Build();
 

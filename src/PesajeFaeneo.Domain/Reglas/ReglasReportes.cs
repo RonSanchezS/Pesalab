@@ -9,6 +9,7 @@ public static class CamposReportes
     public const string FechaHasta = "FechaHasta";
     public const string Ganadero = "Ganadero";
     public const string Cliente = "Cliente";
+    public const string Raza = "Raza";
 }
 
 public static class ReglasReportes

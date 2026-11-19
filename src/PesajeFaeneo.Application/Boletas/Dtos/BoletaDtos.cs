@@ -11,14 +11,14 @@ public sealed record EmpresaBoleta(
     string TelefonosReclamos,
     string? RutaLogo);                 // ruta completa o null si no hay logo o no existe
 
-public sealed record FleteroBoleta(int Orden, string Nombre, string Celular);
+public sealed record FleteroBoleta(int Codigo, string Nombre, string Celular);
 
 public sealed record DatosBoleta(
     int PesajeId,                      // 0 en la muestra
     long NumeroBoleta,                 // 0 en la muestra
     DateTime FechaHoraLocal,           // hora local del pesaje (Kind = Unspecified)
     EmpresaBoleta Empresa,
-    string MarcaGanadero,
+    string CodigoGanadero,
     string NombreGanadero,
     int Secuencia,
     int CodigoCliente,
@@ -35,10 +35,11 @@ public sealed record DatosBoleta(
     EstadoPesaje Estado,
     string? MotivoAnulacion,
     string NombreOperador,
-    IReadOnlyList<FleteroBoleta> Fleteros,
+    FleteroBoleta? Fletero,            // null si el pesaje no tiene fletero (F10, O5)
     int ImpresionesPrevias,            // auditorías Imprimir/Reimprimir existentes (D10)
     DateTime GeneradoEnLocal,          // hora local en que se arma la boleta (pie y leyenda de reimpresión)
-    bool EsMuestra = false)
+    bool EsMuestra = false,
+    bool MostrarDesposte = true)       // F11 (D6): false si la boleta es del único tipo que pesa la empresa
 {
     public bool EsReimpresion => ImpresionesPrevias > 0;
 }

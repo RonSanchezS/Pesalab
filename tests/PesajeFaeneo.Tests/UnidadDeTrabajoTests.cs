@@ -136,7 +136,7 @@ public class UnidadDeTrabajoTests
         {
             await using var tx = await uow.IniciarTransaccionAsync();
 
-            var ganadero = new GanaderoBuilder().ConMarca("TX").ConNombre("Ganadero TX").Build();
+            var ganadero = new GanaderoBuilder().ConCodigo("TX").ConNombre("Ganadero TX").Build();
             uow.Ganaderos.Agregar(ganadero);
             await uow.GuardarCambiosAsync();
 
@@ -175,7 +175,7 @@ public class UnidadDeTrabajoTests
         {
             await using (var tx = await uow.IniciarTransaccionAsync())
             {
-                var ganadero = new GanaderoBuilder().ConMarca("NO").ConNombre("Ganadero No Confirmado").Build();
+                var ganadero = new GanaderoBuilder().ConCodigo("NO").ConNombre("Ganadero No Confirmado").Build();
                 uow.Ganaderos.Agregar(ganadero);
                 await uow.GuardarCambiosAsync();
                 ganaderoId = ganadero.Id;
@@ -200,7 +200,7 @@ public class UnidadDeTrabajoTests
         {
             await using var tx = await uow.IniciarTransaccionAsync();
 
-            var ganadero = new GanaderoBuilder().ConMarca("FK").ConNombre("Ganadero FK").Build();
+            var ganadero = new GanaderoBuilder().ConCodigo("FK").ConNombre("Ganadero FK").Build();
             uow.Ganaderos.Agregar(ganadero);
             await uow.GuardarCambiosAsync();
             ganaderoId = ganadero.Id;

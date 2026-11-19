@@ -1,4 +1,4 @@
-# Sistema de Pesaje para Faeneo
+# Capataz
 
 Sistema de control, registro de pesaje y emisión de guías de remisión de carne bovina para faeneo. Desarrollado en .NET 8 (Windows Forms) con SQLite y Entity Framework Core.
 
@@ -68,11 +68,11 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
 
 - **Catálogos de Ganaderos, Clientes y Fleteros:**
   - Persistencia normalizada en mayúsculas invariantes (`ToUpperInvariant`) y colapso de espacios intermedios.
-  - Validación estricta con restricciones CHECK a nivel de SQLite (longitud de marca de 1 a 5 caracteres, código de cliente entre 1 y 999.999).
-  - Reglas de unicidad y de negocio: reactivación sugerida al intentar dar de alta una clave existente inactiva; máximo de 4 fleteros activos (F1 a F4).
+  - Validación estricta con restricciones CHECK a nivel de SQLite (código de ganadero de 1 a 5 caracteres, código de cliente entre 1 y 999.999, código de fletero >= 1).
+  - Códigos automáticos (F10): ganaderos, clientes y fleteros reciben un código correlativo al crearse (el mayor existente, incluidos los inactivos, + 1), de solo lectura y no editable; los códigos alfanuméricos heredados del sistema anterior se conservan. Fleteros sin límite de cantidad; el fletero se elige al pesar.
   - Componente de búsqueda y autocompletado en memoria con ranking de coincidencia multinivel, tolerante a acentos y caracteres especiales (plegado Unicode FormD).
 - **Parámetros del Sistema y Logo:**
-  - Configuración de datos fiscales y operativos de la empresa, y control del siguiente número de boleta.
+  - Configuración de datos fiscales y operativos de la empresa. El número de boleta es automático (F10): solo se puede fijar el inicial mientras no exista ninguna boleta.
   - Almacenamiento seguro del logo en `%ProgramData%\PesajeFaeneo\logo` mediante nombre de archivo relativo y validación binaria de firma de imagen (PNG, JPEG, BMP).
   - Carga desacoplada de archivos para visualización sin bloquear el archivo en el sistema operativo.
 
@@ -103,26 +103,32 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
 - **Tipos de desposte:**
   - **Res Completa:** Requiere capturar ambos lados (izquierdo y derecho). Entre la captura del primer lado y del segundo, la balanza debe descender obligatoriamente a cero (peso ≤ 2,0 kg) para impedir capturar dos veces el mismo cuarto.
   - **Media Res:** Requiere capturar un único lado (izquierdo o derecho).
+- **Tipo de pesaje (F11):** en **Administración › Tipo de pesaje** (y como paso obligatorio del asistente de puesta en marcha) se elige si la empresa pesa *res completa y media res*, *solo res completa* o *solo media res*. Con un solo tipo, la pantalla de pesaje no muestra el combo de desposte y la boleta, las pantallas de boletas y los reportes omiten el desposte salvo que haya boletas de otro tipo (anteriores al cambio o importadas).
 - **Rangos de peso válidos:** 10,0 a 600,0 kg por lado. Total de 10,0 a 1200,0 kg para Res Completa y 10,0 a 600,0 kg para Media Res. Resolución de 0,1 kg con redondeo estándar (`AwayFromZero`).
 - **Atajos de teclado y flujo operativo:**
   - `F5`: Capturar lado izquierdo (solo si la balanza está conectada, estable y dentro de rango).
   - `F6`: Capturar lado derecho.
-  - `F8`: Borrar pesos capturados para reiniciar la pesada del animal.
+  - `F8`: Borrar pesaje (descarta los pesos capturados del pesaje en curso para reiniciar la pesada del animal).
+  - `F9`: Imprimir el último pesaje grabado en la pantalla.
   - `F12`: Grabar pesaje (habilitado únicamente cuando los datos requeridos y los pesos están completos).
-  - `Enter`: Navegación secuencial entre los campos de datos (ganadero → secuencia → cliente → dirección → color/raza → sexo → desposte → observación). En los buscadores de catálogo, `Enter` autoselecciona cuando hay una única coincidencia.
+  - `Enter`: Navegación secuencial entre los campos de datos (ganadero → secuencia → cliente → dirección → fletero (opcional) → color/raza → sexo → desposte → observación). En los buscadores de catálogo, `Enter` autoselecciona cuando hay una única coincidencia.
   - `Escape`: Cerrar la pantalla de pesaje (con advertencia si existen pesos capturados sin grabar).
 - **Numeración atómica garantizada:** La asignación del número de boleta se realiza atómicamente a nivel de base de datos (`UPDATE ... RETURNING`) en la misma transacción que el insert del pesaje y su auditoría, garantizando unicidad y continuidad sin huecos ni carreras.
 - **Sugerencia de secuencia:** Al seleccionar un ganadero, el sistema sugiere automáticamente el siguiente número de secuencia según los pesajes del día para dicho ganadero (iniciando en 1 cada nuevo día).
-- **Alta rápida de ganaderos y clientes:** Si el texto tecleado en el buscador no existe en el catálogo, al pulsar `Enter` se abre directamente el diálogo de alta rápida (prellenando marca/código y nombre) bajo el permiso `AltaRapidaCatalogos`. Tras guardar, el nuevo registro se selecciona inmediatamente en la pantalla de pesaje.
+- **Alta rápida de ganaderos y clientes:** Si el texto tecleado en el buscador no existe en el catálogo, al pulsar `Enter` se abre directamente el diálogo de alta rápida (prellenando el nombre; el código lo asigna el sistema) bajo el permiso `AltaRapidaCatalogos`. Tras guardar, el nuevo registro se selecciona inmediatamente en la pantalla de pesaje.
 - **Política de balanza en modo simulador:**
   - Cuando la balanza está configurada en modo **Simulador**, únicamente los administradores (`ConfigurarBalanza`) tienen permitido capturar y grabar pesajes.
   - Para los operadores y supervisores, los botones de captura y grabado se bloquean con mensaje guía de advertencia y el panel de control del simulador permanece oculto.
-  - Todo pesaje grabado en este modo queda marcado con origen `SIMULADO` en base de datos, en la grilla del día y en los registros de auditoría.
+  - Todo pesaje grabado en este modo queda marcado con origen `SIMULADO` en base de datos, en el historial de pesajes y en los registros de auditoría.
+
+- **Historial de pesajes (F10):** apartado propio (**Pesaje › Historial de pesajes**, `F4` desde la pantalla principal) con selector de día, anuladas en gris, columna Fletero y reimpresión (`F9`) con el flujo existente (auditoría `Imprimir`/`Reimprimir`). El registro de pesaje ya no contiene grilla; el simulador sigue en esa pantalla.
+- **Fletero por pesaje (F10):** selector opcional (código o nombre) tras la dirección; se limpia al grabar. La boleta imprime solo el fletero elegido y puede cambiarse al editar la boleta.
+- **Login con marca (F10):** el inicio de sesión muestra el logo y el nombre de la empresa (`IServicioParametros.ObtenerIdentidadEmpresaAsync`, sin sesión y solo con datos no sensibles).
 
 ## Boleta de Pesaje e Impresión
 
 - **Formatos soportados:**
-  - **Media Carta (216 × 140 mm):** Diseño en dos columnas para impresoras matriciales, láser o de inyección de tinta, optimizado para formularios horizontales. Incluye encabezado con datos fiscales de la empresa y logo opcional, fecha/hora local, correlativo de boleta, datos del ganadero (marca y nombre), cliente, fleteros (F1 a F4), detalle de pesos (lado izquierdo, lado derecho y total en kg) y observaciones.
+  - **Media Carta (216 × 140 mm):** Diseño en dos columnas para impresoras matriciales, láser o de inyección de tinta, optimizado para formularios horizontales. Incluye encabezado con datos fiscales de la empresa y logo opcional, fecha/hora local, correlativo de boleta, datos del ganadero (código y nombre), cliente, el fletero elegido al pesar (en la zona de datos), detalle de pesos (lado izquierdo, lado derecho y total en kg), observaciones y el bloque de firmas (Jefe de Despacho, Fletero y Médico Veterinario).
   - **Ticket 80 mm:** Diseño continuo en una sola columna para impresoras térmicas de punto de venta.
 - **Configuración por equipo:**
   - Accesible desde el menú **Administración › Configuración de impresión** (requiere rol Administrador / permiso `GestionarParametros`).
@@ -136,7 +142,7 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
   - Funciones de "Vista previa (muestra)" e "Imprimir muestra" que renderizan una boleta ficticia de prueba con la leyenda `MUESTRA — SIN VALOR` sin afectar la numeración de boletas ni la base de datos.
 - **Impresión desde la pantalla de pesaje:**
   - **Impresión automática al grabar:** Opción configurable por equipo. Al presionar `F12` (Grabar), el pesaje se persiste atómicamente y a continuación se dispara la impresión sin bloquear el hilo principal. Si la impresora está sin papel o apagada, el pesaje queda grabado de forma segura y el panel guía informa el error en rojo indicando `Pulse F9 para reintentar`.
-  - **Impresión manual (F9):** Permite imprimir en cualquier momento la boleta seleccionada en la grilla del día pulsando la tecla `F9` o el botón "Imprimir (F9)".
+  - **Impresión manual (F9):** imprime el último pesaje grabado en la pantalla de pesaje con la tecla `F9` o el botón "Imprimir último (F9)"; para otra boleta, el **Historial de pesajes** (`F4` desde el inicio) o la reimpresión por número (`F3`).
 - **Reimpresión de boletas:**
   - Acceso directo mediante la tecla `F3` desde la pantalla principal o menú **Boletas › Reimprimir boleta** (disponible para Operador, Supervisor y Administrador).
   - Búsqueda ágil por número de boleta (prellenado por defecto con la última boleta emitida). Si se cambia el número, el resumen se limpia y F4/F9 quedan deshabilitados hasta volver a buscar con `Enter`: nunca se imprime una boleta distinta de la que muestra el campo.
@@ -186,14 +192,15 @@ Por motivos de seguridad, la cuenta administradora inicial tiene activada la mar
 ## Reportes
 
 - **Acceso y permisos:**
-  - Menú **Reportes › Reportes de pesaje** (abre por defecto "Pesajes del día") y **Reportes › Boletas anuladas**.
+  - Menú **Reportes › Reportes de pesaje** (abre por defecto "Pesajes del día"), **Reportes › Pesajes por raza** y **Reportes › Boletas anuladas**.
   - Requiere permiso `VerReportes` (disponible para Supervisor y Administrador; el menú permanece oculto para Operadores).
 - **Tipos de reporte:**
   1. **Pesajes del día:** pesajes vigentes del día seleccionado (fecha desde y hasta sincronizadas).
   2. **Pesajes entre fechas:** pesajes vigentes dentro de un rango de fechas arbitrario.
   3. **Pesajes por ganadero:** pesajes vigentes filtrados por un ganadero específico dentro de un rango de fechas.
   4. **Pesajes por cliente:** pesajes vigentes filtrados por un cliente específico dentro de un rango de fechas.
-  5. **Boletas anuladas:** boletas anuladas emitidas dentro del rango de fechas, con fecha/hora de anulación, usuario responsable y motivo completo de anulación.
+  5. **Pesajes por raza (F10):** pesajes vigentes de una raza (Color/Raza, comparación normalizada) dentro de un rango de fechas; el combo se llena con las razas existentes.
+  6. **Boletas anuladas:** boletas anuladas emitidas dentro del rango de fechas, con fecha/hora de anulación, usuario responsable y motivo completo de anulación.
 - **Logotipo de la empresa:**
   - Utiliza el mismo logo configurado en **Administración › Parámetros del sistema**.
   - Si no hay logo configurado o el archivo de imagen no está disponible, el reporte se genera normalmente omitiendo el recuadro del logo, y la pantalla informa al usuario que el reporte saldrá sin logo.
@@ -287,6 +294,23 @@ Herramientas avanzadas de administración accesibles desde el menú **Utilitario
   - Botón "Abrir carpeta" para explorar directamente el directorio de logs del sistema operativo (`%ProgramData%\PesajeFaeneo\logs`).
   - Límite de seguridad de rendimiento: lectura de los últimos 4 MB de archivo y hasta 10 000 entradas leídas y 5 000 filas en la grilla (con aviso si se recortan) para garantizar respuesta instantánea.
 
+## Licencias y activación (F13)
+
+El sistema se activa con una **clave de un solo equipo** (`XXXX-XXXX-XXXX-XXXX-XXXX`) o se usa en **prueba durante 15 días**. Plan: `docs/plans/F13-licencias-activacion.md`.
+
+- **Servidor:** el mismo proyecto Supabase que ScaleLogger (`uxzehuncusnaofmfjydk`), con el producto `pesajefaeneo`. La aplicación solo llama a las funciones RPC `activate_product_license`, `register_product_trial` y `check_product_license` con la clave pública `anon`. La URL y la clave están en el código (`Infrastructure/Licencias/ConstantesLicencia.cs`), no en `appsettings.json`.
+- **Migración del servidor:** `supabase/migrations/20261013000000_licencias_por_producto.sql`. Se aplica a mano en el SQL Editor de Supabase; las verificaciones y la vuelta atrás están al final del archivo.
+- **Estado local:** `HKCU\Software\Classes\CLSID\{D1F44BC1-BA04-4C5E-8B08-3BDA0DE12FBB}\Cfg`, con valores firmados con SHA-256 y el identificador del equipo. El identificador sale del `MachineGuid` de Windows.
+- **Estados:** Activada; Prueba (N días); Sin activar; Vencida, que equivale al modo consulta: no se puede pesar ni importar.
+- **Fuera del control de licencia:** `--autoprueba`, `--restablecer-admin` y el build de capturas (`CAPTURAS_MANUAL`, que usa una licencia de demostración en memoria).
+- **Generar claves** (SQL Editor de Supabase):
+
+  ```sql
+  select * from public.generate_product_license_keys('pesajefaeneo', 5, 'Cliente o lote');
+  ```
+
+  Las claves se muestran **una sola vez**: en la base solo queda su hash. La revocación, la liberación por cambio de PC y las consultas de soporte están en la guía de instalación y soporte, sección 16.
+
 ## Publicación e instalador (F9)
 
 La versión del sistema tiene **una sola fuente**: la propiedad `<Version>` de `Directory.Build.props` (`1.0.0`). `AssemblyVersion`, `FileVersion`, el nombre del instalador, la barra de estado, "Ayuda › Acerca de" y el manifiesto de los backups la derivan de ahí (`InfoVersion`).
@@ -300,7 +324,7 @@ La versión del sistema tiene **una sola fuente**: la propiedad `<Version>` de `
   ```powershell
   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\construir-instalador.ps1
   ```
-  Genera `artifacts\instalador\PesajeFaeneo-Setup-<versión>-x64.exe` y su `.sha256` (publica antes salvo con `-SinPublicar`). El instalador es por equipo (`C:\Program Files\PesajeFaeneo`), conserva siempre la carpeta de datos `C:\ProgramData\PesajeFaeneo` al desinstalar y no está firmado digitalmente.
+  Genera `artifacts\instalador\Capataz-Setup-<versión>-x64.exe` y su `.sha256` (publica antes salvo con `-SinPublicar`). El instalador es por equipo (`C:\Program Files\PesajeFaeneo`), conserva siempre la carpeta de datos `C:\ProgramData\PesajeFaeneo` al desinstalar y no está firmado digitalmente.
 - Los scripts `.ps1` y el `.iss` son **ASCII puro** (Windows PowerShell 5.1 e Inno Setup leen los archivos sin BOM como ANSI).
 
 ### Autoprueba de una instalación
@@ -324,7 +348,7 @@ Tras confirmar, la cuenta `admin` queda activa, desbloqueada y con una contrase�
 
 ## Puesta en marcha, manuales y aceptación en sitio
 
-- **Asistente de puesta en marcha:** tras iniciar sesión, el Administrador ve un asistente mientras `ConfiguracionInicialCompleta` sea `false`. Cada paso abre la pantalla existente (copias de seguridad, datos de la empresa, balanza, impresión, fleteros, usuarios, importación). Empresa y balanza son obligatorias (la balanza puede quedar en simulador solo con confirmación explícita); "Finalizar" lo marca como completado y lo audita; "Omitir por ahora" cierra sin marcar. Se reabre desde **Ayuda › Asistente de puesta en marcha**.
+- **Asistente de puesta en marcha:** tras iniciar sesión, el Administrador ve un asistente mientras `ConfiguracionInicialCompleta` sea `false`. Cada paso abre la pantalla existente (copias de seguridad, datos de la empresa, tipo de pesaje, balanza, impresión, fleteros, usuarios, importación). Empresa, tipo de pesaje (F11) y balanza son obligatorios (la balanza puede quedar en simulador solo con confirmación explícita); "Finalizar" lo marca como completado y lo audita; "Omitir por ahora" cierra sin marcar. Se reabre desde **Ayuda › Asistente de puesta en marcha**.
 - **Manuales:** [`docs/manual/manual-usuario.md`](docs/manual/manual-usuario.md), [`docs/manual/guia-balanza.md`](docs/manual/guia-balanza.md) y [`docs/manual/guia-instalacion-soporte.md`](docs/manual/guia-instalacion-soporte.md).
 - **Aceptación en sitio (UAT):** [`docs/puesta-en-marcha/checklist-uat.md`](docs/puesta-en-marcha/checklist-uat.md) y [`docs/puesta-en-marcha/acta-aceptacion.md`](docs/puesta-en-marcha/acta-aceptacion.md).
 - **Historial de cambios:** [`CHANGELOG.md`](CHANGELOG.md).
